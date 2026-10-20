@@ -525,7 +525,10 @@ function saveCardioEdit(){
   const {ei,field,temp,listKey}=cardioEditCtx;
   const ex=DAYS[curDay].items[ei];
   if(!ex) return;
-  if(field==='intensity'){ex.intensity=temp.value;ex.logged=true;}
+  // v55: picking an intensity or a goal no longer marks the item done — the
+  // cardio counterpart of v47's "editing a set must not tick it". Done means
+  // the timer ran, the run was finished, or a distance was entered.
+  if(field==='intensity'){ex.intensity=temp.value;}
   else if(field==='duration'){
     const newGoal=temp.totalSec;
     const oldGoal=ex.duration||0;
@@ -558,7 +561,7 @@ function saveCardioEdit(){
       ex.duration=newGoal; // also update goal so subsequent runs start from corrected value
       ex.rl=isOpen?0:newGoal;
     }
-    if(newGoal>0) ex.logged=true;
+    // (v55: no blanket ex.logged here — while idle this edit sets the GOAL)
   }
   else if(field==='distance'){ex.distance=temp.value;if(temp.value>0) ex.logged=true;}
   else if(field==='activityLimit'){

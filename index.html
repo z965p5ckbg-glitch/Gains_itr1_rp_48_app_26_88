@@ -6216,7 +6216,7 @@ function renderCardioCard(ex,ei,shimmer){
         <div class="cf-u">${ex.distance!==null?'metres':'optional'}</div>
       </div>
     </div>`;
-    footerText='Tap any field to log · or use the timer to track activity time';
+    footerText='Start the timer to log time · tap Duration to change the goal';
     extraHtml=renderActivityTimer(ex,ei);
   } else if(ex.kind==='distance'){
     // Display unit switches: meters under 1km, km otherwise — matching the editor
@@ -6673,13 +6673,16 @@ function updateActivityTickUI(ex,ei){
     const livePaceEl=document.getElementById('livePace'+ei);
     if(livePaceEl) livePaceEl.textContent=elapsed&&ex.distance?calcPace(elapsed,ex.distance):'auto';
   }
-  // Enable the session log slide once we cross the 30s threshold
-  if(elapsed===30){
+  // Enable the session log slide once we cross the threshold the capture uses.
+  // v55: bindSlide() as well — the drag handler is only attached to an enabled
+  // slider, so until v54 this un-greyed a slider that ignored every swipe.
+  if(elapsed>=WS_CARDIO_MIN_SEC){
     const slideTrack=document.getElementById('slideTrack');
-    if(slideTrack&&slideTrack.classList.contains('disabled')){
+    if(slideTrack&&slideTrack.classList.contains('disabled')&&wsDayHasWork(curDay)){
       slideTrack.classList.remove('disabled');
       const lbl=document.getElementById('slideLbl');
       if(lbl) lbl.textContent='LOG SESSION';
+      bindSlide();
     }
   }
 }
@@ -7202,26 +7205,13 @@ function renderRestSection(ex,ei,phase){
 }
 
 function renderSlide(shimmer){
-  const d=DAYS[curDay];
-  // Enabled when ANY of: a strength set logged, a cardio exercise marked done,
-  // or a cardio exercise has been actively running for ≥30s (so users can log
-  // incomplete sessions intentionally — leaving early still counts as data).
-  let anyLogged=false;
-  for(const ex of (d.items||[])){
-    if(anyLogged) break;
-    const k=ex._itemKind||wsTagItemKind(ex);
-    if(k==='weighted'){
-      if((ex.sets||[]).some(s=>s._logged)) anyLogged=true;
-    } else if(k==='cardio_time'||k==='cardio_distance'){
-      if(ex.logged){ anyLogged=true; continue; }
-      const goal=ex.duration||0;
-      const elapsed=ex.timerMode==='open'?ex.rl:Math.max(0,goal-ex.rl);
-      if((ex.rs==='running'||ex.rs==='paused')&&elapsed>=30) anyLogged=true;
-    } else if(k==='cardio_intervals'){
-      if(ex.logged){ anyLogged=true; continue; }
-      if(ex.rounds>0||((ex.phase==='work'||ex.phase==='rest')&&ex.phaseIdx>0)) anyLogged=true;
-    }
-  }
+  // v55: enabled exactly when logging would save something — the same test
+  // the capture uses (wsEntryHasWork). Until v54 the two had separate rules:
+  // the slider counted a timer left running, the capture counted the item's
+  // "logged" flag, and the gap between them saved ghosts or dropped real work.
+  // A ticked set, a finished interval round, a finished cardio item or a cardio
+  // timer that has run 30s all count, so leaving early still logs what was done.
+  const anyLogged=wsDayHasWork(curDay);
   const shim=shimmer?' shimmer':'';
   // "+ Add Exercise" button sits in its own row above the LOG SESSION slider.
   // Opens the picker for the current day; the picker also has its own "+ New"
@@ -8390,7 +8380,10 @@ function saveCardioEdit(){
   const {ei,field,temp,listKey}=cardioEditCtx;
   const ex=DAYS[curDay].items[ei];
   if(!ex) return;
-  if(field==='intensity'){ex.intensity=temp.value;ex.logged=true;}
+  // v55: picking an intensity or a goal no longer marks the item done — the
+  // cardio counterpart of v47's "editing a set must not tick it". Done means
+  // the timer ran, the run was finished, or a distance was entered.
+  if(field==='intensity'){ex.intensity=temp.value;}
   else if(field==='duration'){
     const newGoal=temp.totalSec;
     const oldGoal=ex.duration||0;
@@ -8423,7 +8416,7 @@ function saveCardioEdit(){
       ex.duration=newGoal; // also update goal so subsequent runs start from corrected value
       ex.rl=isOpen?0:newGoal;
     }
-    if(newGoal>0) ex.logged=true;
+    // (v55: no blanket ex.logged here — while idle this edit sets the GOAL)
   }
   else if(field==='distance'){ex.distance=temp.value;if(temp.value>0) ex.logged=true;}
   else if(field==='activityLimit'){
@@ -8794,7 +8787,7 @@ function captureSessionRecord(dayIdx){
     // v55: only what was performed enters the record. Until v54 every item on
     // the day was saved, so an untouched exercise appeared in History with zero
     // sets and a skipped HIIT finisher counted as conditioning work.
-    if(wsEntryPerformed(entry, ex)) entries.push(entry);
+    if(wsItemPerformed(ex, entry)) entries.push(entry);
   }
   if(!entries.length) return null;   // nothing performed -> no session
   const rec={
@@ -8807,33 +8800,52 @@ function captureSessionRecord(dayIdx){
   return rec;
 }
 
-// Was this item actually done? Strength: at least one ticked set. Cardio and
-// intervals: the item was finished or saved (ex.logged), or — for intervals
-// ended early — at least one work round ran.
-function wsEntryPerformed(entry, ex){
-  if(entry.kind==='weighted' || entry.kind==='bodyweight') return (entry.sets||[]).length>0;
-  if(entry.kind==='hiit') return !!ex.logged || ((entry.hiit && entry.hiit.roundsDone)||0) > 0;
-  return !!ex.logged;
+// v55: ONE definition of "performed", shared by the three things that must
+// agree — the LOG SESSION slider (enabled only if logging would save
+// something), the record capture, and the boot clean-up of what old builds
+// saved. An entry counts only if it carries a measured fact: a ticked set, a
+// completed work round or work time, a duration, or a distance.
+//
+// Deliberately NOT the item's "logged" flag: a cardio item is flagged logged
+// when you merely pick an intensity or set a goal, so that flag would save
+// work that never happened.
+function wsEntryHasWork(e){
+  if(!e) return false;
+  if(e.kind==='weighted'||e.kind==='bodyweight') return Array.isArray(e.sets)&&e.sets.length>0;
+  if(e.kind==='hiit'){ const h=e.hiit||{}; return (h.roundsDone||0)>0||(h.workSecTotal||0)>0; }
+  if(e.kind==='cardio'){ const c=e.cardio||{}; return (c.durationSec||0)>0||(c.distanceM||0)>0; }
+  return true;                           // unknown kinds: never guess
 }
 
-// Remove entries that record no work whatsoever: strength with zero sets,
-// intervals with zero rounds and zero work time, cardio with neither time
-// nor distance. A cardio entry with a non-zero duration is KEPT even though
-// old builds sometimes saved a planned duration for untouched cardio — the
-// data cannot tell those apart, so the user decides, not a heuristic.
-// Sessions left with nothing are kept too (deleting a whole session is the
-// user's call). Returns how many entries were removed.
+// The capture's test: a measured fact (above) that is not just the plan. A
+// distance-based item carries its PLANNED distance from the template, so a
+// distance alone proves nothing — the item must have been finished or its
+// distance entered (ex.logged), or its timer must have run for at least
+// WS_CARDIO_MIN_SEC (the long-standing threshold that also wakes the slider
+// mid-run, so a timer started by accident is not logged as exercise).
+const WS_CARDIO_MIN_SEC = 30;
+function wsItemPerformed(ex, entry){
+  if(!wsEntryHasWork(entry)) return false;
+  if(entry.kind==='cardio') return !!ex.logged || ((entry.cardio&&entry.cardio.durationSec)||0)>=WS_CARDIO_MIN_SEC;
+  return true;
+}
+
+// Would logging this day save a session? The slider asks exactly this.
+function wsDayHasWork(dayIdx){
+  try{ return !!captureSessionRecord(dayIdx); }catch(_){ return false; }
+}
+
+// Remove entries that record no work whatsoever (see wsEntryHasWork). A cardio
+// entry with a non-zero duration is KEPT even though old builds sometimes
+// saved a planned duration for untouched cardio — the data cannot tell those
+// apart, so the user decides, not a heuristic. Sessions left with nothing are
+// kept too (deleting a whole session is the user's call). Returns how many
+// entries were removed.
 function wsPruneEmptyEntries(history){
   let removed=0;
   for(const rec of (Array.isArray(history)?history:[])){
     if(!rec||!Array.isArray(rec.entries)) continue;
-    const keep=rec.entries.filter(e=>{
-      if(!e) return false;
-      if(e.kind==='weighted'||e.kind==='bodyweight') return Array.isArray(e.sets)&&e.sets.length>0;
-      if(e.kind==='hiit'){ const h=e.hiit||{}; return (h.roundsDone||0)>0||(h.workSecTotal||0)>0; }
-      if(e.kind==='cardio'){ const c=e.cardio||{}; return (c.durationSec||0)>0||(c.distanceM||0)>0; }
-      return true;                       // unknown kinds: never guess
-    });
+    const keep=rec.entries.filter(wsEntryHasWork);
     if(keep.length && keep.length<rec.entries.length){ removed+=rec.entries.length-keep.length; rec.entries=keep; }
   }
   return removed;

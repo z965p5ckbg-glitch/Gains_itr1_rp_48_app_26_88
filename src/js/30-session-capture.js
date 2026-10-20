@@ -90,7 +90,7 @@ function captureSessionRecord(dayIdx){
     // v55: only what was performed enters the record. Until v54 every item on
     // the day was saved, so an untouched exercise appeared in History with zero
     // sets and a skipped HIIT finisher counted as conditioning work.
-    if(wsEntryPerformed(entry, ex)) entries.push(entry);
+    if(wsItemPerformed(ex, entry)) entries.push(entry);
   }
   if(!entries.length) return null;   // nothing performed -> no session
   const rec={
@@ -103,33 +103,52 @@ function captureSessionRecord(dayIdx){
   return rec;
 }
 
-// Was this item actually done? Strength: at least one ticked set. Cardio and
-// intervals: the item was finished or saved (ex.logged), or — for intervals
-// ended early — at least one work round ran.
-function wsEntryPerformed(entry, ex){
-  if(entry.kind==='weighted' || entry.kind==='bodyweight') return (entry.sets||[]).length>0;
-  if(entry.kind==='hiit') return !!ex.logged || ((entry.hiit && entry.hiit.roundsDone)||0) > 0;
-  return !!ex.logged;
+// v55: ONE definition of "performed", shared by the three things that must
+// agree — the LOG SESSION slider (enabled only if logging would save
+// something), the record capture, and the boot clean-up of what old builds
+// saved. An entry counts only if it carries a measured fact: a ticked set, a
+// completed work round or work time, a duration, or a distance.
+//
+// Deliberately NOT the item's "logged" flag: a cardio item is flagged logged
+// when you merely pick an intensity or set a goal, so that flag would save
+// work that never happened.
+function wsEntryHasWork(e){
+  if(!e) return false;
+  if(e.kind==='weighted'||e.kind==='bodyweight') return Array.isArray(e.sets)&&e.sets.length>0;
+  if(e.kind==='hiit'){ const h=e.hiit||{}; return (h.roundsDone||0)>0||(h.workSecTotal||0)>0; }
+  if(e.kind==='cardio'){ const c=e.cardio||{}; return (c.durationSec||0)>0||(c.distanceM||0)>0; }
+  return true;                           // unknown kinds: never guess
 }
 
-// Remove entries that record no work whatsoever: strength with zero sets,
-// intervals with zero rounds and zero work time, cardio with neither time
-// nor distance. A cardio entry with a non-zero duration is KEPT even though
-// old builds sometimes saved a planned duration for untouched cardio — the
-// data cannot tell those apart, so the user decides, not a heuristic.
-// Sessions left with nothing are kept too (deleting a whole session is the
-// user's call). Returns how many entries were removed.
+// The capture's test: a measured fact (above) that is not just the plan. A
+// distance-based item carries its PLANNED distance from the template, so a
+// distance alone proves nothing — the item must have been finished or its
+// distance entered (ex.logged), or its timer must have run for at least
+// WS_CARDIO_MIN_SEC (the long-standing threshold that also wakes the slider
+// mid-run, so a timer started by accident is not logged as exercise).
+const WS_CARDIO_MIN_SEC = 30;
+function wsItemPerformed(ex, entry){
+  if(!wsEntryHasWork(entry)) return false;
+  if(entry.kind==='cardio') return !!ex.logged || ((entry.cardio&&entry.cardio.durationSec)||0)>=WS_CARDIO_MIN_SEC;
+  return true;
+}
+
+// Would logging this day save a session? The slider asks exactly this.
+function wsDayHasWork(dayIdx){
+  try{ return !!captureSessionRecord(dayIdx); }catch(_){ return false; }
+}
+
+// Remove entries that record no work whatsoever (see wsEntryHasWork). A cardio
+// entry with a non-zero duration is KEPT even though old builds sometimes
+// saved a planned duration for untouched cardio — the data cannot tell those
+// apart, so the user decides, not a heuristic. Sessions left with nothing are
+// kept too (deleting a whole session is the user's call). Returns how many
+// entries were removed.
 function wsPruneEmptyEntries(history){
   let removed=0;
   for(const rec of (Array.isArray(history)?history:[])){
     if(!rec||!Array.isArray(rec.entries)) continue;
-    const keep=rec.entries.filter(e=>{
-      if(!e) return false;
-      if(e.kind==='weighted'||e.kind==='bodyweight') return Array.isArray(e.sets)&&e.sets.length>0;
-      if(e.kind==='hiit'){ const h=e.hiit||{}; return (h.roundsDone||0)>0||(h.workSecTotal||0)>0; }
-      if(e.kind==='cardio'){ const c=e.cardio||{}; return (c.durationSec||0)>0||(c.distanceM||0)>0; }
-      return true;                       // unknown kinds: never guess
-    });
+    const keep=rec.entries.filter(wsEntryHasWork);
     if(keep.length && keep.length<rec.entries.length){ removed+=rec.entries.length-keep.length; rec.entries=keep; }
   }
   return removed;

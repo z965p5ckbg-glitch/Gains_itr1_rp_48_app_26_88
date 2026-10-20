@@ -91,26 +91,13 @@ function renderRestSection(ex,ei,phase){
 }
 
 function renderSlide(shimmer){
-  const d=DAYS[curDay];
-  // Enabled when ANY of: a strength set logged, a cardio exercise marked done,
-  // or a cardio exercise has been actively running for ≥30s (so users can log
-  // incomplete sessions intentionally — leaving early still counts as data).
-  let anyLogged=false;
-  for(const ex of (d.items||[])){
-    if(anyLogged) break;
-    const k=ex._itemKind||wsTagItemKind(ex);
-    if(k==='weighted'){
-      if((ex.sets||[]).some(s=>s._logged)) anyLogged=true;
-    } else if(k==='cardio_time'||k==='cardio_distance'){
-      if(ex.logged){ anyLogged=true; continue; }
-      const goal=ex.duration||0;
-      const elapsed=ex.timerMode==='open'?ex.rl:Math.max(0,goal-ex.rl);
-      if((ex.rs==='running'||ex.rs==='paused')&&elapsed>=30) anyLogged=true;
-    } else if(k==='cardio_intervals'){
-      if(ex.logged){ anyLogged=true; continue; }
-      if(ex.rounds>0||((ex.phase==='work'||ex.phase==='rest')&&ex.phaseIdx>0)) anyLogged=true;
-    }
-  }
+  // v55: enabled exactly when logging would save something — the same test
+  // the capture uses (wsEntryHasWork). Until v54 the two had separate rules:
+  // the slider counted a timer left running, the capture counted the item's
+  // "logged" flag, and the gap between them saved ghosts or dropped real work.
+  // A ticked set, a finished interval round, a finished cardio item or a cardio
+  // timer that has run 30s all count, so leaving early still logs what was done.
+  const anyLogged=wsDayHasWork(curDay);
   const shim=shimmer?' shimmer':'';
   // "+ Add Exercise" button sits in its own row above the LOG SESSION slider.
   // Opens the picker for the current day; the picker also has its own "+ New"

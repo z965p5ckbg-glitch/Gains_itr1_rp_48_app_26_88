@@ -52,7 +52,7 @@ function renderCardioCard(ex,ei,shimmer){
         <div class="cf-u">${ex.distance!==null?'metres':'optional'}</div>
       </div>
     </div>`;
-    footerText='Tap any field to log · or use the timer to track activity time';
+    footerText='Start the timer to log time · tap Duration to change the goal';
     extraHtml=renderActivityTimer(ex,ei);
   } else if(ex.kind==='distance'){
     // Display unit switches: meters under 1km, km otherwise — matching the editor
@@ -509,13 +509,16 @@ function updateActivityTickUI(ex,ei){
     const livePaceEl=document.getElementById('livePace'+ei);
     if(livePaceEl) livePaceEl.textContent=elapsed&&ex.distance?calcPace(elapsed,ex.distance):'auto';
   }
-  // Enable the session log slide once we cross the 30s threshold
-  if(elapsed===30){
+  // Enable the session log slide once we cross the threshold the capture uses.
+  // v55: bindSlide() as well — the drag handler is only attached to an enabled
+  // slider, so until v54 this un-greyed a slider that ignored every swipe.
+  if(elapsed>=WS_CARDIO_MIN_SEC){
     const slideTrack=document.getElementById('slideTrack');
-    if(slideTrack&&slideTrack.classList.contains('disabled')){
+    if(slideTrack&&slideTrack.classList.contains('disabled')&&wsDayHasWork(curDay)){
       slideTrack.classList.remove('disabled');
       const lbl=document.getElementById('slideLbl');
       if(lbl) lbl.textContent='LOG SESSION';
+      bindSlide();
     }
   }
 }
