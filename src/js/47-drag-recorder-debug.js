@@ -367,48 +367,7 @@ function wsUpdateDebugHud(){
     '<div class="ws-debug-hud-actions"><button class="ws-debug-btn" id="wsCopyLogBtn" onclick="wsCopyLog()">COPY LOG</button><button class="ws-debug-btn" id="wsClearLogBtn" onclick="wsClearLog()">CLEAR</button></div>';
 }
 
-// Update the scroll position indicator bar below the active row.
-// Called each rAF frame when dragging; shows true position as virtual offset
-// + real scrollLeft compose into a total position within scrollWidth.
-function wsUpdateScrollBar(){
-  const wrap=document.getElementById('wsScrollBar');
-  const thumb=document.getElementById('wsScrollBarThumb');
-  if(!wrap||!thumb) return;
-  const ds=wsDragState;
-  const engaged=ds&&ds.scrollEngaged;
-  wrap.classList.toggle('visible',!!engaged);
-  if(!engaged) return;
-  const row=document.getElementById('wsActiveRow');
-  if(!row) return;
-  const total=row.scrollWidth;
-  const visible=row.clientWidth;
-  if(total<=visible){ wrap.classList.remove('visible'); return; }
-  const virtualPos=(ds.baseScrollLeft||0)+(ds.transformOffset||0);
-  const clampedPos=Math.max(0,Math.min(total-visible,virtualPos));
-  const thumbWidthPct=visible/total*100;
-  const thumbLeftPct=clampedPos/total*100;
-  thumb.style.width=thumbWidthPct+'%';
-  thumb.style.left=thumbLeftPct+'%';
-}
-
-// Update the visual progress indicator on the active edge.
-function wsUpdateEdgeIndicator(edge,fillPct,scrolling){
-  const left=document.getElementById('wsEdgeDwellLeft');
-  const right=document.getElementById('wsEdgeDwellRight');
-  const leftFill=document.getElementById('wsEdgeDwellLeftFill');
-  const rightFill=document.getElementById('wsEdgeDwellRightFill');
-  // Reset both first
-  left.classList.remove('visible','scrolling');
-  right.classList.remove('visible','scrolling');
-  leftFill.style.height='0%';
-  rightFill.style.height='0%';
-  if(!edge) return;
-  const target=edge==='left'?left:right;
-  const targetFill=edge==='left'?leftFill:rightFill;
-  target.classList.add('visible');
-  if(scrolling){
-    target.classList.add('scrolling');
-  } else {
-    targetFill.style.height=Math.round((fillPct||0)*100)+'%';
-  }
-}
+// v55: removed dead copies of wsUpdateScrollBar and wsUpdateEdgeIndicator.
+// Both were redeclared later (48-day-drag-model.js) when edge-scroll was
+// dropped, and in one script the LAST declaration wins — so these never ran
+// and only made it unclear which version was live.
