@@ -1,0 +1,71 @@
+/* CARDIO */
+.cardio-card{background:var(--s1);border:1px solid var(--b1);border-radius:14px;margin-bottom:12px;overflow:hidden;position:relative}
+.cardio-card.act{border-color:var(--b2);box-shadow:0 0 0 1px rgba(240,120,48,.07)}
+.cardio-card.act::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);border-radius:3px 0 0 3px}
+
+/* HEAD redesigned: tag becomes a prominent label, moves to its own row */
+.cardio-head{padding:14px 14px 4px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cardio-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.cardio-icon{width:42px;height:42px;background:var(--s3);border:1px solid var(--b2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .14s;touch-action:manipulation}
+.cardio-icon:active{background:var(--b2);transform:scale(.95)}
+.cardio-icon svg{width:24px;height:24px;fill:var(--tx);stroke:none}
+.cardio-name-block{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.cardio-name{font-size:18px;font-weight:600;color:var(--tx);line-height:1.15}
+.cardio-tag{
+  display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+  font-size:13px;font-family:'DM Mono',monospace;color:var(--tx2);
+  letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+  position:relative;padding-left:9px;
+}
+.cardio-tag::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:13px;background:var(--acc);border-radius:1.5px;
+}
+.cardio-tag.intervals::before{background:var(--rest-c)}
+.cardio-tag.distance::before{background:#7ab8d4}
+.cardio-tag-meta{color:var(--tx3);font-weight:400;letter-spacing:.06em;text-transform:none;font-size:13px}
+.cardio-cue{font-size:13px;color:var(--tx2);padding:8px 18px 12px;font-style:italic;line-height:1.4}
+
+.cardio-fields{display:grid;gap:1px;background:var(--b1);border-top:1px solid var(--b1)}
+.cardio-fields.t2{grid-template-columns:1fr 1fr}
+.cardio-fields.t3{grid-template-columns:1fr 1fr 1fr}
+/* Pending indicator — shows when user has edited config while timer is running */
+.pending-indicator{
+  font-family:'DM Mono',monospace;font-size:12px;color:var(--acc);
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:6px 14px;background:rgba(240,120,48,.06);
+  border-top:1px solid rgba(240,120,48,.2);text-align:center;font-weight:500;
+}
+.cf{background:var(--s1);padding:16px 8px 14px;text-align:center;cursor:pointer;transition:background .14s;touch-action:manipulation;min-height:96px;display:flex;flex-direction:column;justify-content:center;position:relative}
+.cf:active{background:var(--s2)}
+.cf.logged{background:var(--acc-d)}
+.cf.auto{background:var(--s2);cursor:default}
+/* Active state — Duration cell during a running/paused timer; subtly glows but remains editable */
+.cf.active{background:rgba(111,181,151,.06)}
+.cf.active .cf-v{color:var(--rest-c)}
+.cf.active .cf-u{color:var(--rest-c);font-weight:500;letter-spacing:.05em}
+.cf-l{font-size:12px;font-family:'DM Mono',monospace;color:var(--tx2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:6px;font-weight:500}
+.cf-v{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--tx);line-height:1}
+.cf-u{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);margin-top:4px;font-weight:500}
+.cf.logged .cf-v{color:var(--acc)}
+.cf.logged .cf-u{color:rgba(240,120,48,.55)}
+.cf.logged .cf-l{color:rgba(240,120,48,.7)}
+.cf.auto .cf-v{color:var(--tx3);font-size:22px}
+.cf.empty .cf-v{color:var(--b4);font-size:22px}
+
+.phase-strip{padding:14px 16px 12px;background:rgba(240,120,48,.04);border-top:1px solid var(--b1)}
+.phase-strip-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);font-weight:500}
+.phase-strip-rounds{color:var(--tx2)}
+.phase-strip-track{display:grid;gap:3px;border-radius:7px;background:var(--b1);padding:3px;position:relative}
+.phase-seg{height:14px;border-radius:5px;position:relative;transition:all .35s ease;overflow:hidden;min-width:0}
+.phase-seg.work{background:linear-gradient(180deg,rgba(240,120,48,.18),rgba(240,120,48,.10));border:1px solid rgba(240,120,48,.22)}
+.phase-seg.rest{background:linear-gradient(180deg,rgba(111,181,151,.18),rgba(111,181,151,.10));border:1px solid rgba(111,181,151,.22)}
+.phase-seg.done.work{background:linear-gradient(180deg,#f78a3f,#d96a25);border-color:#f07830}
+.phase-seg.done.rest{background:linear-gradient(180deg,#8bc4a8,#4f9b7a);border-color:#6fb597}
+.phase-seg.active.work{background:linear-gradient(180deg,#ff8a3a,#e26820);border-color:var(--acc);box-shadow:0 0 12px rgba(240,120,48,.6),inset 0 1px 0 rgba(255,210,160,.35);animation:pulseSeg 1s ease-in-out infinite}
+.phase-seg.active.rest{background:linear-gradient(180deg,#95d0b5,#5fa68a);border-color:var(--rest-c);box-shadow:0 0 12px rgba(111,181,151,.55),inset 0 1px 0 rgba(180,225,205,.3);animation:pulseSeg 1.4s ease-in-out infinite}
+@keyframes pulseSeg{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+.phase-current-label{margin-top:10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--tx);letter-spacing:.06em;text-align:center;font-weight:600}
+.phase-current-label.work{color:var(--acc)}
+.phase-current-label.rest{color:var(--rest-c)}
+

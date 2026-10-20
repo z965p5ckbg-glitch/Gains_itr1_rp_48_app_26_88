@@ -1,0 +1,149 @@
+/* ─── Cascade-delete confirmation modal ──────────────────────────────
+   A separate modal that opens on top of the editor sheet. Shows the
+   blast radius (which days will lose the exercise) and a slide-to-
+   confirm gesture to commit. Higher z-index than the editor so it
+   layers on top. */
+#wsLibDeleteModal{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.78);z-index:280;display:none;align-items:flex-end;opacity:0;transition:opacity .22s}
+#wsLibDeleteModal.open{display:flex;opacity:1}
+.ws-ld-sheet{width:100%;background:var(--s2);border-radius:24px 24px 0 0;border-top:1px solid var(--b2);padding:0 0 calc(28px + env(safe-area-inset-bottom,0));transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:88vh;display:flex;flex-direction:column}
+#wsLibDeleteModal.open .ws-ld-sheet{transform:translateY(0)}
+.ws-ld-handle{width:38px;height:5px;background:var(--b3);border-radius:3px;margin:12px auto 8px;flex-shrink:0}
+.ws-ld-head{padding:8px 22px 14px;border-bottom:1px solid var(--b1);flex-shrink:0}
+.ws-ld-eyebrow{font-family:'DM Mono',monospace;font-size:13px;color:#c87a72;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ws-ld-eyebrow svg{width:14px;height:14px;stroke:#c87a72;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ws-ld-name{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--acc);letter-spacing:.02em;line-height:1.1}
+.ws-ld-name-sub{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tx);margin-top:2px;font-weight:400}
+
+.ws-ld-body{padding:16px 22px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+.ws-ld-explain{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--tx);line-height:1.5;margin-bottom:14px}
+.ws-ld-explain strong{color:var(--acc);font-weight:600}
+
+/* Archive notice (soft delete) — informational, calm */
+.ws-ld-notice{background:var(--s1);border:1px solid var(--b2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--tx);line-height:1.5}
+.ws-ld-notice strong{color:var(--acc);font-weight:600}
+
+/* Hard-delete (permanent) warning — visually heavy, danger color */
+.ws-ld-danger{background:rgba(200,80,80,.08);border:1px solid rgba(200,80,80,.30);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center}
+.ws-ld-danger-head{font-family:'Bebas Neue',sans-serif;font-size:20px;color:#ff8e84;letter-spacing:.04em;line-height:1.1;margin-bottom:6px}
+.ws-ld-danger-body{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--tx);line-height:1.45;font-weight:500}
+.ws-ld-danger-body em{color:#ff8e84;font-style:normal;font-weight:600}
+
+.ws-ld-affected-label{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx3);letter-spacing:.10em;text-transform:uppercase;font-weight:500;margin-bottom:8px}
+.ws-ld-affected{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:10px 4px;display:flex;flex-direction:column;gap:0;margin-bottom:14px}
+.ws-ld-affected-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 14px;border-bottom:1px solid var(--b1)}
+.ws-ld-affected-row:last-child{border-bottom:none}
+.ws-ld-affected-name{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--acc);letter-spacing:.02em}
+.ws-ld-affected-label-txt{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx4);letter-spacing:.04em}
+.ws-ld-affected-empty{padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--tx3);font-style:italic}
+
+.ws-ld-warn{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--tx3);line-height:1.5;font-style:italic;text-align:center;margin-top:4px;margin-bottom:14px}
+
+/* Slide-to-confirm: a track with a draggable thumb. Thumb slides right,
+   filling the track with the danger color as it moves. Releasing past
+   the threshold commits; releasing before threshold snaps back. */
+.ws-ld-slider-wrap{padding:0 22px 16px;flex-shrink:0}
+.ws-ld-slider{position:relative;height:54px;border-radius:27px;background:var(--s1);border:1px solid var(--b2);overflow:hidden;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.ws-ld-slider-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,rgba(200,80,80,.20),rgba(200,80,80,.45));border-radius:27px;transition:width 0s}
+.ws-ld-slider.snapping .ws-ld-slider-fill{transition:width .22s cubic-bezier(.4,0,.2,1)}
+.ws-ld-slider-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.14em;text-transform:uppercase;font-weight:600;pointer-events:none;transition:color .15s, opacity .15s}
+.ws-ld-slider.armed .ws-ld-slider-label{color:#ff8e84}
+.ws-ld-slider.confirmed .ws-ld-slider-label{color:#ff8e84;opacity:0}
+.ws-ld-slider-thumb{position:absolute;top:3px;left:3px;width:48px;height:48px;border-radius:50%;background:#3a2020;border:1px solid #5a3030;display:flex;align-items:center;justify-content:center;cursor:grab;transition:transform 0s, background .15s, border-color .15s, box-shadow .15s;will-change:transform}
+.ws-ld-slider.snapping .ws-ld-slider-thumb{transition:transform .22s cubic-bezier(.4,0,.2,1), background .15s, border-color .15s, box-shadow .15s}
+.ws-ld-slider.armed .ws-ld-slider-thumb{background:#5a2828;border-color:#a04040;box-shadow:0 0 12px rgba(200,80,80,.4)}
+.ws-ld-slider.dragging .ws-ld-slider-thumb{cursor:grabbing}
+.ws-ld-slider-thumb svg{width:18px;height:18px;stroke:#c87a72;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ws-ld-slider.armed .ws-ld-slider-thumb svg{stroke:#ff8e84}
+.ws-ld-slider.confirmed{background:rgba(200,80,80,.30);border-color:rgba(200,80,80,.50)}
+.ws-ld-slider.confirmed .ws-ld-slider-fill{background:linear-gradient(90deg,rgba(200,80,80,.45),rgba(200,80,80,.65))}
+
+.ws-ld-cancel-row{display:flex;padding:0 22px;flex-shrink:0}
+.ws-ld-cancel{flex:1;height:46px;border-radius:11px;background:var(--s3);color:var(--tx2);border:1px solid var(--b2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .12s}
+.ws-ld-cancel:active{background:var(--b1)}
+
+/* ─── Day editor: exercises list (read-only display + add button) ─────
+   Shows the day's current exercises as compact rows so the user can see
+   what's there before adding more. Editing individual instance values is
+   handled in the existing per-day editor in the main app; this view in
+   the workshop day-edit modal is for composition (add/remove from day). */
+.ws-de-exlist{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;position:relative}
+.ws-de-exrow{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:9px 12px;min-height:48px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .25s cubic-bezier(.32,.72,0,1), opacity .15s;position:relative;user-select:none;-webkit-user-select:none}
+.ws-de-exrow.lifted{transform:scale(1.03);box-shadow:0 6px 20px rgba(0,0,0,.45),0 0 0 1px var(--acc-m);border-color:var(--acc-m);z-index:5;transition:transform .14s, box-shadow .14s}
+.ws-de-exrow.dragging{opacity:.5}
+.ws-de-exrow.flipping{transition:none}
+/* The drag affordance: a small grip glyph on the LEFT to indicate the row can
+   be picked up. Three short horizontal lines, dim. Subtle enough not to draw
+   attention but visible if you go looking. */
+.ws-de-exrow-grip{flex-shrink:0;width:14px;height:18px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;color:var(--tx4);opacity:.55;pointer-events:none}
+.ws-de-exrow-grip span{width:10px;height:1.5px;background:currentColor;border-radius:1px}
+.ws-de-exrow-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ws-de-exrow-title{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--acc);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1}
+.ws-de-exrow-sub{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--tx2);font-weight:400;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-de-exrow-sub:empty{display:none}
+.ws-de-exrow-meta{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.04em;flex-shrink:0;text-align:right;margin-right:2px}
+/* Remove button — small × on the right, only mildly visible until tapped. */
+.ws-de-exrow-remove{flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--tx4);font-size:18px;line-height:1;cursor:pointer;border-radius:6px;padding:0;-webkit-tap-highlight-color:transparent;transition:background .12s, color .12s}
+.ws-de-exrow-remove:active{background:rgba(200,80,80,.10);color:#ff8e84}
+.ws-de-exempty{padding:18px 14px;text-align:center;color:var(--tx4);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:var(--s1);border:1px dashed var(--b2);border-radius:10px;font-weight:500;margin-bottom:10px}
+.ws-de-addex-row{display:flex;gap:8px;margin-top:2px}
+.ws-de-addex-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:1px dashed var(--b3);border-radius:10px;padding:11px;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;flex:1;cursor:pointer;transition:background .12s, border-color .12s, color .12s;min-width:0}
+.ws-de-addex-btn:active{background:var(--s1);border-color:var(--acc-m);color:var(--acc)}
+/* Wrench icon button on each exercise row — opens the in-day instance editor. */
+.ws-de-exrow-wrench{flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--tx3);cursor:pointer;border-radius:6px;padding:0;-webkit-tap-highlight-color:transparent;transition:background .12s, color .12s}
+.ws-de-exrow-wrench:active{background:var(--s3);color:var(--acc)}
+.ws-de-exrow-wrench svg{width:14px;height:14px;fill:currentColor;stroke:none;display:block}
+
+/* ─── Add-Exercise picker modal ────────────────────────────────────────
+   Slides up over the dimmed day-edit modal. Multi-select via tap; sticky
+   bottom action shows the live count and target day name. */
+#wsPickerModal{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.78);z-index:260;display:none;align-items:flex-end;opacity:0;transition:opacity .22s}
+#wsPickerModal.open{display:flex;opacity:1}
+#wsPickerModal.open .ws-pk-sheet{transform:translateY(0)}
+.ws-pk-sheet{width:100%;background:var(--s2);border-radius:24px 24px 0 0;border-top:1px solid var(--b2);padding:0 0 calc(20px + env(safe-area-inset-bottom,0));transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:88vh;display:flex;flex-direction:column}
+.ws-pk-handle{width:38px;height:5px;background:var(--b3);border-radius:3px;margin:12px auto 8px;flex-shrink:0}
+.ws-pk-head{padding:0 14px 10px 22px;flex-shrink:0;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px}
+.ws-pk-title{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx2);letter-spacing:.14em;text-transform:uppercase;font-weight:500;flex:1;text-align:center;padding-left:54px}
+/* "+ New" pill — discoverable but doesn't dominate. Same height as the title row,
+   ember accent on text + plus glyph to signal the create action. */
+.ws-pk-new-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--b2);color:var(--acc);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:6px 11px;border-radius:14px;cursor:pointer;transition:background .12s, border-color .12s, color .12s;-webkit-tap-highlight-color:transparent}
+.ws-pk-new-btn:active{background:var(--acc-d);border-color:var(--acc-m)}
+.ws-pk-new-plus{font-size:14px;line-height:1;font-weight:500}
+.ws-pk-new-txt{line-height:1}
+.ws-pk-toolbar{padding:0 22px;flex-shrink:0;background:var(--s2);position:sticky;top:0;z-index:5;padding-top:12px;padding-bottom:6px}
+.ws-pk-search{position:relative;background:var(--s1);border:1px solid var(--b2);border-radius:12px;display:flex;align-items:center}
+.ws-pk-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--tx3);fill:none;stroke-width:1.7;pointer-events:none}
+.ws-pk-search input{background:transparent;border:none;outline:none;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 32px 10px 34px;width:100%;flex:1;-webkit-appearance:none}
+.ws-pk-search input::placeholder{color:var(--tx3)}
+.ws-pk-search input::-webkit-search-decoration,.ws-pk-search input::-webkit-search-cancel-button{display:none}
+.ws-pk-search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--tx3);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;display:none}
+.ws-pk-search-clear.visible{display:block}
+
+.ws-pk-body{flex:1;overflow-y:auto;padding:8px 22px 12px;-webkit-overflow-scrolling:touch;min-width:0;overflow-x:hidden}
+
+.ws-pk-section-title{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.10em;text-transform:uppercase;font-weight:500;margin:14px 0 6px;display:flex;align-items:baseline;justify-content:space-between}
+.ws-pk-section-title .count{color:var(--tx4);font-weight:400}
+
+/* Picker row — like a library row but with a check indicator */
+.ws-pk-row{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:11px;padding:10px 12px;min-height:50px;margin-bottom:5px;cursor:pointer;transition:background .12s, border-color .12s;-webkit-tap-highlight-color:transparent}
+.ws-pk-row:active{background:var(--s2)}
+.ws-pk-row.selected{background:rgba(240,120,48,.06);border-color:var(--acc-m)}
+.ws-pk-row-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ws-pk-row-title{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--acc);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1}
+.ws-pk-row-sub{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--tx);font-weight:400;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-pk-row-sub:empty{display:none}
+.ws-pk-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--b3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .14s, border-color .14s}
+.ws-pk-row.selected .ws-pk-check{background:var(--acc);border-color:var(--acc)}
+.ws-pk-check svg{width:12px;height:12px;stroke:var(--on-acc);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .14s}
+.ws-pk-row.selected .ws-pk-check svg{opacity:1}
+
+.ws-pk-empty{padding:24px 14px;text-align:center;color:var(--tx3);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--s1);border:1px dashed var(--b2);border-radius:11px;margin-top:8px}
+
+/* Sticky bottom action — count + day name, fills with ember when selection > 0 */
+.ws-pk-footer{padding:12px 22px;flex-shrink:0;background:var(--s2);border-top:1px solid var(--b1);box-shadow:0 -8px 16px -8px rgba(0,0,0,.4);display:flex;gap:10px}
+.ws-pk-cancel{flex:0 0 auto;height:48px;padding:0 18px;border-radius:11px;background:var(--s3);color:var(--tx2);border:1px solid var(--b2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .12s}
+.ws-pk-cancel:active{background:var(--b1)}
+.ws-pk-add{flex:1;height:48px;border-radius:11px;background:var(--acc);color:var(--on-acc);border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .12s, opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.ws-pk-add:active{background:#d96a26}
+.ws-pk-add:disabled,.ws-pk-add.empty{background:var(--s3);color:var(--tx3);cursor:default;opacity:1;border:1px solid var(--b2)}
+.ws-pk-add .day{font-weight:400;opacity:.85}
+

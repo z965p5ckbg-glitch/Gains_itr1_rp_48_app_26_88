@@ -1,0 +1,19 @@
+{
+  "name": "gains",
+  "private": true,
+  "description": "Gains — offline iPhone workout tracker. One self-contained HTML file built from src/.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs --check",
+    "test": "node build.mjs --check && node tests/run.mjs",
+    "test:shots": "node tests/run.mjs --shots"
+  },
+  "devDependencies": {
+    "acorn": "^8.14.0",
+    "puppeteer-core": "^25.14.0"
+  },
+  "optionalDependencies": {
+    "@sparticuz/chromium": "^153.0.0"
+  }
+}

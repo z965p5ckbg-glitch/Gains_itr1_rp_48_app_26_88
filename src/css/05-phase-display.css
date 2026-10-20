@@ -1,0 +1,419 @@
+/* CONSOLIDATED PHASE DISPLAY — display + control + progress in one element
+   Shape: rounded rectangle. Border = SVG progress ring overlaid (animates around perimeter).
+   Whole element is tappable — replaces the old badge entirely. */
+.phase-big-display{
+  margin-top:14px;
+  padding:18px 18px 16px;
+  background:var(--s2);
+  border-radius:14px;
+  text-align:center;
+  position:relative;
+  cursor:pointer;
+  user-select:none;
+  touch-action:manipulation;
+  transition:background .3s, transform .12s;
+  overflow:hidden;
+}
+.phase-big-display:active{transform:scale(.985)}
+.phase-big-display.work{background:rgba(240,120,48,.10)}
+.phase-big-display.rest{background:rgba(111,181,151,.10)}
+.phase-big-display.setup{background:rgba(157,142,199,.10)}
+.phase-big-display.done{background:rgba(111,181,151,.14)}
+.phase-big-display.paused{background:var(--s2)}
+.phase-big-display.idle{background:rgba(240,120,48,.04)}
+
+/* Static border that always shows — defines the rectangle */
+.phase-big-display::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  border:1.5px solid var(--b2);
+  pointer-events:none;
+}
+.phase-big-display.work::before{border-color:rgba(240,120,48,.25)}
+.phase-big-display.setup::before{border-color:rgba(157,142,199,.3)}
+.phase-big-display.rest::before{border-color:rgba(111,181,151,.25)}
+.phase-big-display.done::before{border-color:rgba(111,181,151,.35)}
+.phase-big-display.idle::before{border-color:rgba(240,120,48,.18)}
+
+/* SVG perimeter progress — sits inside the element, traces the rounded rectangle */
+.phase-perimeter{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;border-radius:inherit;
+  overflow:visible;
+}
+.phase-perimeter rect{
+  fill:none;stroke-width:2.5;
+  vector-effect:non-scaling-stroke;
+  transition:stroke .3s;
+  /* dashoffset is driven by rAF for smooth, frame-accurate animation — no CSS transition */
+}
+.phase-big-display.work .phase-perimeter rect{stroke:var(--acc);filter:drop-shadow(0 0 4px rgba(240,120,48,.5))}
+.phase-big-display.rest .phase-perimeter rect{stroke:var(--rest-c);filter:drop-shadow(0 0 4px rgba(111,181,151,.45))}
+.phase-big-display.setup .phase-perimeter rect{stroke:var(--lilac);filter:drop-shadow(0 0 4px rgba(157,142,199,.5))}
+.phase-big-display.done .phase-perimeter rect{stroke:var(--rdy);filter:drop-shadow(0 0 6px rgba(111,181,151,.55))}
+.phase-big-display.paused .phase-perimeter rect{stroke:var(--b4)}
+.phase-big-display.idle .phase-perimeter rect{display:none}
+
+/* Subtle pulse on the active backgrounds */
+@keyframes phaseRunPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.06)}}
+.phase-big-display.work,.phase-big-display.rest{animation:phaseRunPulse 1.4s ease-in-out infinite}
+
+/* Content layout */
+.phase-big-content{position:relative;z-index:1}
+.phase-round-counter{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx3);font-weight:500;margin-bottom:8px}
+.phase-big-display.work .phase-round-counter{color:rgba(240,120,48,.85)}
+.phase-big-display.setup .phase-round-counter{color:rgba(157,142,199,.9)}
+.phase-big-display.rest .phase-round-counter{color:rgba(111,181,151,.85)}
+.phase-big-display.done .phase-round-counter{color:var(--rdy)}
+.phase-big-display.idle .phase-round-counter{color:rgba(240,120,48,.65)}
+.phase-big-name{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.04em;line-height:1;color:var(--tx);font-variant-numeric:tabular-nums}
+.phase-big-display.work .phase-big-name{color:var(--acc)}
+.phase-big-display.setup .phase-big-name{color:var(--lilac)}
+.phase-big-display.rest .phase-big-name{color:var(--rest-c)}
+.phase-big-display.done .phase-big-name{color:var(--rdy)}
+.phase-big-time{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:.04em;line-height:1;color:var(--tx);margin-top:6px;font-variant-numeric:tabular-nums}
+.phase-big-display.work .phase-big-time{color:var(--acc)}
+.phase-big-display.setup .phase-big-time{color:var(--lilac)}
+.phase-big-display.rest .phase-big-time{color:var(--rest-c)}
+.phase-big-display.done .phase-big-time{color:var(--rdy)}
+.phase-big-sub{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-top:8px;font-weight:500}
+.phase-big-display.idle .phase-big-sub{color:var(--acc);font-weight:700}
+.phase-big-display.paused .phase-big-sub{color:var(--rest-c);font-weight:700;font-size:12px}
+.phase-big-display.work .phase-big-sub,
+.phase-big-display.rest .phase-big-sub,
+.phase-big-display.setup .phase-big-sub{font-weight:700;color:var(--tx2);font-size:12px}
+
+.cardio-foot{padding:11px 16px;border-top:1px solid var(--b1);font-size:12px;color:var(--tx3);font-family:'DM Mono',monospace;letter-spacing:.05em;text-align:center;font-style:italic}
+
+.rest-section{border-top:1px solid var(--b1)}
+.rest-collapsed-row{display:flex;align-items:center;justify-content:space-between;padding:13px 16px}
+.rest-collapsed-lbl{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.rest-show-btn{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx);background:var(--s3);border:1px solid var(--b3);border-radius:8px;padding:9px 18px;cursor:pointer;letter-spacing:.08em;font-weight:600;transition:all .14s;touch-action:manipulation;min-height:36px}
+.rest-show-btn:active{background:var(--b2);transform:scale(.96)}
+
+.rest-body{padding:14px 14px 12px;background:rgba(240,120,48,.04)}
+.rest-body.cardio-time{background:rgba(240,120,48,.06)}
+/* I1: strength rest is literally rest — sage, not ember, matches HIIT color semantics */
+.rest-body.strength-rest{background:rgba(111,181,151,.04)}
+.rest-top-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+
+.rest-badge{position:relative;width:68px;height:68px;flex-shrink:0;cursor:pointer;user-select:none;transition:transform .12s;touch-action:manipulation}
+.rest-badge:active{transform:scale(.94)}
+.rest-badge svg.r-arc{position:absolute;top:0;left:0;width:68px;height:68px;transform:rotate(-90deg)}
+.rbg{fill:none;stroke:var(--b2);stroke-width:4}
+.rarc{fill:none;stroke:var(--acc);stroke-width:4;stroke-linecap:round;stroke-dasharray:182;transition:stroke-dashoffset .9s linear,stroke .3s}
+.rest-badge.idle .rarc{stroke:var(--tx3);stroke-dashoffset:0!important}
+.rest-badge.ready .rarc{stroke:var(--rdy);stroke-dashoffset:0!important}
+.rest-badge.paused .rarc{stroke:var(--b4)}
+.rest-badge.work .rarc{stroke:var(--work)}
+.rest-badge.workrest .rarc{stroke:var(--rest-c)}
+.rest-badge.counting .rarc{stroke:var(--acc);stroke-dashoffset:0!important}
+.rbadge-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rword{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);line-height:1;margin-bottom:3px;transition:color .3s;display:flex;align-items:center;justify-content:center;height:11px}
+.rword svg{width:9px;height:11px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+.rcount{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--acc);line-height:1;transition:color .3s,font-size .2s}
+.rest-badge.idle .rword{color:var(--tx2)}
+.rest-badge.idle .rcount{color:var(--tx);font-size:15px}
+.rest-badge.running .rword{color:var(--acc)}
+/* I1: strength rest running — sage arc, word, count */
+.rest-badge.strength-running .rarc{stroke:var(--rest-c)}
+.rest-badge.strength-running .rword{color:var(--rest-c)}
+.rest-badge.strength-running .rcount{color:var(--rest-c)}
+.rest-badge.ready .rword{color:var(--rdy)}
+.rest-badge.ready .rcount{color:var(--rdy);font-size:15px}
+.rest-badge.paused .rcount{color:var(--b4)}
+.rest-badge.paused .rword{color:var(--b4)}
+.rest-badge.work .rword,.rest-badge.work .rcount{color:var(--work)}
+.rest-badge.workrest .rword,.rest-badge.workrest .rcount{color:var(--rest-c)}
+.rest-badge.counting .rword,.rest-badge.counting .rcount{color:var(--acc)}
+
+@keyframes pulseReady{0%{box-shadow:0 0 0 0 rgba(111,181,151,.4)}70%{box-shadow:0 0 0 12px rgba(111,181,151,0)}100%{box-shadow:0 0 0 0 rgba(111,181,151,0)}}
+.rest-badge.ready{border-radius:50%;animation:pulseReady 1.6s ease-out infinite}
+
+.rest-bar-wrap{flex:1}
+.rbar{height:4px;background:var(--b2);border-radius:2px;overflow:hidden}
+.rfill{height:100%;background:var(--acc);border-radius:2px;transition:width .9s linear,background .3s}
+.rfill.ready{background:var(--rdy)!important;width:100%!important;transition:background .3s}
+.rfill.idle{background:#888070!important;width:100%!important;transition:background .3s}
+/* I1: strength rest fill is sage while counting */
+.rfill.strength-running{background:var(--rest-c)!important}
+.rfill.work{background:var(--work)!important}
+.rfill.workrest{background:var(--rest-c)!important}
+.rfill.counting{background:var(--acc)!important}
+
+.rest-bar-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.rest-bar-hint{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);letter-spacing:.06em;font-weight:500}
+.rest-bar-hint.action{color:var(--tx3);font-weight:400}
+
+.rest-controls-row{display:flex;gap:6px}
+.rctrl{height:44px;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--s1);border:1px solid var(--b2);border-radius:9px;cursor:pointer;transition:all .14s;user-select:none;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.06em;color:var(--tx2);padding:0 10px;touch-action:manipulation}
+.rctrl:active{background:var(--b2);transform:scale(.97)}
+.rctrl.pause-btn{background:var(--s2);border-color:var(--b3);color:var(--tx)}
+.rctrl.resume-btn{background:rgba(111,181,151,.10);border-color:var(--rest-c);color:var(--rest-c)}
+.rctrl.done-btn{background:rgba(111,181,151,.12);border-color:var(--rest-c);color:var(--rest-c);font-weight:600}
+.rctrl.cancel-btn{background:var(--s2);border-color:var(--b3);color:var(--tx3)}
+
+/* Hold-to-confirm — used for Done and Cancel. The action only fires after a 3s sustained press.
+   Releasing before the fill completes aborts. The fill grows left-to-right inside the button. */
+.hold-btn{
+  position:relative;overflow:hidden;
+  height:48px;display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--s2);border:1px solid var(--b3);border-radius:9px;
+  cursor:pointer;user-select:none;touch-action:manipulation;
+  font-family:'DM Mono',monospace;font-size:13px;font-weight:600;
+  letter-spacing:.06em;color:var(--tx2);padding:0 14px;
+  transition:border-color .14s,color .14s;
+  flex:1;
+}
+.hold-btn .hold-fill{
+  position:absolute;inset:0;width:0;
+  border-radius:9px;
+  pointer-events:none;
+  z-index:0;
+}
+.hold-btn .hold-label{
+  position:relative;z-index:1;display:flex;align-items:center;gap:6px;
+}
+.hold-btn .hold-icon{
+  width:11px;height:11px;border:1.5px solid currentColor;border-radius:50%;
+  position:relative;flex-shrink:0;
+  transition:opacity .14s;
+  animation:holdHint 2.4s ease-in-out 2;
+}
+@keyframes holdHint{
+  0%,100%{box-shadow:0 0 0 0 currentColor;opacity:.7}
+  50%{box-shadow:0 0 0 4px rgba(255,255,255,0);opacity:1}
+}
+.hold-btn .hold-icon::after{
+  content:'';position:absolute;inset:1px;border-radius:50%;
+  background:currentColor;transform:scale(0);
+  transition:transform .14s;
+}
+.hold-btn.holding .hold-icon::after{transform:scale(1)}
+.hold-btn.holding .hold-fill{
+  width:100%;
+  transition:width 3s linear;
+}
+.hold-btn.holding{border-color:currentColor}
+.hold-btn.confirming{
+  /* brief flash on completion, then renderAll re-renders */
+  background:currentColor;color:var(--s1);
+}
+
+.hold-btn.done{
+  color:var(--rest-c);background:rgba(111,181,151,.08);
+  border-color:rgba(111,181,151,.4);
+}
+.hold-btn.done .hold-fill{background:rgba(111,181,151,.25)}
+
+.hold-btn.cancel{
+  color:var(--tx3);
+}
+.hold-btn.cancel .hold-fill{background:rgba(180,90,80,.30)}
+.hold-btn.cancel.holding{color:#c87a72}
+.rctrl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+.rctrl.active{border-color:var(--acc-m);background:var(--acc-d);color:var(--acc)}
+.rctrl.flex{flex:1}
+
+.rtimer-pill{flex:1.6;height:44px;background:var(--s1);border:1px solid var(--b2);border-radius:9px;display:flex;align-items:stretch;overflow:hidden;font-family:'DM Mono',monospace}
+.rtimer-btn{width:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:400;color:var(--tx2);transition:background .12s,color .12s;user-select:none;touch-action:manipulation}
+.rtimer-btn:active{background:var(--b2);color:var(--acc)}
+.rtimer-label{flex:1;display:flex;align-items:center;justify-content:center;border-left:1px solid var(--b2);border-right:1px solid var(--b2);font-size:13px;font-weight:500;letter-spacing:.05em;color:var(--tx2);cursor:pointer;transition:background .12s,color .12s;touch-action:manipulation}
+.rtimer-label:active{background:var(--b2)}
+
+.workout-timer-mode-row{display:flex;gap:6px;margin-bottom:10px}
+.wtm-btn{flex:1;height:36px;border-radius:8px;background:var(--s1);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);letter-spacing:.06em;font-weight:500;touch-action:manipulation;transition:all .14s}
+.wtm-btn:active{background:var(--b2)}
+.wtm-btn.active{border-color:var(--acc-m);background:var(--acc-d);color:var(--acc)}
+.wtm-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+
+.slide-zone{padding:8px 6px 10px}
+/* "+ Add Exercise" row in the live Today view — sits just above the LOG
+   SESSION slider. Dashed border to match the picker/library add-buttons
+   so the affordance feels consistent across surfaces. */
+.today-add-row{padding:4px 6px 0}
+.today-add-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;border:1px dashed var(--b3);border-radius:10px;padding:10px;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;width:100%;cursor:pointer;transition:background .12s, border-color .12s, color .12s;-webkit-tap-highlight-color:transparent}
+.today-add-btn:active{background:var(--s1);border-color:var(--acc-m);color:var(--acc)}
+.today-add-plus{font-size:15px;line-height:1;font-weight:400}
+.slide-track{height:64px;background:var(--s1);border:1px solid var(--b2);border-radius:14px;display:flex;align-items:center;padding:9px;position:relative;overflow:hidden;cursor:grab;user-select:none;transition:border-color .3s,background .3s;touch-action:none}
+.slide-track.disabled{cursor:default}
+.slide-track:not(.disabled):not(.logged):active{cursor:grabbing}
+.slide-thumb{width:46px;height:46px;background:var(--acc);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2;box-shadow:0 0 18px rgba(240,120,48,.22);pointer-events:none}
+.slide-track.disabled .slide-thumb{background:var(--b3);box-shadow:none}
+.slide-thumb svg{width:20px;height:20px;stroke:var(--on-acc);stroke-width:2.5;fill:none}
+.slide-track.disabled .slide-thumb svg{stroke:var(--tx3)}
+.slide-lbl{position:absolute;left:0;right:0;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.12em;color:var(--b4);z-index:1;pointer-events:none;transition:color .3s}
+.slide-track.disabled .slide-lbl{color:var(--tx3)}
+.slide-track.logged{border-color:var(--rdy);background:var(--rdy-d);cursor:default}
+.slide-track.logged .slide-lbl{color:var(--rdy);letter-spacing:.18em;font-size:18px}
+.slide-track.logged .slide-thumb{background:var(--rdy);box-shadow:0 0 28px rgba(111,181,151,.4)}
+
+.post-session{display:flex;flex-direction:column;gap:8px;padding:10px 6px}
+.post-title{font-family:'DM Mono',monospace;font-size:13px;color:var(--rdy);letter-spacing:.14em;text-transform:uppercase;text-align:center;margin-bottom:4px}
+.post-btn{height:54px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:1px solid var(--b2);background:var(--s1);color:var(--tx2);transition:all .12s;touch-action:manipulation}
+.post-btn:active{transform:scale(.98);background:var(--s2)}
+.post-btn.primary{background:var(--rdy-d);border-color:var(--rdy-m);color:var(--rdy)}
+.post-btn.primary:active{background:rgba(111,181,151,.2)}
+/* Inline post-session totals — the "what you just did" rollups */
+.ps-stats{display:flex;gap:1px;background:var(--b1);border:1px solid var(--b1);border-radius:12px;overflow:hidden;margin-bottom:6px}
+.ps-stat{flex:1;background:var(--s1);padding:14px 6px 12px;text-align:center}
+.ps-stat-v{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:var(--tx)}
+.ps-stat-v.acc{color:var(--acc)}
+.ps-stat-v.lilac{color:var(--effort)} /* effort stat — crimson (class name kept for template compat) */
+.ps-stat-l{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-top:6px;font-weight:500}
+
+#nav{display:flex;background:var(--s1);border-top:1px solid var(--b1);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0)}
+.ni{flex:1;padding:11px 4px 9px;text-align:center;font-size:12px;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);cursor:pointer;transition:color .12s;user-select:none;touch-action:manipulation}
+.ni:active{color:var(--tx)}
+.ni.active{color:var(--acc)}
+.ni svg{width:22px;height:22px;display:block;margin:0 auto 4px;stroke-width:1.5;fill:none;stroke:currentColor}
+
+.overlay{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.68);z-index:100;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .22s}
+.overlay.open{opacity:1;pointer-events:all}
+.sheet{background:var(--s2);border-radius:24px 24px 0 0;border-top:1px solid var(--b2);padding-bottom:calc(28px + env(safe-area-inset-bottom,0));transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:85vh;overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sheet::-webkit-scrollbar{display:none}
+.overlay.open .sheet{transform:translateY(0)}
+.sh-handle{width:38px;height:5px;background:var(--b3);border-radius:3px;margin:12px auto}
+.sh-title{font-size:14px;font-family:'DM Mono',monospace;color:var(--tx2);letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:0 20px 15px;border-bottom:1px solid var(--b1);font-weight:500}
+.sh-fields{display:flex;gap:12px;padding:18px 20px 0}
+.sh-f{flex:1}
+.sh-fl{font-size:12px;font-family:'DM Mono',monospace;color:var(--tx2);letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:8px;font-weight:500}
+.stepper{display:flex;border:1px solid var(--b2);border-radius:12px;overflow:hidden}
+.sb{width:54px;height:66px;background:var(--s3);border:none;color:var(--tx2);font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;font-family:'DM Sans',sans-serif;flex-shrink:0;transition:background .1s,color .1s;user-select:none;touch-action:manipulation}
+.sb:active{background:var(--b2);color:var(--acc)}
+.sm{flex:1;height:66px;background:var(--s1);display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--b1);border-right:1px solid var(--b1);min-width:0;padding:0 4px}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--tx);line-height:1}
+.su{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.08em;margin-top:2px;white-space:nowrap}
+.sh-div{height:1px;background:var(--b1);margin:14px 20px 0}
+
+.apply-section{padding:14px 20px 0}
+.apply-lbl-above{font-size:12px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:8px;font-weight:500}
+.apply-track{height:50px;background:var(--s3);border:1px solid var(--b2);border-radius:10px;display:flex;align-items:center;padding:4px;position:relative;overflow:hidden;cursor:grab;transition:border-color .2s,background .2s;user-select:none;touch-action:none}
+.apply-track:active{cursor:grabbing}
+.apply-track.applied{border-color:var(--rdy-m);background:var(--rdy-d);cursor:default}
+.apply-thumb{width:42px;height:42px;background:var(--s4);border:1px solid var(--b3);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;transition:background .2s,border-color .2s;pointer-events:none}
+.apply-track.applied .apply-thumb{background:var(--rdy);border-color:var(--rdy)}
+.apply-thumb svg{width:14px;height:14px;stroke:var(--tx3);stroke-width:2;fill:none;transition:stroke .2s}
+.apply-track.applied .apply-thumb svg{stroke:var(--on-acc)}
+.apply-txt{position:absolute;left:0;right:0;text-align:center;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);z-index:0;pointer-events:none;transition:color .2s}
+.apply-track.applied .apply-txt{color:var(--rdy)}
+
+.sh-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:13px 20px 0}
+.sh-tgl-left{display:flex;align-items:center;gap:10px;flex:1;padding-right:12px}
+.sh-tgl-left svg{width:17px;height:17px;stroke:var(--tx2);fill:none;stroke-width:1.6;flex-shrink:0}
+.sh-tgl-txt{font-size:15px;color:var(--tx2)}
+.sh-tgl-sub{font-size:12px;color:var(--tx3);margin-top:1px}
+.tog{width:52px;height:30px;background:var(--b2);border-radius:15px;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;touch-action:manipulation}
+.tog.on{background:var(--acc)}
+.tog::before{content:'';width:24px;height:24px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tog.on::before{transform:translateX(22px)}
+
+.sh-actions{display:flex;gap:10px;padding:14px 20px 0}
+.sh-cancel{flex:1;height:56px;background:var(--s3);border:1px solid var(--b2);border-radius:14px;font-size:16px;font-weight:500;color:var(--tx2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .12s;touch-action:manipulation}
+.sh-cancel:active{background:var(--b2)}
+#saveSetBtn{flex:2;height:56px;background:var(--acc);border:none;border-radius:14px;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.1em;color:var(--on-acc);cursor:pointer;box-shadow:0 4px 18px rgba(240,120,48,.22);transition:background .15s,transform .1s,box-shadow .2s;touch-action:manipulation}
+#saveSetBtn:active{transform:scale(.97)}
+@keyframes saveFlash{0%{background:var(--acc);box-shadow:0 4px 18px rgba(240,120,48,.22)}15%{background:var(--rdy);box-shadow:0 4px 32px rgba(111,181,151,.5)}85%{background:var(--rdy);box-shadow:0 4px 28px rgba(111,181,151,.4)}100%{background:var(--acc);box-shadow:0 4px 18px rgba(240,120,48,.22)}}
+#saveSetBtn.saved{animation:saveFlash .65s ease-out}
+
+#cardioEditModal,#iconPickerModal{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.72);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+#cardioEditModal.open,#iconPickerModal.open{display:flex}
+.tbox{background:var(--s2);border-radius:20px;padding:0;width:100%;max-width:380px;border:1px solid var(--b2);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.tbox-title{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);letter-spacing:.12em;text-transform:uppercase;text-align:center;margin:24px 20px 8px;font-weight:500;flex-shrink:0}
+.tbox-sub{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--tx3);text-align:center;margin:0 20px 18px;flex-shrink:0}
+.tbox-body-scroll{flex:1;overflow-y:auto;padding:0 20px;-webkit-overflow-scrolling:touch;min-height:0}
+.tbox .stepper{margin-bottom:18px}
+.tbox .sb{width:60px;height:64px;font-size:30px}
+.tbox .sm{min-width:100px}
+.tbox .sv{font-size:38px}
+.tbox-actions{display:flex;gap:8px;padding:14px 20px 20px;flex-shrink:0;background:var(--s2);border-top:1px solid var(--b1);box-shadow:0 -8px 16px -8px rgba(0,0,0,.4)}
+.tbox-actions button{flex:1;height:50px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:background .12s;touch-action:manipulation}
+.tba-cancel{background:var(--s3);color:var(--tx2);border:1px solid var(--b2)!important}
+.tba-confirm{background:var(--acc);color:var(--on-acc)}
+
+/* Slide-to-save — used in rounds editor when circuit is actively running.
+   User must drag thumb fully right to apply edits (prevents accidental disruption of a workout). */
+.slide-to-save{flex:1;height:48px;display:flex}
+.sts-track{
+  position:relative;width:100%;height:100%;
+  background:var(--s2);border:1px solid var(--b3);border-radius:24px;
+  overflow:hidden;user-select:none;touch-action:none;
+}
+.sts-fill{
+  position:absolute;top:0;bottom:0;left:0;width:0;
+  background:linear-gradient(90deg,rgba(240,120,48,.25),rgba(240,120,48,.4));
+  transition:width 0s;
+  pointer-events:none;
+}
+.sts-label{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:13px;font-weight:600;
+  letter-spacing:.08em;color:var(--tx2);
+  pointer-events:none;
+  transition:opacity .14s;
+}
+.sts-thumb{
+  position:absolute;top:3px;left:3px;width:42px;height:40px;
+  background:var(--acc);border-radius:21px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--on-acc);
+  cursor:grab;touch-action:none;
+  box-shadow:0 1px 4px rgba(0,0,0,.4);
+  transition:transform .25s ease;
+}
+.sts-thumb:active{cursor:grabbing}
+.sts-thumb svg{width:16px;height:16px}
+.sts-track.dragging .sts-thumb{transition:none}
+.sts-track.dragging .sts-label{opacity:.4}
+.sts-track.completed .sts-fill{background:var(--acc)}
+.sts-track.completed .sts-label{opacity:0}
+
+/* Rising save-confirmation sheet — roomy slider, label unobstructed (thumb is taller area, label centered with side padding) */
+.ws-confirm-scrim{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.6);z-index:260;display:none;align-items:flex-end;opacity:0;transition:opacity .22s}
+.ws-confirm-scrim.open{display:flex;opacity:1}
+.ws-confirm-sheet{width:100%;background:var(--s2);border-top:1px solid var(--b2);border-radius:22px 22px 0 0;padding:18px 20px calc(24px + env(safe-area-inset-bottom,0));transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:0 -14px 44px rgba(0,0,0,.5)}
+.ws-confirm-scrim.open .ws-confirm-sheet{transform:translateY(0)}
+.ws-confirm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.ws-confirm-title{font-size:17px;font-weight:600;color:var(--tx)}
+.ws-confirm-x{width:32px;height:32px;border-radius:9px;background:var(--s3);border:1px solid var(--b2);color:var(--tx2);font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ws-confirm-sub{font-size:13px;color:var(--tx3);line-height:1.45;margin-bottom:16px}
+/* roomy slider: taller track, label has horizontal padding so the thumb never sits over text mid-slide */
+.ws-confirm-slide{height:58px}
+.ws-confirm-slide .sts-track{border-radius:16px}
+.ws-confirm-slide .sts-thumb{width:50px;height:50px;top:4px;left:4px;border-radius:14px}
+.ws-confirm-slide .sts-thumb svg{width:19px;height:19px}
+.ws-confirm-slide .sts-label{font-size:14px;letter-spacing:.1em;padding-left:46px}
+
+.slider-block{margin-bottom:14px}
+.slider-display{text-align:center;margin-bottom:14px;display:flex;align-items:baseline;justify-content:center;gap:6px}
+.slider-display .sv{font-size:48px;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.slider-display .su{font-size:13px;margin-top:0}
+/* Slider wrap is the touch target — taller than visible track for easier grab on touch */
+/* The wrap is the touch target — taller and wider than the visible track so fingers easily catch the handle, especially near the edges */
+.slider-wrap{position:relative;height:60px;display:flex;align-items:center;padding:0 18px 0 22px;cursor:pointer;touch-action:none;user-select:none;margin:0 -14px;}
+.slider-track{position:relative;width:100%;height:6px;background:var(--b2);border-radius:3px;pointer-events:none}
+.slider-fill{position:absolute;top:0;left:0;height:100%;background:var(--acc);border-radius:3px;pointer-events:none}
+/* Bigger handle, larger invisible hit area around it */
+.slider-handle{
+  position:absolute;top:50%;width:28px;height:28px;background:var(--acc);
+  border:2px solid var(--s2);border-radius:50%;transform:translate(-50%,-50%);
+  box-shadow:0 0 12px rgba(240,120,48,.4);pointer-events:none;
+  transition:transform .12s ease-out;
+}
+.slider-wrap.dragging .slider-handle{transform:translate(-50%,-50%) scale(1.18)}
+.slider-ticks{display:flex;justify-content:space-between;margin-top:8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx4);letter-spacing:.05em}
+/* Breakpoint markers visible on the track */
+/* Slider milestones — sparse anchor dots at landmark values */
+.slider-milestone{
+  position:absolute;top:50%;width:4px;height:4px;
+  background:var(--b3);border-radius:50%;
+  transform:translate(-50%,-50%);pointer-events:none;
+  z-index:1;opacity:.85;
+}
+/* Zone breakpoint lines — kept subtle, indicate where slider sensitivity changes */
+.slider-breakpoint{position:absolute;top:-1px;width:1px;height:8px;background:var(--b3);pointer-events:none;opacity:.4}
+
+.slider-with-stepper{display:flex;align-items:center;gap:8px;margin-top:8px}
+.slider-with-stepper .stepper-mini{display:flex;border:1px solid var(--b2);border-radius:8px;overflow:hidden;height:44px}
+.slider-with-stepper .sb-mini{width:44px;height:44px;background:var(--s3);border:none;color:var(--tx2);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'DM Sans',sans-serif;touch-action:manipulation}
+.slider-with-stepper .sb-mini:active{background:var(--b2);color:var(--acc)}
+

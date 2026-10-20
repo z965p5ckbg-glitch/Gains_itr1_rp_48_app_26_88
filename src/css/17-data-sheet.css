@@ -1,0 +1,44 @@
+/* ═══ data sheet + toast ═══ */
+.settings-chev{color:var(--tx4);font-size:20px;padding-left:8px}
+.ws-data-wrap{position:fixed;inset:0;z-index:9000;opacity:0;pointer-events:none;transition:opacity .18s}
+.ws-data-age{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin:2px 0 10px}
+.ws-data-age.stale{color:var(--acc)}
+.ws-data-alert{background:rgba(240,120,48,.12);border:1px solid rgba(240,120,48,.5);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.4;color:#f0a878}
+.ws-data-wrap.on{opacity:1;pointer-events:auto}
+.ws-data-scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.ws-data-sheet{position:absolute;left:0;right:0;bottom:0;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--s2);border-radius:18px 18px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));transform:translateY(14px);transition:transform .2s}
+.ws-data-wrap.on .ws-data-sheet{transform:translateY(0)}
+.ws-data-h{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--acc);letter-spacing:.02em}
+.ws-data-stat{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--tx2);margin:10px 0 4px}
+.ws-data-stat b{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--tx)}
+.ws-data-stat span{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx4)}
+.ws-data-note{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tx3);line-height:1.45;margin:8px 0 12px}
+.ws-data-btn{font-family:'DM Mono',monospace;font-size:14px;letter-spacing:.04em;text-align:center;color:var(--tx2);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px;margin-bottom:9px;cursor:pointer}
+.ws-data-btn.primary{color:var(--acc);border-color:rgba(240,120,48,.4);background:rgba(240,120,48,.1)}
+.ws-data-btn.danger{color:#cf7052;border-color:rgba(207,112,82,.35)}
+.ws-data-btn.close{color:var(--tx4);background:none;border-color:rgba(255,255,255,.06)}
+.ws-data-sep{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx4);margin:16px 0 8px}
+.ws-data-ta{width:100%;box-sizing:border-box;height:80px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:11px;color:var(--tx2);font-family:'DM Mono',monospace;font-size:12px;padding:10px;margin-bottom:9px;outline:none}
+.ws-toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);bottom:calc(90px + env(safe-area-inset-bottom));background:var(--s2);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px 16px;font-family:'DM Mono',monospace;font-size:13px;color:var(--tx);z-index:9500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.ws-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.wspr-list{background:var(--s1);border:1px solid rgba(255,255,255,.07);border-radius:15px;padding:2px 14px}
+.wspr-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}
+.wspr-row:last-child{border-bottom:none}
+.wspr-v{font-family:'Bebas Neue',sans-serif;font-size:23px;color:var(--gold);letter-spacing:.02em;min-width:96px;line-height:1}
+.wspr-m{flex:1;min-width:0}
+.wspr-n{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wspr-d{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx4);margin-top:2px}
+
+/* v51: old .hi-eb-fix caption styling removed — superseded below. */
+.hi-eb-fix:active{color:#cf7052}
+.ws-fix-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.ws-fix-m{flex:1;min-width:0}
+.ws-fix-n{font-family:'DM Sans',sans-serif;font-size:15px;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-fix-s{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx4);margin-top:2px}
+.ws-fix-x{font-family:'DM Mono',monospace;font-size:13px;color:#cf7052;border:1px solid rgba(207,112,82,.3);border-radius:9px;padding:6px 12px;cursor:pointer;flex:0 0 auto}
+
+.ws-fix-date{width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:11px;color:var(--tx);font-family:'DM Mono',monospace;font-size:15px;padding:11px 12px;margin-bottom:9px;outline:none}
+
+.ws-data-ta.tall{height:230px;font-size:11.5px;line-height:1.5}
+

@@ -1,0 +1,214 @@
+/* ═══ v47 — Progress legibility ══════════════════════════════════════════════
+   The period selector is the frame of reference for every number on the screen,
+   so it stays pinned while you scroll, and the active period is stated in words
+   rather than inferred from which chip looks selected. */
+.wsprog-segwrap,.wsprog-frames,.wsprog-seg-row{
+  position:sticky; top:0; z-index:30;
+  background:var(--bg); padding:8px 0 10px;
+  box-shadow:0 6px 14px -10px rgba(0,0,0,.9);
+}
+.wsprog-cap{ display:flex;align-items:center;gap:9px;flex-wrap:wrap; }
+.wsprog-frame-badge{
+  font-family:'DM Mono',monospace; font-size:12px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--acc);
+  background:rgba(240,120,48,.13); border:1px solid rgba(240,120,48,.4);
+  border-radius:999px; padding:3px 10px; line-height:1.5;
+}
+/* v48: .wsprog-load* removed — the acute:chronic headline it styled is gone. */
+
+
+/* ═══ v48 — training trends ══════════════════════════════════════════════════
+   Four stacked panels on a shared 12-week axis. Separate scales per panel
+   because the units do not commute (count / kg / kg-per-set / 1-10 rating);
+   the reader compares SHAPES, not absolute heights. */
+.wstrend{ margin:14px 0 6px; }
+.wstrend-bar{ display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px; }
+.wstrend-cap{ font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--tx4); }
+.wstrend-sel{
+  min-height:44px; max-width:56%;
+  background:var(--s2); color:var(--tx2);
+  border:1px solid var(--b3); border-radius:9px;
+  font-family:inherit; font-size:13px; padding:0 30px 0 11px;
+  -webkit-appearance:none; appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--tx3) 50%),linear-gradient(135deg,var(--tx3) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;
+  background-size:5px 5px,5px 5px; background-repeat:no-repeat;
+}
+.wstrend-read{
+  font-size:14px; line-height:1.45; color:var(--tx2);
+  padding:10px 12px; margin-bottom:11px;
+  border-left:2px solid var(--b4); background:rgba(255,255,255,.03); border-radius:0 8px 8px 0;
+}
+.wstrend-read.strength{ border-left-color:var(--acc); }
+.wstrend-read.building{ border-left-color:var(--lilac); }
+.wstrend-read.easing{ border-left-color:#6fb3d2; }
+.wstrend-p{ padding:9px 0 4px; border-top:1px solid var(--b1); }
+.wstrend-p:first-of-type{ border-top:none; }
+.wstrend-h{ display:flex;align-items:baseline;gap:8px; }
+.wstrend-t{ font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tx3);flex:1; }
+.wstrend-v{ font-family:'DM Mono',monospace;font-size:16px;color:var(--tx); }
+.wstrend-d{ font-family:'DM Mono',monospace;font-size:11px;padding:2px 6px;border-radius:5px; }
+.wstrend-d.up{ color:#7fc98a;background:rgba(127,201,138,.13); }
+.wstrend-d.dn{ color:#d98a8a;background:rgba(217,138,138,.13); }
+.wstrend-d.flat{ color:var(--tx4);background:rgba(255,255,255,.05); }
+.wstrend-s{ font-size:11.5px;color:var(--tx4);margin:1px 0 3px; }
+.wstrend-spark{ width:100%;height:40px;display:block;overflow:visible; }
+.wstrend-nodata{ font-size:12px;color:var(--tx4);padding:12px 0; }
+
+
+/* ═══ v49 — session effort strip ═════════════════════════════════════════════ */
+.wsse{ margin:14px 0 4px;padding:13px 12px;background:var(--s2);
+  border:1px solid var(--b2);border-radius:11px; }
+.wsse-h{ font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tx3);margin-bottom:10px;
+  display:flex;align-items:center;gap:7px; }
+.wsse-est{ font-size:10px;letter-spacing:.08em;color:var(--tx4);
+  border:1px solid var(--b3);border-radius:4px;padding:1px 5px; }
+.wsse-row{ display:grid;grid-template-columns:repeat(10,1fr);gap:4px; }
+.wsse-n{ min-height:44px;min-width:0;padding:0;
+  background:rgba(255,255,255,.05);border:1px solid var(--b3);border-radius:8px;
+  color:var(--tx3);font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center; }
+.wsse-n.on{ background:rgba(240,120,48,.18);border-color:var(--acc);color:var(--acc); }
+.wsse-note{ font-size:11.5px;color:var(--tx4);margin-top:8px;line-height:1.4; }
+
+
+/* ═══ v49 — workload ramp (deep layer) ═══════════════════════════════════════ */
+.wsac{ margin:18px 0 6px;padding:13px 14px;border:1px solid var(--b2);
+  border-radius:11px;background:rgba(255,255,255,.02); }
+.wsac.hot{ border-color:rgba(240,120,48,.4); }
+.wsac-h{ font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--tx4);margin-bottom:5px; }
+.wsac-v{ font-family:'DM Mono',monospace;font-size:24px;color:var(--tx);
+  display:flex;align-items:baseline;gap:8px;flex-wrap:wrap; }
+.wsac.hot .wsac-v{ color:var(--acc); }
+.wsac-u{ font-size:12px;color:var(--tx4);font-family:inherit;letter-spacing:0; }
+.wsac-s{ font-size:13px;color:var(--tx3);margin-top:6px; }
+.wsac-n{ font-size:11.5px;color:var(--tx4);margin-top:8px;line-height:1.45; }
+
+
+/* ═══ v50 — like-for-like session comparison ═════════════════════════════════ */
+.wscmp{ margin:12px 0 4px;padding:13px 14px;background:var(--s2);
+  border:1px solid var(--b2);border-radius:11px; }
+.wscmp-none{ color:var(--tx4);font-size:12.5px;padding:11px 14px; }
+.wscmp-h{ font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.04em;
+  color:var(--tx2);margin-bottom:3px; }
+.wscmp-basis{ font-size:11.5px;color:var(--tx4);margin-bottom:10px; }
+.wscmp-rows{ display:flex;flex-direction:column;gap:7px; }
+.wscmp-r{ display:flex;align-items:center;gap:9px; }
+.wscmp-l{ font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tx4);width:62px;flex-shrink:0; }
+.wscmp-v{ font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);flex:1; }
+.wscmp-d{ font-family:'DM Mono',monospace;font-size:11px;padding:2px 6px;
+  border-radius:5px;flex-shrink:0; }
+.wscmp-d.up{ color:#7fc98a;background:rgba(127,201,138,.13); }
+.wscmp-d.dn{ color:#d98a8a;background:rgba(217,138,138,.13); }
+.wscmp-d.flat{ color:var(--tx4);background:rgba(255,255,255,.05); }
+.wscmp-lifts{ margin-top:11px;padding-top:10px;border-top:1px solid var(--b1);
+  display:flex;flex-direction:column;gap:6px; }
+.wscmp-lift{ display:flex;align-items:center;gap:9px; }
+.wscmp-ln{ font-size:12.5px;color:var(--tx3);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.wscmp-lv{ font-family:'DM Mono',monospace;font-size:11.5px;color:var(--tx4);flex-shrink:0; }
+.wscmp-n{ font-size:11px;color:var(--tx4);margin-top:9px;line-height:1.45; }
+
+
+/* ═══ v51 — fix session ══════════════════════════════════════════════════════
+   .hi-eb-fix was grey --tx4 text with no border or background, sitting under a
+   full-width accent button. It read as a caption, not a control, which is why
+   it could not be found when it was needed. */
+.hi-eb-fix{
+  margin-top:8px; width:100%; min-height:44px;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  background:rgba(255,255,255,.04); border:1px solid var(--b3); border-radius:11px;
+  color:var(--tx2); font-family:'DM Mono',monospace; font-size:12px;
+  letter-spacing:.07em; text-transform:uppercase; cursor:pointer; padding:0 14px;
+}
+.hi-eb-fix svg{ width:14px;height:14px;flex-shrink:0; }
+
+/* ═══ v51 — add a forgotten exercise ═════════════════════════════════════════ */
+.ws-addex-search{
+  width:100%; min-height:44px; box-sizing:border-box;
+  background:var(--s3); border:1px solid var(--b3); border-radius:9px;
+  color:var(--tx); font-family:inherit; font-size:14px; padding:0 12px; margin:2px 0 8px;
+}
+.ws-addex-hit{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  min-height:44px; padding:8px 12px; margin-bottom:5px; cursor:pointer;
+  background:rgba(255,255,255,.04); border:1px solid var(--b2); border-radius:9px;
+}
+.ws-addex-hn{ font-size:13.5px;color:var(--tx2);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.ws-addex-hm{ font-size:11px;color:var(--tx4);flex-shrink:0; }
+.ws-addex-form{ margin-top:4px; }
+.ws-addex-picked{ font-size:14px;color:var(--acc);margin-bottom:9px; }
+.ws-addex-kind{ display:flex;gap:6px;margin-bottom:10px; }
+.ws-addex-k{
+  flex:1; min-height:44px; border-radius:9px; cursor:pointer;
+  background:rgba(255,255,255,.04); border:1px solid var(--b3); color:var(--tx3);
+  font-family:'DM Mono',monospace; font-size:12px; letter-spacing:.05em;
+}
+.ws-addex-k.on{ background:rgba(240,120,48,.16);border-color:var(--acc);color:var(--acc); }
+.ws-addex-fields{ display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px; }
+.ws-addex-f{ display:flex;flex-direction:column;gap:4px; }
+.ws-addex-f span{ font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tx4); }
+.ws-addex-f input{
+  min-height:44px; box-sizing:border-box; width:100%;
+  background:var(--s3); border:1px solid var(--b3); border-radius:8px;
+  color:var(--tx); font-family:'DM Mono',monospace; font-size:15px;
+  text-align:center; padding:0 6px;
+}
+
+
+/* ═══ v51 — drag arming cue ══════════════════════════════════════════════════
+   During the hold the user had no signal the press had registered, so a failed
+   drag and a drag that simply hadn't armed yet looked identical. This grows
+   over exactly the long-press duration, so the lift-off is predictable.
+   The global prefers-reduced-motion rule collapses it for anyone who asks. */
+/* --ws-arm-ms MUST equal WS_LONG_PRESS_MS in the script, or the cue finishes
+   before (or after) the drag actually arms. A harness assertion compares them. */
+:root{ --ws-arm-ms:350ms; }
+.ws-arming{
+  animation: wsArm var(--ws-arm-ms) ease-out forwards;
+  will-change: transform;
+}
+@keyframes wsArm{
+  from{ transform:scale(1); filter:brightness(1); }
+  to{ transform:scale(.975); filter:brightness(1.14); }
+}
+
+
+/* ═══ v52 — adaptation mix ═══════════════════════════════════════════════════
+   Sits beneath the trend panels rather than in a third tab: it is the same
+   question at a different grain, not a separate question. */
+.wsad{ margin-top:18px;padding-top:14px;border-top:1px solid var(--b2); }
+.wsad-h{ font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tx3); }
+.wsad-s{ font-size:11.5px;color:var(--tx4);margin:2px 0 9px; }
+.wsad-read{ font-size:13.5px;color:var(--tx2);line-height:1.45;
+  padding:9px 11px;background:rgba(255,255,255,.03);border-left:2px solid var(--b4);
+  border-radius:0 8px 8px 0;margin-bottom:11px; }
+.wsad-legend{ display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px; }
+.wsad-lg{ display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--tx3); }
+.wsad-lg i{ width:9px;height:9px;border-radius:2px;flex-shrink:0; }
+.wsad-lg em{ font-style:normal;color:var(--tx4);font-size:10.5px;margin-left:3px; }
+.wsad-bars{ display:flex;flex-direction:column;gap:6px; }
+.wsad-row{ display:flex;align-items:center;gap:8px; }
+.wsad-m{ font-size:12px;color:var(--tx3);width:82px;flex-shrink:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.wsad-bw{ display:flex;height:14px;border-radius:3px;overflow:hidden;flex-shrink:0; }
+.wsad-seg{ display:block;height:100%; }
+.wsad-n{ font-family:'DM Mono',monospace;font-size:11.5px;color:var(--tx4);
+  margin-left:auto;flex-shrink:0; }
+.wsad-n2{ font-size:11px;color:var(--tx4);margin-top:11px;line-height:1.45; }
+
+
+/* v53: a logged day is a record, not a worksheet — make it read that way */
+.day-logged .set-check,.day-logged .step-btn,.day-logged .val-tap{ opacity:.55; }
+
+
+.ws-data-btn-danger{ border-color:rgba(217,138,138,.45)!important; color:#d98a8a!important; }
+

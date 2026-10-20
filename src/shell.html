@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gains">
+<meta name="theme-color" content="#090807">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; font-src data:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'">
+<meta name="robots" content="noindex, nofollow">
+<script>
+// Offline shell registration. Guarded: service workers require a secure origin,
+// so this is a silent no-op in previews, in file:// and anywhere unsupported —
+// the app still runs, it just isn't offline-capable there.
+(function(){
+  try{
+    if(!('serviceWorker' in navigator)) return;
+    var ok = (location.protocol==='https:') || location.hostname==='localhost';
+    if(!ok) return;
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js').then(function(reg){
+        window.__wsOffline = 'registered';
+        // Check for a newer build on each launch; it applies next launch.
+        try{ reg.update(); }catch(_){}
+      }).catch(function(){ window.__wsOffline = 'failed'; });
+    });
+  }catch(_){}
+})();
+</script>
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23090807'/%3E%3Crect x='30' y='84' width='120' height='12' rx='6' fill='%23f07830'/%3E%3Crect x='36' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3Crect x='122' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3C/svg%3E">
+<meta name="screen-orientation" content="portrait">
+<meta name="x5-orientation" content="portrait">
+<title>Gains — v54</title>
+<!-- Fonts are embedded below as base64 woff2. No external font request is made:
+     it removes a supply-chain dependency, stops every launch pinging a third party,
+     lets the app render correctly with zero signal, and is what allows the strict
+     Content-Security-Policy below to forbid ALL outbound connections. -->
+<style>@@GAINS_CSS@@</style>
+</head>
+<body>
+<div id="rotateOverlay">
+  <div class="ro-icon"></div>
+  <div class="ro-title">Rotate to portrait</div>
+  <div class="ro-sub">Gains is designed for vertical use during workouts</div>
+</div>
+<div id="app">
+  <div id="rimCue"></div>
+  <div id="wsRunView"></div>
+  <div id="wsCircEd"></div>
+  <div id="wsPicker"></div>
+  <div id="wsGold" aria-hidden="true"><i class="gt"></i><i class="gr"></i><i class="gb"></i><i class="gl"></i></div>
+  <div id="wsCal"></div>
+  <div id="hdr">
+    <div class="hdr-main">
+      <div><div id="hdrTitle">Push<br><em>Day</em></div></div>
+      <div class="hdr-right-col">
+        <span id="hdrLbl">Day 1</span>
+        <div class="settings-btn" onclick="openSettings()" title="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="tabs-wrap">
+      <div class="tabs-scroll" id="tabsScroll"></div>
+      <div class="tabs-fade" id="tabsFade"></div>
+    </div>
+  </div>
+  <div id="scroll"></div>
+  <div id="histView">
+    <!-- History renders here: list / calendar header + body, or detail view. Router-driven. -->
+  </div>
+  <div id="nav">
+    <div class="ni active"><svg viewBox="0 0 22 22"><rect x="2" y="3" width="18" height="17" rx="3"/><line x1="2" y1="9" x2="20" y2="9"/></svg>Today</div>
+    <div class="ni"><svg viewBox="0 0 22 22"><polyline points="20 11 15 11 12 18 10 4 8 11 2 11"/></svg>History</div>
+    <div class="ni"><svg viewBox="0 0 22 22"><polyline points="2 16 7 10 12 13 20 4"/><polyline points="15 4 20 4 20 9"/></svg>Progress</div>
+    <div class="ni"><svg viewBox="0 0 22 22"><polygon points="11 2 13.8 8.2 20.5 9 15.5 13.8 16.9 20.5 11 17.2 5.1 20.5 6.5 13.8 1.5 9 8.2 8.2"/></svg>PRs</div>
+  </div>
+</div>
+
+<!-- DEBUG: floating log button — persistent, app-wide -->
+<div id="dbgFloat" style="display:none" onclick="dbgToggle()"><span class="dbg-count" id="dbgCount">0</span></div>
+<div id="dbgPanel">
+  <div class="dbg-row"><span class="lbl">events</span><span class="val" id="dbgPanelCount">0</span></div>
+  <div class="dbg-row"><span class="lbl">errors</span><span class="val" id="dbgPanelErrs">0</span></div>
+  <div class="dbg-row"><span class="lbl">drag mode</span><span class="val" id="dbgPanelMode">—</span></div>
+  <div class="dbg-row"><span class="lbl">last event</span><span class="val" id="dbgPanelLast">—</span></div>
+  <div class="dbg-row"><span class="lbl">duration</span><span class="val" id="dbgPanelDur">0s</span></div>
+  <div id="dbgPanel-actions">
+    <button id="dbgCopyBtn" onclick="dbgCopy()">COPY</button>
+    <button id="dbgClearBtn" onclick="dbgClearLog()">CLEAR</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-title" id="shTitle"></div>
+    <div class="sh-fields">
+      <div class="sh-f"><span class="sh-fl">Weight</span><div class="stepper"><button class="sb" onclick="stepW(-1)">−</button><div class="sm"><span class="sv" id="wVal">14</span><span class="su">kg</span></div><button class="sb" onclick="stepW(1)">+</button></div></div>
+      <div class="sh-f"><span class="sh-fl">Reps</span><div class="stepper"><button class="sb" onclick="stepR(-1)">−</button><div class="sm"><span class="sv" id="rVal">8</span><span class="su">reps</span></div><button class="sb" onclick="stepR(1)">+</button></div></div>
+    </div>
+    <div class="sh-div"></div>
+    <div class="apply-section">
+      <span class="apply-lbl-above" id="applyLbl">Apply weight to all sets</span>
+      <div class="apply-track" id="applyTrack">
+        <div class="apply-thumb" id="applyThumb"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="7" x2="11" y2="7"/><polyline points="8 4 11 7 8 10"/></svg></div>
+        <span class="apply-txt" id="applyTxt"></span>
+      </div>
+    </div>
+    <div class="sh-div"></div>
+    <div class="sh-toggle-row">
+      <div class="sh-tgl-left"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="3"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2" stroke-linecap="round"/></svg><div><div class="sh-tgl-txt">Warm-up set</div><div class="sh-tgl-sub">Excluded from volume and PRs</div></div></div>
+      <div class="tog" id="shWarmTog" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="sh-actions">
+      <button class="sh-cancel" onclick="closeSheet()">Cancel</button>
+      <button id="saveSetBtn" onclick="saveSet()">SAVE SET</button>
+    </div>
+  </div>
+</div>
+
+<div id="cardioEditModal">
+  <div class="tbox">
+    <div class="tbox-title" id="cardioEditTitle">Edit value</div>
+    <div class="tbox-sub" id="cardioEditSub"></div>
+    <div class="tbox-body-scroll">
+      <div id="cardioEditBody"></div>
+    </div>
+    <div class="tbox-actions" id="cardioEditActions">
+      <button class="tba-cancel" onclick="closeCardioEdit()">Cancel</button>
+      <button class="tba-confirm" onclick="saveCardioEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="iconPickerModal">
+  <div class="tbox" style="max-width:360px">
+    <div class="tbox-title">Choose icon</div>
+    <div class="tbox-sub">Pick a symbol that represents this exercise</div>
+    <div class="tbox-body-scroll">
+      <div class="icon-grid" id="iconGrid"></div>
+    </div>
+    <div class="tbox-actions"><button class="tba-cancel" onclick="closeIconPicker()" style="flex:1">Done</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-title">Settings & Preferences</div>
+    <div class="settings-section">
+      <div class="settings-section-title">Workshop</div>
+      <div class="settings-card">
+        <div class="settings-row tappable settings-row-featured" onclick="openWorkshop()"><div class="settings-row-info"><div class="settings-row-title">Open Workshop</div><div class="settings-row-sub">Manage days and exercises · build your plan</div></div><span class="chevron settings-row-featured-chev">›</span></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Advanced Exercise Tags</div><div class="settings-row-sub">Tag exercises by muscle &amp; movement pattern · enables grouping in the Library</div></div><div class="tog" id="togAdvTags" onclick="toggleAdvancedTags(this)"></div></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">You &amp; your data</div>
+      <div class="settings-card">
+        <div class="settings-row" onclick="wsOpenProfile()"><div class="settings-row-info"><div class="settings-row-title">About me &amp; bodyweight</div><div class="settings-row-sub">Unlocks relative strength and gives the coach real context</div></div><div class="settings-chev">&rsaquo;</div></div>
+        <div class="settings-row" onclick="wsOpenCoach()"><div class="settings-row-info"><div class="settings-row-title">Ask my coach</div><div class="settings-row-sub">Copy a training brief into any AI &mdash; no account, no key</div></div><div class="settings-chev">&rsaquo;</div></div>
+        <div class="settings-row" onclick="wsOpenData()"><div class="settings-row-info"><div class="settings-row-title">Your data — backup &amp; restore</div><div class="settings-row-sub">Save a copy outside the app, or start a fresh log</div></div><div class="settings-chev">›</div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub">Gains v54 &middot; offline build</div></div></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title collapsible" onclick="toggleSettingsSection('display')" id="displaySectionHeader">
+        <span>Display</span>
+        <span class="collapse-btn" id="displayChevron">+</span>
+      </div>
+      <div class="settings-card collapsible-body" id="displaySectionBody">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Show previous session</div><div class="settings-row-sub">Ghost values from last workout</div></div><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Sticky global rest timer</div><div class="settings-row-sub">One pinned timer instead of per-exercise</div></div><div class="tog" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Visual cue on alert</div><div class="settings-row-sub">Pulsing rim around the app — useful with loud music</div></div><div class="tog on" id="togRim" onclick="toggleSetting('rim',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Keep my edits on updates</div><div class="settings-row-sub">Weights, reps and circuit tweaks carry over when app data updates</div></div><div class="tog on" id="togKeepEdits" onclick="toggleSetting('keepEdits',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Shimmer on day switch</div><div class="settings-row-sub">Subtle light sweep over interactive elements</div></div><div class="tog on" id="togShimmer" onclick="toggleSetting('shimmer',this)"></div></div>
+        <div class="settings-row settings-row-stacked">
+          <div class="settings-row-info">
+            <div class="settings-row-title">Keep screen on</div>
+            <div class="settings-row-sub">Prevents the screen from sleeping during workouts</div>
+          </div>
+          <div class="seg-3" id="wakeLockSeg">
+            <div class="seg-opt" data-mode="off" onclick="setWakeLockModeUI('off')">Off</div>
+            <div class="seg-opt active" data-mode="active" onclick="setWakeLockModeUI('active')">During timers</div>
+            <div class="seg-opt" data-mode="always" onclick="setWakeLockModeUI('always')">Always on</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title collapsible" onclick="toggleSettingsSection('audio')" id="audioSectionHeader">
+        <span>Audio</span>
+        <span class="collapse-btn" id="audioChevron">+</span>
+      </div>
+      <div class="settings-card collapsible-body" id="audioSectionBody">
+        <div class="master-tog"><div class="settings-row-info"><div class="settings-row-title">All sounds</div><div class="settings-row-sub">Master toggle (overrides per-exercise)</div></div><div class="tog on" id="togMaster" onclick="toggleMasterSound()"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Stepper clicks</div><div class="settings-row-sub">Wooden knock when adjusting values</div></div><div class="tog on" id="togStepper" onclick="toggleSetting('stepper',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Set complete</div><div class="settings-row-sub">Confirmation tone when set is logged</div></div><div class="tog on" id="togSave" onclick="toggleSetting('save',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Session log</div><div class="settings-row-sub">Resolution at end of session</div></div><div class="tog on" id="togSession" onclick="toggleSetting('session',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Rest timer alert</div><div class="settings-row-sub">Bell when rest ends</div></div><div class="tog on" id="togTimer" onclick="toggleSetting('timer',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">HIIT interval alerts</div><div class="settings-row-sub">Energizing for work, calming for rest</div></div><div class="tog on" id="togInterval" onclick="toggleSetting('interval',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Circuit complete fanfare</div><div class="settings-row-sub">Triumphant chord when all rounds finish</div></div><div class="tog on" id="togComplete" onclick="toggleSetting('complete',this)"></div></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title collapsible" onclick="toggleSettingsSection('data')" id="dataSectionHeader">
+        <span>Data</span>
+        <span class="collapse-btn" id="dataChevron">+</span>
+      </div>
+      <div class="settings-card collapsible-body" id="dataSectionBody">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Effort ratings (RPE)</div><div class="settings-row-sub">Rate how hard each exercise felt, 1–10 · shown with the exercise in History, and the key to spotting work that starts feeling easier</div></div><div class="tog" id="togIntensityScore" onclick="toggleIntensityScore(this)"></div></div>
+        <div class="settings-row tappable" onclick="wsToast('Export coming soon')"><div class="settings-row-info"><div class="settings-row-title">Export workout history</div><div class="settings-row-sub">CSV or JSON</div></div><span class="chevron">›</span></div>
+        <div class="settings-row tappable" onclick="wsResetAllAttempt()"><div class="settings-row-info"><div class="settings-row-title danger">Reset all data</div><div class="settings-row-sub">Clears history, plan, and preferences · this can't be undone</div></div><span class="chevron">›</span></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title collapsible" onclick="toggleSettingsSection('about')" id="aboutSectionHeader">
+        <span>About</span>
+        <span class="collapse-btn" id="aboutChevron">+</span>
+      </div>
+      <div class="settings-card collapsible-body" id="aboutSectionBody">
+        <div class="settings-row tappable"><div class="settings-row-info"><div class="settings-row-title">Help & tips</div><div class="settings-row-sub">How to use Gains effectively</div></div><span class="chevron">›</span></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Version</div><div class="settings-row-sub">Gains 0.19 — prototype</div></div></div>
+      </div>
+    </div>
+    <div class="sh-actions"><button class="sh-cancel" onclick="closeSettings()" style="flex:1">Done</button></div>
+  </div>
+</div>
+
+<!-- ═══════════ WORKSHOP OVERLAY (Batch B) ═══════════ -->
+<div id="workshopOverlay">
+  <div class="ws-hdr">
+    <div class="ws-hdr-row">
+      <div class="ws-title">Work<em>shop</em></div>
+      <div class="ws-close" onclick="closeWorkshop()" title="Close">
+        <svg viewBox="0 0 18 18"><line x1="4" y1="4" x2="14" y2="14"/><line x1="14" y1="4" x2="4" y2="14"/></svg>
+      </div>
+    </div>
+    <div class="ws-tabs">
+      <div class="ws-tab active" id="wsTabDays" onclick="wsSwitchTab('days')"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="13" rx="2"/><line x1="2" y1="7" x2="16" y2="7"/></svg><span>Days</span></div>
+      <div class="ws-tab" id="wsTabLib" onclick="wsSwitchTab('library')"><svg viewBox="0 0 18 18"><path d="M3 4h12v10H3z"/><line x1="6" y1="4" x2="6" y2="14"/><line x1="9" y1="7" x2="13" y2="7"/><line x1="9" y1="10" x2="13" y2="10"/></svg><span>Library</span></div>
+    </div>
+  </div>
+  <div class="ws-body" id="wsBody"></div>
+  <div class="ws-debug-hud" id="wsDebugHud"></div>
+  <div class="ws-edge-dwell left" id="wsEdgeDwellLeft"><div class="ws-edge-dwell-fill" id="wsEdgeDwellLeftFill"></div></div>
+  <div class="ws-edge-dwell right" id="wsEdgeDwellRight"><div class="ws-edge-dwell-fill" id="wsEdgeDwellRightFill"></div></div>
+  <div class="ws-trash" id="wsTrash">
+    <svg viewBox="0 0 24 24"><polyline points="4 7 20 7"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><line x1="10" y1="11" x2="10" y2="18"/><line x1="14" y1="11" x2="14" y2="18"/></svg>
+  </div>
+  <div class="ws-toast" id="wsToast"></div>
+</div>
+
+<!-- Slide-to-delete confirmation -->
+<div id="wsDeleteModal">
+  <div class="ws-del-sheet">
+    <div class="ws-del-handle"></div>
+    <div class="ws-del-title">Delete day?</div>
+    <div class="ws-del-name" id="wsDelName">Day</div>
+    <div class="ws-del-sub" id="wsDelSub">This permanently removes the day and any exercises in it.</div>
+    <div class="ws-del-slide-wrap" id="wsDelSlide">
+      <div class="ws-del-slide-fill" id="wsDelFill"></div>
+      <div class="ws-del-slide-thumb" id="wsDelThumb">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor"><polyline points="6 4 11 9 6 14"/></svg>
+      </div>
+      <div class="ws-del-slide-lbl">SLIDE TO DELETE</div>
+    </div>
+    <button class="ws-del-cancel" onclick="closeWsDeleteModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Day editor (Batch B minimal — full editor in Batch C) -->
+<div id="wsDayEditModal">
+  <div class="ws-de-sheet">
+    <div class="ws-de-handle"></div>
+    <div class="ws-de-title" id="wsDeTitle">Edit Day</div>
+    <div class="ws-de-body">
+      <div class="ws-de-fld">
+        <span class="ws-de-fl">Title — line 1</span>
+        <input type="text" class="ws-de-input" id="wsDeTitle1" placeholder="e.g. Push" maxlength="24">
+      </div>
+      <div class="ws-de-fld">
+        <span class="ws-de-fl">Title — line 2 <span style="color:var(--tx4);font-weight:400;text-transform:none;letter-spacing:.04em;">(accent · ember)</span></span>
+        <input type="text" class="ws-de-input" id="wsDeTitle2" placeholder="e.g. Day" maxlength="24">
+      </div>
+      <div class="ws-de-fld">
+        <span class="ws-de-fl">Label</span>
+        <input type="text" class="ws-de-input" id="wsDeLabel" placeholder="e.g. Day 1" maxlength="20">
+      </div>
+      <div class="ws-de-fld">
+        <span class="ws-de-fl">Status</span>
+        <div class="ws-de-status-row">
+          <div class="ws-de-status-opt is-active" id="wsDeStatusActive" onclick="wsDeSetStatus(true)">Active</div>
+          <div class="ws-de-status-opt is-banked" id="wsDeStatusBanked" onclick="wsDeSetStatus(false)">Banked</div>
+        </div>
+        <div class="ws-de-status-hint" id="wsDeStatusHint">Active days appear in your day tabs. Banked days are saved here for later.</div>
+      </div>
+      <div class="ws-de-fld">
+        <span class="ws-de-fl">Exercises</span>
+        <div id="wsDeExList">
+          <!-- Rendered by wsDeRenderExList() — list of current exercises + add button -->
+        </div>
+      </div>
+    </div>
+    <div class="ws-de-actions">
+      <button class="ws-de-cancel" onclick="closeWsDayEdit()">Cancel</button>
+      <button class="ws-de-save" onclick="saveWsDayEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Library editor modal: edit a single catalog entry (title, subtitle, kind,
+     defaults, optional advanced tags). Reuses .ws-de-sheet styling. -->
+<div id="wsLibEditModal" onclick="wsLeBackdropTap(event)">
+  <div class="ws-de-sheet" onclick="event.stopPropagation()">
+    <div class="ws-de-handle" id="wsLeHandle"></div>
+    <div class="ws-de-title" id="wsLeTitle">Edit Exercise</div>
+    <div class="ws-de-body" id="wsLeBody">
+      <!-- Body content rendered dynamically by wsRenderLibEditor() -->
+    </div>
+    <div class="ws-de-actions">
+      <button class="ws-de-cancel" onclick="cancelWsLibEdit()">Cancel</button>
+      <button class="ws-de-save" onclick="wsLeOpenConfirm()">Save</button>
+    </div>
+  </div>
+  <!-- Rising save-confirmation: a roomy slider that slides up from the bottom.
+       Separates intent (tap Save) from confirmation (slide), with × to back out. -->
+  <div id="wsLeConfirm" class="ws-confirm-scrim" onclick="wsLeCloseConfirm(event)">
+    <div class="ws-confirm-sheet" onclick="event.stopPropagation()">
+      <div class="ws-confirm-head">
+        <div class="ws-confirm-title">Save changes</div>
+        <button class="ws-confirm-x" onclick="wsLeCloseConfirm()" aria-label="Cancel">×</button>
+      </div>
+      <div class="ws-confirm-sub" id="wsLeConfirmSub">Slide to confirm your edits to this exercise.</div>
+      <div class="slide-to-save ws-confirm-slide" id="wsLeSlideToSave">
+        <div class="sts-track">
+          <div class="sts-fill" id="wsLeStsFill"></div>
+          <div class="sts-label">Slide to save →</div>
+          <div class="sts-thumb" id="wsLeStsThumb">
+            <svg viewBox="0 0 16 16"><polyline points="6 4 10 8 6 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Day picker: choose which day to add this library exercise to. Reuses the
+       same wsPkBuildInstance → day.items pipeline as the Today picker; the only
+       new piece is letting the day-agnostic Library pick a day target. -->
+  <div id="wsLeDayPick" class="ws-confirm-scrim" onclick="wsLeDayPickBackdrop(event)">
+    <div class="ws-confirm-sheet ws-daypick-sheet" onclick="event.stopPropagation()">
+      <div class="ws-confirm-head">
+        <div class="ws-confirm-title">Add to which day?</div>
+        <button class="ws-confirm-x" onclick="wsLeCloseDayPick()" aria-label="Cancel">×</button>
+      </div>
+      <div class="ws-confirm-sub" id="wsLeDayPickSub">Pick a day to add this exercise to.</div>
+      <div class="ws-daypick-list" id="wsLeDayPickList"></div>
+      <button class="ws-daypick-done" onclick="wsLeDayPickDone()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cascade-delete confirmation: shows the blast radius and requires a
+     slide-to-confirm gesture before committing. Higher z-index than the
+     editor so it overlays cleanly. -->
+<div id="wsLibDeleteModal">
+  <div class="ws-ld-sheet">
+    <div class="ws-ld-handle"></div>
+    <div class="ws-ld-head">
+      <div class="ws-ld-eyebrow">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Delete exercise</span>
+      </div>
+      <div class="ws-ld-name" id="wsLdName">—</div>
+      <div class="ws-ld-name-sub" id="wsLdNameSub"></div>
+    </div>
+    <div class="ws-ld-body" id="wsLdBody">
+      <!-- Body rendered dynamically by wsLdRender() -->
+    </div>
+    <div class="ws-ld-slider-wrap">
+      <div class="ws-ld-slider" id="wsLdSlider">
+        <div class="ws-ld-slider-fill" id="wsLdSliderFill"></div>
+        <div class="ws-ld-slider-label" id="wsLdSliderLabel">Slide to delete</div>
+        <div class="ws-ld-slider-thumb" id="wsLdSliderThumb">
+          <svg viewBox="0 0 18 18"><polyline points="6,4 10,9 6,14"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="ws-ld-cancel-row">
+      <button class="ws-ld-cancel" onclick="wsLdCancel()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add-Exercise picker: opens from inside the day editor. Multi-select
+     pickup from the library, sticky "Add N to <day name>" button. -->
+<div id="wsPickerModal">
+  <div class="ws-pk-sheet">
+    <div class="ws-pk-handle"></div>
+    <div class="ws-pk-head">
+      <div class="ws-pk-title">Add Exercise</div>
+      <button class="ws-pk-new-btn" onclick="wsPkOpenCreateNew()" aria-label="Create new exercise">
+        <span class="ws-pk-new-plus">+</span><span class="ws-pk-new-txt">New</span>
+      </button>
+    </div>
+    <div class="ws-pk-toolbar">
+      <div class="ws-pk-search">
+        <svg viewBox="0 0 18 18"><circle cx="8" cy="8" r="5"/><line x1="12" y1="12" x2="16" y2="16"/></svg>
+        <input id="wsPkSearchInput" type="search" placeholder="Search exercises" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="wsPkOnSearchInput(this.value)">
+        <button class="ws-pk-search-clear" id="wsPkSearchClear" onclick="wsPkClearSearch()" aria-label="Clear search">×</button>
+      </div>
+    </div>
+    <div class="ws-pk-body" id="wsPkBody">
+      <!-- list rendered dynamically -->
+    </div>
+    <div class="ws-pk-footer">
+      <button class="ws-pk-cancel" onclick="closeWsPicker()">Cancel</button>
+      <button class="ws-pk-add empty" id="wsPkAddBtn" onclick="wsPkCommit()" disabled>Add to day</button>
+    </div>
+  </div>
+</div>
+
+
+<script>@@GAINS_JS@@</script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+/* ─── Library tab ───────────────────────────────────────────────────── */
+/* ─── Library tab ───────────────────────────────────────────────────── */
+/* The toolbar (search + group-by chips) is sticky to the top of the
+   scrollable body so filtering stays accessible as the list grows. The
+   z-index keeps it above scrolling content; the bg matches the surrounding
+   surface to read as a fixed banner. */
+.ws-lib-toolbar{display:flex;flex-direction:column;gap:8px;margin:-16px -14px 12px;padding:16px 14px 10px;position:sticky;top:0;z-index:20;background:var(--bg)}
+.ws-lib-toolbar::before{content:'';position:absolute;left:0;right:0;top:-40px;height:40px;background:var(--bg);pointer-events:none}
+.ws-lib-search{position:relative;background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:0;display:flex;align-items:center}
+.ws-lib-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--tx3);fill:none;stroke-width:1.7;pointer-events:none}
+.ws-lib-search input{background:transparent;border:none;outline:none;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 32px 10px 34px;width:100%;flex:1;-webkit-appearance:none}
+.ws-lib-search input::placeholder{color:var(--tx3)}
+.ws-lib-search input::-webkit-search-decoration,
+.ws-lib-search input::-webkit-search-cancel-button{display:none}
+.ws-lib-search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--tx3);font-size:18px;cursor:pointer;padding:4px 8px;line-height:1;display:none}
+.ws-lib-search-clear.visible{display:block}
+.ws-lib-groupby{display:flex;align-items:center;gap:6px;padding:0 2px}
+.ws-lib-groupby-label{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;font-weight:500;margin-right:2px}
+.ws-lib-groupby-chip{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:5px 11px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;font-weight:500;transition:background .12s, border-color .12s, color .12s}
+.ws-lib-groupby-chip.active{background:var(--acc-d);border-color:var(--acc-m);color:var(--acc)}
+/* ── Lens filter UI (Muscle / Equipment / Pattern) ── */
+.ws-lens-row{display:flex;gap:7px}
+.ws-lens-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 6px;border-radius:10px;background:var(--s1);border:1px solid var(--b2);cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx2);letter-spacing:.03em;text-transform:uppercase;font-weight:700}
+.ws-lens-btn.open{border-color:var(--b3);background:var(--s2)}
+.ws-lens-btn.set{background:var(--acc-d);border-color:var(--acc-m);color:var(--acc)}
+.ws-lens-x{font-size:14px;line-height:1;margin-left:1px;padding:0 2px;color:inherit}
+.ws-lens-tray{overflow:hidden;max-height:0;transition:max-height .24s ease;background:var(--bg);position:relative;z-index:20}
+.ws-lens-tray.open{max-height:26vh;margin-top:8px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px}
+.ws-lens-tray.open::-webkit-scrollbar{width:3px}
+.ws-lens-tray.open::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.ws-lens-sec{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--tx4);letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin:10px 0 7px}
+.ws-lens-sec:first-child{margin-top:2px}
+.ws-lens-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ws-lens-chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 4px;border-radius:9px;background:var(--s2);border:1px solid var(--b2);cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx2);font-weight:600;letter-spacing:.01em;text-align:center;white-space:nowrap}
+.ws-lens-chip.on{background:var(--acc);border-color:var(--acc);color:var(--on-acc,#0c0905)}
+.ws-lens-chip.empty{opacity:.4}
+.ws-lens-chip .n{color:var(--tx4);font-weight:500;font-size:10.5px}
+.ws-lens-chip.on .n{color:rgba(12,9,5,.6)}
+
+/* List container */
+.ws-lib-list{display:flex;flex-direction:column;gap:6px;padding:2px 0 8px}
+
+/* Single (non-grouped) rows AND collapsed group headers share base styling. */
+.ws-lib-row,.ws-lib-group-header{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:11px 14px;cursor:pointer;transition:background .12s, border-color .12s;min-height:54px;-webkit-tap-highlight-color:transparent}
+.ws-lib-row:active,.ws-lib-group-header:active{background:var(--s2)}
+/* Favorite star — subtle hollow until tapped, then sage-filled. Sits quietly left of the title. */
+.ws-lib-star{flex-shrink:0;width:30px;height:30px;margin:-4px -2px -4px -4px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;color:var(--tx4);-webkit-tap-highlight-color:transparent}
+.ws-lib-star svg{width:18px;height:18px;transition:transform .12s}
+.ws-lib-star:active svg{transform:scale(.85)}
+.ws-lib-star.on{color:var(--hiit)}
+.ws-lib-section-title.fav span:first-child{color:var(--hiit)}
+.ws-lib-section-title.fav{margin-top:2px}
+
+/* Group header: contains a chevron + title + count + aggregate usage meta */
+.ws-lib-group-header{user-select:none}
+.ws-lib-chev{width:14px;height:14px;flex-shrink:0;color:var(--tx3);display:flex;align-items:center;justify-content:center;transition:transform .18s ease}
+.ws-lib-chev svg{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+.ws-lib-group-header.expanded .ws-lib-chev{transform:rotate(90deg);color:var(--acc)}
+
+.ws-lib-group-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ws-lib-group-title{font-family:'Bebas Neue',sans-serif;font-size:17px;line-height:1.1;color:var(--acc);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-lib-group-sub{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+
+/* The expanding panel that holds variant rows. We transition max-height
+   from 0 to a large fixed value (CSS can't animate to 'none'). The fixed
+   ceiling is comfortably larger than any plausible variant list. */
+.ws-lib-variants{overflow:hidden;max-height:0;transition:max-height .22s ease, padding .22s ease;padding:0 0 0 14px;display:flex;flex-direction:column;gap:4px}
+.ws-lib-variants.expanded{max-height:2000px;padding:4px 0 2px 14px}
+
+/* Variant rows inside an expanded group — slightly muted surface and a thin
+   accent on the left so they read as nested under the parent header. */
+.ws-lib-variants .ws-lib-row{background:var(--s1);border-color:var(--b1);position:relative;padding-left:18px}
+.ws-lib-variants .ws-lib-row::before{content:"";position:absolute;left:6px;top:10px;bottom:10px;width:2px;background:var(--b2);border-radius:1px}
+.ws-lib-variants .ws-lib-row .ws-lib-title{font-size:15px;color:var(--acc)}
+
+/* Plain row (single-entry title, non-clustered) */
+.ws-lib-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ws-lib-title{font-family:'Bebas Neue',sans-serif;font-size:17px;line-height:1.1;color:var(--acc);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-lib-subtitle{font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.2;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+.ws-lib-subtitle:empty{display:none}
+.ws-lib-meta{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx4);letter-spacing:.04em;text-align:right;line-height:1.4;flex-shrink:0;font-weight:400}
+.ws-lib-meta .used{color:var(--tx3)}
+.ws-lib-meta .unused{color:var(--tx4);font-style:italic}
+
+/* Headers for muscle/pattern group-by modes (kept lighter than collapsible
+   group headers — these are simple section dividers, not interactive). */
+.ws-lib-section-title{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.10em;text-transform:uppercase;font-weight:500;margin:18px 4px 6px;display:flex;align-items:baseline;justify-content:space-between}
+.ws-lib-section-title .count{color:var(--tx4);font-weight:400}
+
+.ws-lib-empty{padding:32px 16px;text-align:center;color:var(--tx3);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--s1);border:1px dashed var(--b2);border-radius:12px;margin:8px 0}
+
+.ws-lib-add-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;border:1px dashed var(--b3);border-radius:12px;padding:13px;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;width:100%;margin-top:14px;cursor:pointer;transition:background .12s, border-color .12s, color .12s}
+.ws-lib-add-btn:active{background:var(--s1);border-color:var(--acc-m);color:var(--acc)}
+.ws-lib-add-btn-plus{font-size:18px;line-height:1;font-weight:400}
+
+/* Archived section — collapsible group below "+ New exercise" */
+.ws-lib-archive-section{margin-top:18px;padding-top:14px;border-top:1px dashed var(--b2)}
+.ws-lib-archive-header{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:11px 14px;cursor:pointer;transition:background .12s;min-height:54px;-webkit-tap-highlight-color:transparent;user-select:none;opacity:.85}
+.ws-lib-archive-header:active{background:var(--s2)}
+.ws-lib-archive-header.expanded{opacity:1}
+.ws-lib-archive-title{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);letter-spacing:.10em;text-transform:uppercase;font-weight:600}
+.ws-lib-archived-list .ws-lib-archived-row{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:9px 12px;min-height:52px;opacity:.85}
+.ws-lib-archived-row .ws-lib-title{font-size:15px;color:var(--tx);opacity:.85}
+.ws-lib-archived-row .ws-lib-subtitle{color:var(--tx3)}
+.ws-lib-archived-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ws-lib-arch-btn{background:transparent;border:1px solid var(--b3);color:var(--tx2);font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background .12s, color .12s, border-color .12s;-webkit-tap-highlight-color:transparent}
+.ws-lib-arch-restore:active{background:var(--acc-d);color:var(--acc);border-color:var(--acc-m)}
+.ws-lib-arch-delete{padding:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#c87a72;border-color:#5a3030}
+.ws-lib-arch-delete:active{background:rgba(200,80,80,.10);color:#ff8e84;border-color:#a04040}
+.ws-lib-arch-delete svg{stroke:currentColor;fill:none}
+
+
+/* Drop zone highlights — section dividers light up when hovered during drag */
+.ws-section-title.drop-target-active{color:var(--acc)}
+.ws-section-title.drop-target-active::after{content:' ◂ drop here';color:var(--acc);font-weight:600}
+.ws-row.drop-target-banked{background:var(--s2);border-radius:12px;outline:1px dashed var(--b3)}
+.ws-row.drop-target-active{background:var(--acc-d);border-radius:12px;outline:1px dashed var(--acc-m)}
+
+/* Floating trash icon — appears during drag */
+.ws-trash{position:absolute;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px) scale(1);width:90px;height:90px;background:var(--s2);border:2px solid #5a3030;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#c87a72;cursor:default;pointer-events:none;opacity:0;transition:opacity .22s, transform .25s cubic-bezier(.34,1.36,.64,1), background .15s, color .15s, border-color .15s, box-shadow .22s;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.55)}
+.ws-trash.visible{opacity:1;transform:translateX(-50%) translateY(0) scale(1);pointer-events:auto}
+.ws-trash.hover-target{background:#5e1a1a;color:#ff9088;transform:translateX(-50%) translateY(-36px) scale(1.4);border-color:#d05050;box-shadow:0 12px 36px rgba(180,30,30,.6),0 0 0 10px rgba(208,80,80,.18);animation:wsTrashPulse 1s ease-in-out infinite}
+.ws-trash.hover-target svg{animation:wsTrashShake .4s ease-in-out infinite alternate}
+.ws-trash svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+@keyframes wsTrashPulse{0%,100%{box-shadow:0 12px 36px rgba(180,30,30,.6),0 0 0 10px rgba(208,80,80,.18)}50%{box-shadow:0 14px 40px rgba(220,50,50,.75),0 0 0 18px rgba(208,80,80,.06)}}
+@keyframes wsTrashShake{0%{transform:rotate(-4deg)}100%{transform:rotate(4deg)}}
+/* Debug HUD — pinned top-left of the workshop, shows live drag state */
+.ws-debug-hud{position:absolute;top:6px;left:6px;z-index:1100;background:rgba(8,8,8,.92);border:1px solid var(--acc);border-radius:8px;padding:7px 9px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.32;color:var(--tx2);pointer-events:auto;max-width:200px;box-shadow:0 2px 8px rgba(0,0,0,.6);display:none}
+.ws-debug-hud.visible{display:block}
+/* DEBUG: Persistent floating log button — visible app-wide, easy to strip later */
+#dbgFloat{position:fixed;right:10px;bottom:calc(64px + env(safe-area-inset-bottom,0));z-index:9000;width:42px;height:42px;border-radius:21px;background:rgba(20,18,14,.92);border:1px solid var(--b3);color:var(--tx3);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.55);user-select:none;touch-action:manipulation;transition:transform .14s, background .14s}
+#dbgFloat:active{transform:scale(.92);background:var(--s3)}
+#dbgFloat .dbg-count{font-size:12px;color:var(--acc);font-weight:700}
+#dbgFloat.has-errors{border-color:#c87a72;color:#e07050}
+#dbgFloat.has-errors .dbg-count{color:#e07050}
+#dbgPanel{position:fixed;right:10px;bottom:calc(116px + env(safe-area-inset-bottom,0));z-index:9001;background:rgba(8,8,8,.96);border:1px solid var(--acc);border-radius:10px;padding:10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2);min-width:180px;max-width:220px;box-shadow:0 6px 20px rgba(0,0,0,.7);display:none}
+#dbgPanel.visible{display:block}
+#dbgPanel .dbg-row{display:flex;justify-content:space-between;margin-bottom:6px;line-height:1.3}
+#dbgPanel .dbg-row .lbl{color:var(--tx3)}
+#dbgPanel .dbg-row .val{color:var(--tx);font-weight:600}
+#dbgPanel .dbg-row .val.warn{color:#e07050}
+#dbgPanel-actions{display:flex;gap:6px;margin-top:8px}
+#dbgPanel-actions button{flex:1;font-family:'DM Mono',monospace;font-size:12px;padding:6px 8px;border-radius:6px;background:var(--s3);border:1px solid var(--b2);color:var(--tx);cursor:pointer;letter-spacing:.06em;font-weight:600;text-transform:uppercase;touch-action:manipulation}
+#dbgPanel-actions button:active{background:var(--acc-d);color:var(--acc)}
+#dbgPanel-actions button.copied{background:var(--rdy-d);color:var(--rdy);border-color:var(--rdy-m)}
+/* DEBUG: full-screen export modal */
+#dbgExportModal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;align-items:center;justify-content:center;padding:0}
+#dbgExportModal.open{display:flex}
+.dbg-export-sheet{background:var(--bg);border:1px solid var(--acc);border-radius:14px;width:96%;max-width:500px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.8)}
+.dbg-export-hdr{padding:14px 16px;border-bottom:1px solid var(--b2);background:var(--s2)}
+.dbg-export-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--tx);letter-spacing:.04em}
+.dbg-export-subtitle{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx3);margin-top:3px;letter-spacing:.04em}
+.dbg-export-text{flex:1;width:100%;border:none;background:#0a0a0a;color:#9bbf9b;font-family:'DM Mono',monospace;font-size:12px;line-height:1.4;padding:12px;outline:none;resize:none;-webkit-user-select:text;user-select:text;min-height:200px}
+.dbg-export-actions{display:flex;gap:8px;padding:12px;border-top:1px solid var(--b2);background:var(--s2)}
+.dbg-export-btn{flex:1;height:46px;border-radius:9px;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--b2);cursor:pointer;touch-action:manipulation}
+.dbg-export-copy{background:var(--acc);color:var(--on-acc);border-color:var(--acc)}
+.dbg-export-copy:active{transform:scale(.97)}
+.dbg-export-copy.copied{background:var(--rdy);color:var(--on-acc);border-color:var(--rdy)}
+.dbg-export-close{background:var(--s3);color:var(--tx)}
+.dbg-export-close:active{background:var(--b2)}
+.ws-debug-hud-actions{display:flex;gap:4px;margin-top:6px;border-top:1px solid var(--b2);padding-top:6px}
+.ws-debug-btn{flex:1;font-family:'DM Mono',monospace;font-size:12px;padding:4px 6px;border-radius:5px;background:var(--s3);border:1px solid var(--b2);color:var(--tx);cursor:pointer;letter-spacing:.06em;font-weight:600;text-transform:uppercase;touch-action:manipulation}
+.ws-debug-btn:active{background:var(--acc-d);color:var(--acc)}
+.ws-debug-btn.copied{background:var(--rdy-d);color:var(--rdy);border-color:var(--rdy-m)}
+.ws-debug-hud .lbl{color:var(--tx3)}
+.ws-debug-hud .val{color:var(--acc);font-weight:600}
+.ws-debug-hud .val.warn{color:#e07050}
+
+/* Toast — last-active-day attempt */
+.ws-toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--s3);border:1px solid var(--b3);border-radius:10px;padding:11px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx);letter-spacing:.04em;box-shadow:0 4px 16px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:300;max-width:84%;text-align:center;line-height:1.45}
+.ws-toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Slide-to-delete modal */
+#wsDeleteModal{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.78);z-index:250;display:none;align-items:flex-end;padding:0;opacity:0;transition:opacity .22s}
+#wsDeleteModal.open{display:flex;opacity:1}
+.ws-del-sheet{width:100%;background:var(--s2);border-radius:24px 24px 0 0;border-top:1px solid var(--b2);padding:24px 22px calc(28px + env(safe-area-inset-bottom,0));transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+#wsDeleteModal.open .ws-del-sheet{transform:translateY(0)}
+.ws-del-handle{width:38px;height:5px;background:var(--b3);border-radius:3px;margin:-12px auto 18px}
+.ws-del-title{font-family:'DM Mono',monospace;font-size:12px;color:#c87a72;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:600}
+.ws-del-name{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--tx);text-align:center;line-height:1.05;margin-bottom:6px}
+.ws-del-name em{color:var(--acc);font-style:normal}
+.ws-del-sub{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--tx3);text-align:center;margin-bottom:22px;line-height:1.4}
+.ws-del-slide-wrap{height:64px;background:var(--s1);border:1px solid #5a3030;border-radius:14px;display:flex;align-items:center;padding:9px;position:relative;overflow:hidden;user-select:none;touch-action:none}
+.ws-del-slide-fill{position:absolute;top:0;bottom:0;left:0;width:0;background:linear-gradient(90deg,rgba(180,80,72,.4),rgba(220,90,80,.55));pointer-events:none;transition:width 0s}
+.ws-del-slide-thumb{width:46px;height:46px;background:#c87a72;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:2;box-shadow:0 0 18px rgba(200,80,80,.3);pointer-events:none;transition:transform .25s}
+.ws-del-slide-thumb svg{width:18px;height:18px;stroke:#fff;stroke-width:2.2;fill:none}
+.ws-del-slide-lbl{position:absolute;left:0;right:0;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.14em;color:var(--b4);z-index:1;pointer-events:none;transition:color .3s}
+.ws-del-slide-wrap.dragging{cursor:grabbing}
+.ws-del-slide-wrap.committed .ws-del-slide-fill{background:#c87a72}
+.ws-del-slide-wrap.committed .ws-del-slide-lbl{opacity:0}
+.ws-del-cancel{margin-top:14px;height:48px;width:100%;background:transparent;border:1px solid var(--b2);border-radius:12px;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.08em;cursor:pointer;font-weight:500;text-transform:uppercase;touch-action:manipulation}
+.ws-del-cancel:active{background:var(--s3)}
+
+/* Day editor sub-modal — minimal Batch B version */
+#wsDayEditModal{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.78);z-index:240;display:none;align-items:flex-end;opacity:0;transition:opacity .22s}
+#wsDayEditModal.open{display:flex;opacity:1}
+.ws-de-sheet{width:100%;background:var(--s2);border-radius:24px 24px 0 0;border-top:1px solid var(--b2);padding:0 0 calc(28px + env(safe-area-inset-bottom,0));transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:88vh;display:flex;flex-direction:column}
+#wsDayEditModal.open .ws-de-sheet{transform:translateY(0)}
+.ws-de-handle{width:38px;height:5px;background:var(--b3);border-radius:3px;margin:12px auto 8px;flex-shrink:0}
+#wsLeHandle{cursor:grab;padding:10px 0 6px;width:100%;height:auto;background:none;margin:2px 0 2px;touch-action:none;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#wsLeHandle::before{content:'';width:42px;height:5px;background:var(--b3);border-radius:3px;pointer-events:none}
+#wsLeHandle:active{cursor:grabbing}
+#wsLeHandle:active::before{background:var(--b4)}
+.ws-de-title{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx2);letter-spacing:.14em;text-transform:uppercase;text-align:center;padding:0 20px 12px;border-bottom:1px solid var(--b1);font-weight:500;flex-shrink:0}
+.ws-de-body{flex:1;overflow-y:auto;padding:16px 22px;-webkit-overflow-scrolling:touch}
+.ws-de-fld{margin-bottom:18px}
+.ws-de-fl{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:7px;font-weight:500}
+.ws-de-input{width:100%;background:var(--s1);border:1px solid var(--b2);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;padding:12px 14px;border-radius:9px;font-weight:500;transition:border-color .15s}
+.ws-de-input:focus{border-color:var(--acc-m);background:var(--s2)}
+.ws-de-input::placeholder{color:var(--tx4);font-style:italic}
+
+/* Status toggle: ember = active, gray = banked */
+.ws-de-status-row{display:flex;background:var(--s3);border:1px solid var(--b2);border-radius:10px;padding:3px;margin-bottom:6px}
+.ws-de-status-opt{flex:1;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:7px;transition:all .18s ease;touch-action:manipulation;font-family:'DM Mono',monospace;font-size:13px;color:var(--tx3);letter-spacing:.08em;font-weight:600;text-transform:uppercase}
+.ws-de-status-opt:active{background:var(--b1)}
+.ws-de-status-opt.active.is-active{background:var(--acc);color:var(--on-acc);box-shadow:0 1px 4px rgba(240,120,48,.3)}
+.ws-de-status-opt.active.is-banked{background:var(--b2);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ws-de-status-hint{font-size:13px;color:var(--tx4);margin-top:6px;font-style:italic;line-height:1.4}
+
+.ws-de-placeholder{padding:24px;background:var(--s3);border:1px dashed var(--b2);border-radius:10px;text-align:center;color:var(--tx4);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;line-height:1.6}
+.ws-de-placeholder em{color:var(--tx3);font-style:normal}
+
+.ws-de-actions{display:flex;gap:10px;padding:14px 22px;flex-shrink:0;background:var(--s2);border-top:1px solid var(--b1);box-shadow:0 -8px 16px -8px rgba(0,0,0,.4)}
+.ws-de-actions button{flex:1;height:50px;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:background .12s;touch-action:manipulation}
+.ws-de-cancel{background:var(--s3);color:var(--tx2);border:1px solid var(--b2)!important}
+.ws-de-save{background:var(--acc);color:var(--on-acc)}
+
