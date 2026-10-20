@@ -1,3 +1,5 @@
+// Stamped by build.mjs from package.json — the single source of the version.
+const GAINS_VERSION='@@GAINS_VERSION@@';
 
 const ICONS={
   rowing:{name:'Row',svg:'<path d="M3 13.5c1.2-1 2.4-1 3.6 0s2.4 1 3.6 0 2.4-1 3.6 0 2.4 1 3.6 0 2.4-1 3.6 0M5 9 L9 11 L11 9 L13 11 L15 9 L17 11 L19 9 L20 5 L17 6 L15 9"/>'},

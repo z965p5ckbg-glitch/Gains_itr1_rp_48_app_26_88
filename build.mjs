@@ -34,7 +34,17 @@ export function build() {
     if (i < 0 || hay.indexOf(token, i + 1) >= 0) throw new Error('token must occur exactly once: ' + token);
     return hay.slice(0, i) + value + hay.slice(i + token.length);
   };
-  return splice(splice(shell, CT, css), JT, js);
+  // The version lives in ONE place (package.json). Every visible label, the
+  // <title>, the History header, Settings and the service-worker cache name
+  // are stamped from it, so they can never disagree again (v54 shipped
+  // labelled "v42.0" in History).
+  const major = String(JSON.parse(read(path.join(ROOT, 'package.json'))).version).split('.')[0];
+  const stamp = s => s.split('@@GAINS_VERSION@@').join(major);
+  return stamp(splice(splice(shell, CT, css), JT, js));
+}
+export function buildSw() {
+  const major = String(JSON.parse(read(path.join(ROOT, 'package.json'))).version).split('.')[0];
+  return read(path.join(SRC, 'sw.js')).split('@@GAINS_VERSION@@').join(major);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -44,12 +54,12 @@ if (isMain) {
   const OUT = path.join(ROOT, 'index.html');
   if (process.argv.includes('--check')) {
     const committed = fs.existsSync(OUT) ? read(OUT) : '';
-    const same = committed === html && read(path.join(ROOT, 'sw.js')) === read(path.join(SRC, 'sw.js'));
+    const same = committed === html && read(path.join(ROOT, 'sw.js')) === buildSw();
     console.log(`built ${html.length} chars  md5 ${md5}  ${same ? 'matches committed index.html' : 'DIFFERS from committed index.html'}`);
     if (!same) { console.error('index.html/sw.js are stale or hand-edited. Edit src/, then run: node build.mjs'); process.exit(1); }
   } else {
     fs.writeFileSync(OUT, html);
-    fs.copyFileSync(path.join(SRC, 'sw.js'), path.join(ROOT, 'sw.js'));
+    fs.writeFileSync(path.join(ROOT, 'sw.js'), buildSw());
     console.log(`index.html  ${html.length} chars  md5 ${md5}`);
   }
 }

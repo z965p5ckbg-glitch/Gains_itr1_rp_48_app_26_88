@@ -1,0 +1,61 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   v55 — TAP TARGETS THE v46 AUDIT MISSED
+   The v46 audit read the CSS. The browser suite (tests/e2e/08-tap-targets)
+   measures the rendered page at iPhone size, so borders, flex shrinking and
+   later overrides all count. Same rules as v46: grow adjacent controls for
+   real; never overlap invisible hit areas.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Set row — the value you tap to type a number was 30pt wide, squeezed between
+   two 44pt steppers, and "102.5" (48pt of text) spilled over the + button: a
+   tap on the right half of the number added a kilo instead of opening the
+   editor. Room came from dropping the × between the pills (KG / REPS already
+   say it) and trimming the list's side padding — see 03-today-sets.css. */
+.val-tap{ min-width:44px; }
+
+/* Day tabs — 38pt tall */
+.d-tab{ min-height:44px; display:inline-flex; align-items:center; }
+
+/* Rest timer pill — its 1pt borders sat inside the 44, leaving the − / + and
+   the time 42pt tall, and the time itself only 37 wide. */
+.rctrl,.rtimer-pill{ height:46px; }
+.rtimer-pill{ flex-shrink:0; }
+.rtimer-btn{ flex-shrink:0; }
+.rtimer-label{ min-width:48px; }
+
+/* Progress period selector — a bordered segmented control again. The v47
+   sticky rule had zeroed its side padding, so the box ran edge to edge with
+   its rounded corners cut off by the screen. It lives in the fixed header, so
+   it is pinned without needing sticky. */
+.wsprog-frames{
+  position:relative; margin:12px 12px 10px; padding:3px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; box-shadow:none;
+}
+.wsprog-seg{ min-height:44px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+
+/* Progress filter chips and PRs view chips — 31pt */
+.wsprog-fchip{ min-height:44px; display:inline-flex; align-items:center; }
+
+/* Search field — 42pt */
+.wsprog-search{ min-height:44px; }
+
+/* Empty period: the way out is a real button */
+.wsprog-empty-btn{
+  margin-top:16px; min-height:44px; padding:0 18px;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(240,120,48,.12); border:1px solid rgba(240,120,48,.4);
+  border-radius:11px; color:var(--acc);
+  font-family:'DM Mono',monospace; font-size:13px; letter-spacing:.06em;
+  text-transform:uppercase; cursor:pointer; touch-action:manipulation;
+}
+.wsprog-empty-btn:active{ background:rgba(240,120,48,.22); }
+
+/* Consistency grid — say what the squares are */
+.wsgrid-cap{
+  font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--tx4); margin:16px 2px -4px;
+}
+
+/* Trend panels: the figure is last week's, and says so */
+.wstrend-v small{ font-size:11px; color:var(--tx4); letter-spacing:.04em; }

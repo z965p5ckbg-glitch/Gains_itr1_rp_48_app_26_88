@@ -42,7 +42,8 @@ function wsProgRender(){
       <div class="wsprog-hero-cell gold"><div class="wsprog-hn">${prCount}</div><div class="wsprog-hl">new bests</div></div>
     </div>
     ${wsRenderTrends()}
-    <div class="wsgrid" aria-label="last 12 weeks">${gcells}</div>`;
+    <div class="wsgrid-cap">Consistency · last 12 weeks</div>
+    <div class="wsgrid" aria-label="Consistency, last 12 weeks">${gcells}</div>`;
 
   // ── highlights (auto-curated) ──
   let hi='';
@@ -71,9 +72,23 @@ function wsProgRender(){
   // ── body ──
   let body='';
   if(data.list.length===0){
-    body=`<div class="hi-empty"><div class="hi-empty-icon"><svg viewBox="0 0 24 24"><polyline points="2 16 7 10 12 13 20 4"/><polyline points="15 4 20 4 20 9"/></svg></div>
-      <div class="hi-empty-title">No sessions yet</div>
-      <div class="hi-empty-sub">Log a workout and your exercise trends will appear here — strength, reps, pace and rounds, each tracked over time.</div></div>`;
+    // v55: "No sessions yet" was shown whenever the selected period was empty,
+    // even with months of history just outside it — so a fresh install showed
+    // 78 sessions in History and "No sessions yet" in Progress. Say which it is.
+    const hist=Array.isArray(HISTORY)?HISTORY:[];
+    const lastT=hist.reduce((m,r)=>{ const t=new Date(r.date).getTime(); return isNaN(t)?m:Math.max(m,t); },0);
+    const icon=`<div class="hi-empty-icon"><svg viewBox="0 0 24 24"><polyline points="2 16 7 10 12 13 20 4"/><polyline points="15 4 20 4 20 9"/></svg></div>`;
+    if(lastT && wsProgFrame!=='ALL'){
+      const when=new Date(lastT).toLocaleDateString(undefined,{day:'numeric',month:'short',year:(new Date(lastT).getFullYear()!==new Date().getFullYear()?'numeric':undefined)});
+      body=`<div class="hi-empty">${icon}
+        <div class="hi-empty-title">Nothing in the last ${frameLabel}</div>
+        <div class="hi-empty-sub">Your most recent session was ${hiEscape(when)}. Pick a longer period to see your trends.</div>
+        <button class="wsprog-empty-btn" onclick="wsProgSetFrame('ALL')">Show all time</button></div>`;
+    } else {
+      body=`<div class="hi-empty">${icon}
+        <div class="hi-empty-title">No sessions yet</div>
+        <div class="hi-empty-sub">Log a workout and your exercise trends will appear here — strength, reps, pace and rounds, each tracked over time.</div></div>`;
+    }
   } else if(wsProgFilter==='days'){
     body=wsProgDaysHtml();
   } else {

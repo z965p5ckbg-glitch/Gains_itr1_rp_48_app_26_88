@@ -30,7 +30,9 @@ export default async function (t) {
     fs.copyFileSync(path.join(t.root, 'tests/legacy/harness.cjs'), path.join(dir, 'harness.cjs'));
     let out;
     try {
-      out = execFileSync(process.execPath, ['harness.cjs'], { cwd: dir, encoding: 'utf8', maxBuffer: 64 << 20, timeout: 240000 });
+      const version = String(JSON.parse(fs.readFileSync(path.join(t.root, 'package.json'), 'utf8')).version).split('.')[0];
+      out = execFileSync(process.execPath, ['harness.cjs'], { cwd: dir, encoding: 'utf8', maxBuffer: 64 << 20, timeout: 240000,
+        env: { ...process.env, GAINS_VERSION: version } });
     } catch (e) { t.ok(false, 'legacy harness runs to completion', (e.stdout || '') + (e.stderr || '')); return; }
     const json = JSON.parse(out.slice(out.indexOf('{')));
     let total = 0; const unexpected = []; const errs = [];

@@ -355,6 +355,9 @@ function wsProgDayGrid(){
   let refT=0;
   for(const r of hist){ const t=new Date(r.date).getTime(); if(t>refT) refT=t; }
   if(!refT) return [];
+  // v55: end the grid today, like every other Progress window. It used to end
+  // at the last logged session, so a two-week break did not show as a gap.
+  refT=Math.max(refT, Date.now());
   const D=86400000, start=refT-83*D;
   const byDay={};
   for(const r of hist){

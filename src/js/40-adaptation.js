@@ -92,8 +92,9 @@ function wsAdaptBuckets(weeks){
   }
   const list=Object.keys(muscles).map(k=>({name:k,...muscles[k]}))
     .filter(m=>m.total>0).sort((a,b)=>b.total-a.total);
-  return {muscles:list, bands, conditioning, weeks:rows.length, totalSets, unmatched,
-          perWeek:(n)=>Math.round((n/rows.length)*10)/10};
+  // weeks = complete weeks in the window (this week's sets are included in the
+  // mix, but the caption names the period the way the rest of Progress does)
+  return {muscles:list, bands, conditioning, weeks:rows.filter(r=>!r.partial).length, totalSets, unmatched};
 }
 
 /* Describes the distribution. Makes no prescription — "you need more heavy work"
@@ -125,7 +126,8 @@ function wsAdaptBarHtml(m,max){
 }
 
 function wsRenderAdaptation(){
-  const d=wsAdaptBuckets(WS_TREND_WEEKS);
+  // v55: same window as the period picked at the top of Progress
+  const d=wsAdaptBuckets(wsTrendWeeksFor(typeof wsProgFrame!=='undefined'?wsProgFrame:'8W'));
   if(!d||!d.totalSets) return '';
   const ro=wsAdaptReadout(d);
   const max=d.muscles.length?d.muscles[0].total:0;
@@ -135,7 +137,7 @@ function wsRenderAdaptation(){
   const bars=d.muscles.slice(0,12).map(m=>wsAdaptBarHtml(m,max)).join('');
   return '<div class="wsad">'
     +'<div class="wsad-h">Adaptation mix</div>'
-    +'<div class="wsad-s">Working sets by rep range · last '+d.weeks+' weeks</div>'
+    +'<div class="wsad-s">Working sets by rep range · '+wsTrendFrameCaption(d.weeks)+'</div>'
     + (ro?'<div class="wsad-read">'+ro.text+'</div>':'')
     +'<div class="wsad-legend">'+legend+'</div>'
     +'<div class="wsad-bars">'+bars+'</div>'

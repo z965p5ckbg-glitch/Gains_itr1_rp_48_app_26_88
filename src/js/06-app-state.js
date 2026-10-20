@@ -36,6 +36,11 @@ if(_wsLoadedBlob){
   // Actually wsPersistApply does everything; just call it and we're done.
   wsPersistApply(_wsLoadedBlob);
   if(Array.isArray(_wsLoadedBlob.history)) HISTORY=_wsLoadedBlob.history;
+  // v55: sessions logged on v54 and earlier saved every item on the day,
+  // including ones never touched. Drop only entries that by their own data
+  // contain no work at all; anything ambiguous is kept (fixable by hand in
+  // History -> Fix this session). Idempotent, so it is safe on every boot.
+  try{ const n=wsPruneEmptyEntries(HISTORY); if(n&&console&&console.info) console.info('[Gains] Removed '+n+' empty entries from older sessions.'); }catch(_){}
   _wsLoadedFromStorage=true;
 } else {
   // Fresh start: build days from the static template and run migration to

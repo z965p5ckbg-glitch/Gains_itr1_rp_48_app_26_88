@@ -114,7 +114,9 @@ function renderExCard(ex,ei,shimmer){
     const done=s._logged;
     const rowCls=done?'set-row done':'set-row';
     const rZero=!done&&s.r===0;
-    // Each row: number · [− weight +] · × · [− reps +] · ember check.
+    // Each row: number · [− weight +] · [− reps +] · ember check.
+    // v55: the × between the pills was dropped - the KG / REPS labels already
+    // say it, and its width was what squeezed the values under 44pt.
     // Steppers nudge inline (weight ±1, reps ±1). Tapping a value opens the
     // existing slider sheet (openEdit) for typing / fine-tune / apply-to-all.
     // The check toggles the logged state (cellTap).
@@ -122,10 +124,9 @@ function renderExCard(ex,ei,shimmer){
       <span class="set-num">${si+1}</span>
       <div class="val-group">
         <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',-1)">−</button>
-        <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num">${fmtSetW(s.w)}</span><span class="val-unit">KG</span></button>
+        <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${fmtSetW(s.w).length>4?' long':''}">${fmtSetW(s.w)}</span><span class="val-unit">KG</span></button>
         <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',1)">+</button>
       </div>
-      <span class="set-x">×</span>
       <div class="val-group">
         <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'r',-1)">−</button>
         <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${rZero?' zero':''}">${s.r}</span><span class="val-unit">REPS</span></button>

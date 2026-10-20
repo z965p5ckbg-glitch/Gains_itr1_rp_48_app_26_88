@@ -147,7 +147,7 @@ function wsCompareCardHtml(rec){
       +'<div class="wscmp-r"><span class="wscmp-l">Sets</span><span class="wscmp-v">'+c.setsThen+' → '+c.setsNow+'</span>'
         +'<span class="wscmp-d '+(setsD>0?'up':(setsD<0?'dn':'flat'))+'">'+(setsD>0?'+':'')+setsD+'</span></div>'
       +'<div class="wscmp-r"><span class="wscmp-l">Volume</span><span class="wscmp-v">'
-        +wsTrendFmtVol(c.volThen)+' → '+wsTrendFmtVol(c.volNow)+' kg</span>'+wsCmpArrow(c.volPct)+'</div>'
+        +wsTrendFmtVol(c.volThen)+' → '+wsTrendFmtVol(c.volNow)+'</span>'+wsCmpArrow(c.volPct)+'</div>'
       + effLine
     +'</div>'
     +'<div class="wscmp-lifts">'+top+'</div>'

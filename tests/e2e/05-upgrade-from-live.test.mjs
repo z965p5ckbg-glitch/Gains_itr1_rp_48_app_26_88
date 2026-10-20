@@ -36,6 +36,8 @@ export default async function (t) {
     await slideToLog(phone);
     const before = await appState(phone);
     t.ok(before.history.length === 2, 'two sessions logged on the old build', before.history.length);
+    const empties = s => s.history.flatMap(r => r.entries).filter(e => (e.kind === 'weighted' || e.kind === 'bodyweight') ? e.sets === 0 : false).length;
+    t.ok(empties(before) > 0, 'the old build saved untouched exercises (the bug being cleaned up)', empties(before));
     const fingerprint = s => s.history.map(r => r.date + ':' + r.entries.reduce((n, e) => n + e.sets, 0)).sort().join('|');
     const want = fingerprint(before);
 
@@ -50,6 +52,9 @@ export default async function (t) {
     const after = await appState(phone);
     t.ok(fingerprint(after) === want, 'every session survives the upgrade, set for set', { before: want, after: fingerprint(after) });
     t.ok(after.history.length === 2, 'demo data is not re-injected over real data', after.history.length);
+    t.ok(empties(after) === 0, 'untouched exercises saved by the old build are cleaned out', empties(after));
+    const hiitGhosts = await page.evaluate(() => HISTORY.flatMap(r => r.entries).filter(e => e.kind === 'hiit' && !((e.hiit || {}).roundsDone > 0) && !((e.hiit || {}).workSecTotal > 0)).length);
+    t.ok(hiitGhosts === 0, 'skipped HIIT finishers no longer count as work', hiitGhosts);
     for (const name of ['history', 'progress', 'prs', 'today']) await tab(phone, name);
     t.ok(phone.errors.length === 0, 'new build boots and renders every tab with no errors', phone.errors);
     if (t.shots) { await tab(phone, 'history'); await page.screenshot({ path: t.shotPath('upgrade-history.png') }); }

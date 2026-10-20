@@ -33,7 +33,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23090807'/%3E%3Crect x='30' y='84' width='120' height='12' rx='6' fill='%23f07830'/%3E%3Crect x='36' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3Crect x='122' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3C/svg%3E">
 <meta name="screen-orientation" content="portrait">
 <meta name="x5-orientation" content="portrait">
-<title>Gains — v54</title>
+<title>Gains — v55</title>
 <!-- Fonts are embedded below as base64 woff2. No external font request is made:
      it removes a supply-chain dependency, stops every launch pinging a third party,
      lets the app render correctly with zero signal, and is what allows the strict
@@ -174,12 +174,11 @@ input,textarea{-webkit-touch-callout:default}
 .ex-cue{font-size:13px;color:var(--tx2);padding:3px 18px 12px;font-style:italic;line-height:1.4}
 
 /* ─── Strength set rows (each set = one row) ─────────────────────────── */
-.set-list{padding:4px 12px 6px}
-.set-row{display:flex;align-items:center;gap:7px;padding:8px 4px;border-radius:10px;user-select:none}
+.set-list{padding:4px 8px 6px}
+.set-row{display:flex;align-items:center;gap:6px;padding:8px 0;border-radius:10px;user-select:none}
 .set-row + .set-row{border-top:1px solid var(--b1)}
 .set-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);width:14px;text-align:center;flex-shrink:0}
 .set-row.done .set-num{color:var(--acc)}
-.set-x{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx4);flex-shrink:0;padding:0 1px}
 
 /* value group: [− value +] as one pill, value-tap opens the slider sheet */
 .val-group{display:flex;align-items:center;background:var(--s2);border:1px solid var(--b2);border-radius:9px;overflow:hidden;flex:1;min-width:0}
@@ -189,6 +188,7 @@ input,textarea{-webkit-touch-callout:default}
 .val-tap:active{background:var(--s3)}
 .val-num{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--tx);line-height:1}
 .val-num.zero{color:var(--b4)}
+.val-num.long{font-size:15px}  /* 102.5 and up: fits the 44pt value box on a 375pt phone */
 .val-unit{font-family:'DM Mono',monospace;font-size:8px;color:var(--tx4);letter-spacing:.06em;margin-top:1px}
 .set-row.done .val-num{color:var(--tx2)}
 
@@ -2405,6 +2405,67 @@ input,textarea{-webkit-touch-callout:default}
 
 .ws-data-btn-danger{ border-color:rgba(217,138,138,.45)!important; color:#d98a8a!important; }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   v55 — TAP TARGETS THE v46 AUDIT MISSED
+   The v46 audit read the CSS. The browser suite (tests/e2e/08-tap-targets)
+   measures the rendered page at iPhone size, so borders, flex shrinking and
+   later overrides all count. Same rules as v46: grow adjacent controls for
+   real; never overlap invisible hit areas.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Set row — the value you tap to type a number was 30pt wide, squeezed between
+   two 44pt steppers, and "102.5" (48pt of text) spilled over the + button: a
+   tap on the right half of the number added a kilo instead of opening the
+   editor. Room came from dropping the × between the pills (KG / REPS already
+   say it) and trimming the list's side padding — see 03-today-sets.css. */
+.val-tap{ min-width:44px; }
+
+/* Day tabs — 38pt tall */
+.d-tab{ min-height:44px; display:inline-flex; align-items:center; }
+
+/* Rest timer pill — its 1pt borders sat inside the 44, leaving the − / + and
+   the time 42pt tall, and the time itself only 37 wide. */
+.rctrl,.rtimer-pill{ height:46px; }
+.rtimer-pill{ flex-shrink:0; }
+.rtimer-btn{ flex-shrink:0; }
+.rtimer-label{ min-width:48px; }
+
+/* Progress period selector — a bordered segmented control again. The v47
+   sticky rule had zeroed its side padding, so the box ran edge to edge with
+   its rounded corners cut off by the screen. It lives in the fixed header, so
+   it is pinned without needing sticky. */
+.wsprog-frames{
+  position:relative; margin:12px 12px 10px; padding:3px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  border-radius:12px; box-shadow:none;
+}
+.wsprog-seg{ min-height:44px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+
+/* Progress filter chips and PRs view chips — 31pt */
+.wsprog-fchip{ min-height:44px; display:inline-flex; align-items:center; }
+
+/* Search field — 42pt */
+.wsprog-search{ min-height:44px; }
+
+/* Empty period: the way out is a real button */
+.wsprog-empty-btn{
+  margin-top:16px; min-height:44px; padding:0 18px;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(240,120,48,.12); border:1px solid rgba(240,120,48,.4);
+  border-radius:11px; color:var(--acc);
+  font-family:'DM Mono',monospace; font-size:13px; letter-spacing:.06em;
+  text-transform:uppercase; cursor:pointer; touch-action:manipulation;
+}
+.wsprog-empty-btn:active{ background:rgba(240,120,48,.22); }
+
+/* Consistency grid — say what the squares are */
+.wsgrid-cap{
+  font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--tx4); margin:16px 2px -4px;
+}
+
+/* Trend panels: the figure is last week's, and says so */
+.wstrend-v small{ font-size:11px; color:var(--tx4); letter-spacing:.04em; }
 </style>
 </head>
 <body>
@@ -2531,7 +2592,7 @@ input,textarea{-webkit-touch-callout:default}
         <div class="settings-row" onclick="wsOpenProfile()"><div class="settings-row-info"><div class="settings-row-title">About me &amp; bodyweight</div><div class="settings-row-sub">Unlocks relative strength and gives the coach real context</div></div><div class="settings-chev">&rsaquo;</div></div>
         <div class="settings-row" onclick="wsOpenCoach()"><div class="settings-row-info"><div class="settings-row-title">Ask my coach</div><div class="settings-row-sub">Copy a training brief into any AI &mdash; no account, no key</div></div><div class="settings-chev">&rsaquo;</div></div>
         <div class="settings-row" onclick="wsOpenData()"><div class="settings-row-info"><div class="settings-row-title">Your data — backup &amp; restore</div><div class="settings-row-sub">Save a copy outside the app, or start a fresh log</div></div><div class="settings-chev">›</div></div>
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub">Gains v54 &middot; offline build</div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub">Gains v55 &middot; offline build</div></div></div>
       </div>
     </div>
     <div class="settings-section">
@@ -2791,7 +2852,9 @@ input,textarea{-webkit-touch-callout:default}
 </div>
 
 
-<script>
+<script>// Stamped by build.mjs from package.json — the single source of the version.
+const GAINS_VERSION='55';
+
 const ICONS={
   rowing:{name:'Row',svg:'<path d="M3 13.5c1.2-1 2.4-1 3.6 0s2.4 1 3.6 0 2.4-1 3.6 0 2.4 1 3.6 0 2.4-1 3.6 0M5 9 L9 11 L11 9 L13 11 L15 9 L17 11 L19 9 L20 5 L17 6 L15 9"/>'},
   run:{name:'Run',svg:'<circle cx="14.5" cy="4" r="2"/><path d="M11 11 L13 9 L16 9 L17 12 L17 16 L19 19 L17 21 L15 18 L15 14 L13 14 L13 17 L9 22 L7 21 L11 16 L11 11 L9 9 L6 11 L5 14 L3 13 L5 9 Z"/>'},
@@ -4080,6 +4143,11 @@ if(_wsLoadedBlob){
   // Actually wsPersistApply does everything; just call it and we're done.
   wsPersistApply(_wsLoadedBlob);
   if(Array.isArray(_wsLoadedBlob.history)) HISTORY=_wsLoadedBlob.history;
+  // v55: sessions logged on v54 and earlier saved every item on the day,
+  // including ones never touched. Drop only entries that by their own data
+  // contain no work at all; anything ambiguous is kept (fixable by hand in
+  // History -> Fix this session). Idempotent, so it is safe on every boot.
+  try{ const n=wsPruneEmptyEntries(HISTORY); if(n&&console&&console.info) console.info('[Gains] Removed '+n+' empty entries from older sessions.'); }catch(_){}
   _wsLoadedFromStorage=true;
 } else {
   // Fresh start: build days from the static template and run migration to
@@ -5752,7 +5820,9 @@ function renderExCard(ex,ei,shimmer){
     const done=s._logged;
     const rowCls=done?'set-row done':'set-row';
     const rZero=!done&&s.r===0;
-    // Each row: number · [− weight +] · × · [− reps +] · ember check.
+    // Each row: number · [− weight +] · [− reps +] · ember check.
+    // v55: the × between the pills was dropped - the KG / REPS labels already
+    // say it, and its width was what squeezed the values under 44pt.
     // Steppers nudge inline (weight ±1, reps ±1). Tapping a value opens the
     // existing slider sheet (openEdit) for typing / fine-tune / apply-to-all.
     // The check toggles the logged state (cellTap).
@@ -5760,10 +5830,9 @@ function renderExCard(ex,ei,shimmer){
       <span class="set-num">${si+1}</span>
       <div class="val-group">
         <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',-1)">−</button>
-        <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num">${fmtSetW(s.w)}</span><span class="val-unit">KG</span></button>
+        <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${fmtSetW(s.w).length>4?' long':''}">${fmtSetW(s.w)}</span><span class="val-unit">KG</span></button>
         <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',1)">+</button>
       </div>
-      <span class="set-x">×</span>
       <div class="val-group">
         <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'r',-1)">−</button>
         <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${rZero?' zero':''}">${s.r}</span><span class="val-unit">REPS</span></button>
@@ -8722,8 +8791,12 @@ function captureSessionRecord(dayIdx){
     }
     // live-captured effort rating for strength/cardio entries
     if(kind!=='cardio_intervals' && typeof ex.rpe==='number') entry.rpe=ex.rpe;
-    entries.push(entry);
+    // v55: only what was performed enters the record. Until v54 every item on
+    // the day was saved, so an untouched exercise appeared in History with zero
+    // sets and a skipped HIIT finisher counted as conditioning work.
+    if(wsEntryPerformed(entry, ex)) entries.push(entry);
   }
+  if(!entries.length) return null;   // nothing performed -> no session
   const rec={
     id:wsNewSessionId(),
     dayExId: d.dayExId || d.label || null,
@@ -8732,6 +8805,38 @@ function captureSessionRecord(dayIdx){
     entries,
   };
   return rec;
+}
+
+// Was this item actually done? Strength: at least one ticked set. Cardio and
+// intervals: the item was finished or saved (ex.logged), or — for intervals
+// ended early — at least one work round ran.
+function wsEntryPerformed(entry, ex){
+  if(entry.kind==='weighted' || entry.kind==='bodyweight') return (entry.sets||[]).length>0;
+  if(entry.kind==='hiit') return !!ex.logged || ((entry.hiit && entry.hiit.roundsDone)||0) > 0;
+  return !!ex.logged;
+}
+
+// Remove entries that record no work whatsoever: strength with zero sets,
+// intervals with zero rounds and zero work time, cardio with neither time
+// nor distance. A cardio entry with a non-zero duration is KEPT even though
+// old builds sometimes saved a planned duration for untouched cardio — the
+// data cannot tell those apart, so the user decides, not a heuristic.
+// Sessions left with nothing are kept too (deleting a whole session is the
+// user's call). Returns how many entries were removed.
+function wsPruneEmptyEntries(history){
+  let removed=0;
+  for(const rec of (Array.isArray(history)?history:[])){
+    if(!rec||!Array.isArray(rec.entries)) continue;
+    const keep=rec.entries.filter(e=>{
+      if(!e) return false;
+      if(e.kind==='weighted'||e.kind==='bodyweight') return Array.isArray(e.sets)&&e.sets.length>0;
+      if(e.kind==='hiit'){ const h=e.hiit||{}; return (h.roundsDone||0)>0||(h.workSecTotal||0)>0; }
+      if(e.kind==='cardio'){ const c=e.cardio||{}; return (c.durationSec||0)>0||(c.distanceM||0)>0; }
+      return true;                       // unknown kinds: never guess
+    });
+    if(keep.length && keep.length<rec.entries.length){ removed+=rec.entries.length-keep.length; rec.entries=keep; }
+  }
+  return removed;
 }
 
 // Current bodyweight from profile (latest reading), or null if unset.
@@ -9291,7 +9396,7 @@ function hiEmptyHtml(){
 // ── LIST view ──
 function hiRenderList(root){
   const recs=hiSorted();
-  const sub=recs.length+' session'+(recs.length===1?'':'s')+' · v42.0';
+  const sub=recs.length+' session'+(recs.length===1?'':'s')+' · v'+GAINS_VERSION;
   let body='';
   if(recs.length===0){
     body=hiEmptyHtml();
@@ -10183,6 +10288,9 @@ function wsProgDayGrid(){
   let refT=0;
   for(const r of hist){ const t=new Date(r.date).getTime(); if(t>refT) refT=t; }
   if(!refT) return [];
+  // v55: end the grid today, like every other Progress window. It used to end
+  // at the last logged session, so a two-week break did not show as a gap.
+  refT=Math.max(refT, Date.now());
   const D=86400000, start=refT-83*D;
   const byDay={};
   for(const r of hist){
@@ -10303,7 +10411,35 @@ function wsTrendWeekStart(t){   // Monday 00:00 local
   return d.getTime();
 }
 
-// One row per week: how much, how heavy, how hard.
+// v55: trends cover the period picked at the top of Progress — N complete
+// weeks ending last Sunday, plus this week so far. Until v54 they were fixed at
+// 12 weeks and ended at the last logged session, so the screen said "8 weeks"
+// directly above a 12-week chart, and after a week off it showed the wrong
+// weeks entirely.
+//
+// WHY THIS WEEK IS SEPARATE
+// The current week is unfinished. Counted as a full week it drags every
+// comparison down — on a Tuesday, two days of training sit beside seven, and
+// the panels read as a drop-off that has not happened. Comparisons use complete
+// weeks only; this week is drawn as an open dot and never enters a delta.
+function wsTrendWeeksFor(frame){
+  const w={'4W':4,'8W':8,'6M':26,'1Y':52}[frame];
+  if(w) return w;
+  const hist=Array.isArray(HISTORY)?HISTORY:[];
+  let minT=Infinity;
+  for(const r of hist){ const t=new Date(r.date).getTime(); if(!isNaN(t)&&t<minT) minT=t; }
+  if(!isFinite(minT)) return WS_TREND_WEEKS;
+  // complete weeks from the first session's week up to last week
+  const full=Math.round((wsTrendWeekStart(Date.now())-wsTrendWeekStart(minT))/(7*86400000));
+  return Math.max(4, Math.min(156, full));
+}
+function wsTrendFrameCaption(weeks){
+  return (typeof wsProgFrame!=='undefined' && wsProgFrame==='ALL')
+    ? 'all '+weeks+' weeks' : 'last '+weeks+' weeks';
+}
+
+// One row per week: how much, how heavy, how hard. Returns `weeks` complete
+// weeks followed by the current week, which is flagged partial:true.
 function wsTrendBuckets(exKey, weeks){
   weeks = weeks || WS_TREND_WEEKS;
   const hist = Array.isArray(HISTORY) ? HISTORY : [];
@@ -10311,10 +10447,11 @@ function wsTrendBuckets(exKey, weeks){
   let maxT=0;
   for(const r of hist){ const t=new Date(r.date).getTime(); if(!isNaN(t)&&t>maxT) maxT=t; }
   if(!maxT) return [];
-  const lastWeek = wsTrendWeekStart(maxT);
+  const thisWeek = wsTrendWeekStart(Date.now());
+  const lastWeek = wsTrendWeekStart(Math.max(Date.now(), maxT));
   const W = 7*86400000;
   const rows=[];
-  for(let i=weeks-1;i>=0;i--){
+  for(let i=weeks;i>=0;i--){
     rows.push({ t:lastWeek-i*W, sets:0, volume:0, loadSum:0, loadN:0,
                 effSum:0, effN:0, sessions:0, _days:Object.create(null) });
   }
@@ -10357,7 +10494,8 @@ function wsTrendBuckets(exKey, weeks){
     load: r.loadN ? Math.round((r.loadSum/r.loadN)*10)/10 : null,
     effort: r.effN ? Math.round((r.effSum/r.effN)*10)/10 : null,   // null = never rated
     effortEstimated: !!r.effEst,
-    sessions:r.sessions
+    sessions:r.sessions,
+    partial: r.t>=thisWeek            // unfinished: shown, never compared
   }));
 }
 
@@ -10378,8 +10516,9 @@ function wsTrendExList(){
   return Object.keys(seen).map(k=>seen[k]).sort((a,b)=>b.t-a.t);
 }
 
-// second half of the window vs first half, per series
+// second half of the window vs first half, per series — complete weeks only
 function wsTrendDelta(rows,field){
+  rows=rows.filter(r=>!r.partial);
   const vals=rows.map(r=>r[field]).filter(v=>typeof v==='number'&&isFinite(v));
   if(vals.length<4) return null;
   const half=Math.floor(rows.length/2);
@@ -10395,6 +10534,7 @@ function wsTrendDelta(rows,field){
    "you were ill" or "you deloaded" — those are causes, and a tracker that
    guesses causes and gets one wrong loses the user's trust in all of it. */
 function wsTrendReadout(rows){
+  rows=rows.filter(r=>!r.partial);
   const dl=wsTrendDelta(rows,'load');
   const ds=wsTrendDelta(rows,'sets');
   const de=wsTrendDelta(rows,'effort');
@@ -10421,31 +10561,40 @@ function wsTrendReadout(rows){
   return {text:cap.charAt(0).toUpperCase()+cap.slice(1)+' over the last '+rows.length+' weeks.',tone:tone};
 }
 
-// sparkline; nulls become gaps, never zeros
-function wsTrendSpark(vals,accent){
-  const W=280,H=40,P=3;
-  const nums=vals.filter(v=>typeof v==='number'&&isFinite(v));
+// sparkline; nulls become gaps, never zeros. If partialIdx is given, that
+// point (this week so far) is drawn as an open dot, off the line.
+function wsTrendSpark(vals,accent,partialIdx){
+  const W=280,H=40,P=4;
+  const isNum=v=>typeof v==='number'&&isFinite(v);
+  const nums=vals.filter((v,i)=>isNum(v)&&i!==partialIdx);
   if(nums.length<2) return '<div class="wstrend-nodata">Not enough data yet</div>';
+  if(isNum(vals[partialIdx])) nums.push(vals[partialIdx]);   // keep it on the scale
   let lo=Math.min.apply(null,nums), hi=Math.max.apply(null,nums);
   if(hi===lo){ hi=lo+1; lo=Math.max(0,lo-1); }
   const x=i=>P+(i*(W-2*P))/(vals.length-1);
   const y=v=>H-P-((v-lo)/(hi-lo))*(H-2*P);
   let d='',open=false,dots='';
   vals.forEach((v,i)=>{
-    if(typeof v!=='number'||!isFinite(v)){ open=false; return; }
+    if(!isNum(v)||i===partialIdx){ open=false; return; }
     d += (open?' L ':' M ')+x(i).toFixed(1)+' '+y(v).toFixed(1);
     open=true;
   });
-  const last=vals.length-1;
-  if(typeof vals[last]==='number') dots='<circle cx="'+x(last).toFixed(1)+'" cy="'+y(vals[last]).toFixed(1)+'" r="3" fill="'+accent+'"/>';
+  let last=vals.length-1;
+  if(last===partialIdx){
+    if(isNum(vals[last])) dots+='<circle cx="'+x(last).toFixed(1)+'" cy="'+y(vals[last]).toFixed(1)+'" r="2.6" fill="var(--bg)" stroke="'+accent+'" stroke-width="1.4" opacity=".85"/>';
+    last--;
+  }
+  if(isNum(vals[last])) dots+='<circle cx="'+x(last).toFixed(1)+'" cy="'+y(vals[last]).toFixed(1)+'" r="3" fill="'+accent+'"/>';
   return '<svg class="wstrend-spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'
        + '<path d="'+d.trim()+'" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
        + dots + '</svg>';
 }
 
+// Volume with its unit. v55: callers used to append ' kg' to a value already
+// in tonnes, printing "34t kg".
 function wsTrendFmtVol(v){
-  if(v>=1000) return (v/1000).toFixed(v>=10000?0:1)+'t';
-  return String(Math.round(v));
+  if(v>=1000) return (v/1000).toFixed(v>=10000?0:1)+' t';
+  return Math.round(v)+' kg';
 }
 function wsTrendDeltaChip(d,inverse){
   if(d==null) return '<span class="wstrend-d flat">—</span>';
@@ -10454,49 +10603,54 @@ function wsTrendDeltaChip(d,inverse){
   return '<span class="wstrend-d '+cls+'">'+sign+d+'%</span>';
 }
 
-function wsTrendPanel(title,sub,vals,cur,delta,accent){
+// The figure beside each title is LAST WEEK's (the latest complete week), and
+// says so — this week is unfinished and would read as a slump.
+function wsTrendPanel(title,sub,vals,cur,delta,accent,partialIdx){
   return '<div class="wstrend-p">'
     +'<div class="wstrend-h">'
       +'<span class="wstrend-t">'+title+'</span>'
-      +'<span class="wstrend-v">'+cur+'</span>'
+      +'<span class="wstrend-v">'+cur+'<small> last wk</small></span>'
       + wsTrendDeltaChip(delta)
     +'</div>'
     + (sub?'<div class="wstrend-s">'+sub+'</div>':'')
-    + wsTrendSpark(vals,accent)
+    + wsTrendSpark(vals,accent,partialIdx)
   +'</div>';
 }
 
 function wsRenderTrends(){
-  const rows=wsTrendBuckets(wsTrendEx,WS_TREND_WEEKS);
+  const weeks=wsTrendWeeksFor(typeof wsProgFrame!=='undefined'?wsProgFrame:'8W');
+  const rows=wsTrendBuckets(wsTrendEx,weeks);
   if(!rows.length) return '';
-  const last=rows[rows.length-1];
+  const done=rows.filter(r=>!r.partial);            // complete weeks
+  const pIdx=rows.length-1;                         // this week, in progress
+  const last=done[done.length-1]||rows[rows.length-1];
   const list=wsTrendExList();
   const opts=['<option value="ALL">All exercises</option>']
     .concat(list.map(e=>'<option value="'+e.key.replace(/"/g,'&quot;')+'"'
       +(e.key===wsTrendEx?' selected':'')+'>'+e.name+'</option>')).join('');
 
-  const ratedWeeks=rows.filter(r=>r.effort!=null).length;
-  const estWeeks=rows.filter(r=>r.effortEstimated).length;
+  const ratedWeeks=done.filter(r=>r.effort!=null).length;
+  const estWeeks=done.filter(r=>r.effortEstimated).length;
   const effortSub = ratedWeeks===0
     ? 'Not rated yet — rate a session at the end of your workout'
     : (estWeeks ? estWeeks+' of '+ratedWeeks+' rated weeks are estimated'
-      : (ratedWeeks<rows.length ? ratedWeeks+' of '+rows.length+' weeks rated' : 'session rating, 1-10'));
+      : (ratedWeeks<done.length ? ratedWeeks+' of '+done.length+' weeks rated' : 'session rating, 1-10'));
 
   const ro=wsTrendReadout(rows);
   const readout = ro ? '<div class="wstrend-read '+ro.tone+'">'+ro.text+'</div>' : '';
 
-  const avgSess=Math.round((rows.reduce((a,r)=>a+r.sessions,0)/rows.length)*10)/10;
+  const avgSess=Math.round((done.reduce((a,r)=>a+r.sessions,0)/Math.max(1,done.length))*10)/10;
 
   return '<div class="wstrend">'
     +'<div class="wstrend-bar">'
-      +'<span class="wstrend-cap">Trends · last '+WS_TREND_WEEKS+' weeks</span>'
+      +'<span class="wstrend-cap">Trends · '+wsTrendFrameCaption(weeks)+'</span>'
       +'<select class="wstrend-sel" onchange="wsTrendSetEx(this.value)" aria-label="Filter by exercise">'+opts+'</select>'
     +'</div>'
     + readout
-    + wsTrendPanel('Sets','per week · '+avgSess+' sessions/wk avg',
-        rows.map(r=>r.sets), last.sets, wsTrendDelta(rows,'sets'), 'var(--acc)')
+    + wsTrendPanel('Sets','per week · '+avgSess+(avgSess===1?' session':' sessions')+'/wk avg'+(rows[pIdx]&&rows[pIdx].partial?' · ○ this week so far':''),
+        rows.map(r=>r.sets), last.sets, wsTrendDelta(rows,'sets'), 'var(--acc)', pIdx)
     + wsTrendPanel('Volume','per week',
-        rows.map(r=>r.volume), wsTrendFmtVol(last.volume)+' kg', wsTrendDelta(rows,'volume'), 'var(--lilac)')
+        rows.map(r=>r.volume), wsTrendFmtVol(last.volume), wsTrendDelta(rows,'volume'), 'var(--lilac)', pIdx)
     + (function(){
         // Across all exercises, raw kg/set is a mean over a heterogeneous basket
         // and moves with the exercise MIX. Verified: 3 Aug -> 10 Aug it reported
@@ -10506,17 +10660,17 @@ function wsRenderTrends(){
         if(single){
           return wsTrendPanel('Load','average per set',
             rows.map(r=>r.load), (last.load==null?'—':last.load+' kg'),
-            wsTrendDelta(rows,'load'), '#6fb3d2');
+            wsTrendDelta(rows,'load'), '#6fb3d2', pIdx);
         }
         const ix=wsTrendLoadIndex(rows,'ALL')||[];
-        const cur=ix.length?ix[ix.length-1]:null;
+        const cur=ix.length>1?ix[ix.length-2]:null;   // last complete week
         const first=ix.find(v=>v!=null);
         const d=(cur!=null&&first!=null&&first>0)?Math.round((cur-first)*10)/10:null;
         return wsTrendPanel('Load','each lift vs its own baseline · controls for exercise mix',
-          ix, (cur==null?'—':cur+'%'), d, '#6fb3d2');
+          ix, (cur==null?'—':cur+'%'), d, '#6fb3d2', pIdx);
       })()
     + wsTrendPanel('Effort', effortSub,
-        rows.map(r=>r.effort), (last.effort==null?'—':last.effort+'/10'), wsTrendDelta(rows,'effort'), '#d99a4e')
+        rows.map(r=>r.effort), (last.effort==null?'—':last.effort+'/10'), wsTrendDelta(rows,'effort'), '#d99a4e', pIdx)
     + wsRenderAdaptation()
   +'</div>';
 }
@@ -10868,7 +11022,7 @@ function wsCompareCardHtml(rec){
       +'<div class="wscmp-r"><span class="wscmp-l">Sets</span><span class="wscmp-v">'+c.setsThen+' → '+c.setsNow+'</span>'
         +'<span class="wscmp-d '+(setsD>0?'up':(setsD<0?'dn':'flat'))+'">'+(setsD>0?'+':'')+setsD+'</span></div>'
       +'<div class="wscmp-r"><span class="wscmp-l">Volume</span><span class="wscmp-v">'
-        +wsTrendFmtVol(c.volThen)+' → '+wsTrendFmtVol(c.volNow)+' kg</span>'+wsCmpArrow(c.volPct)+'</div>'
+        +wsTrendFmtVol(c.volThen)+' → '+wsTrendFmtVol(c.volNow)+'</span>'+wsCmpArrow(c.volPct)+'</div>'
       + effLine
     +'</div>'
     +'<div class="wscmp-lifts">'+top+'</div>'
@@ -10970,8 +11124,9 @@ function wsAdaptBuckets(weeks){
   }
   const list=Object.keys(muscles).map(k=>({name:k,...muscles[k]}))
     .filter(m=>m.total>0).sort((a,b)=>b.total-a.total);
-  return {muscles:list, bands, conditioning, weeks:rows.length, totalSets, unmatched,
-          perWeek:(n)=>Math.round((n/rows.length)*10)/10};
+  // weeks = complete weeks in the window (this week's sets are included in the
+  // mix, but the caption names the period the way the rest of Progress does)
+  return {muscles:list, bands, conditioning, weeks:rows.filter(r=>!r.partial).length, totalSets, unmatched};
 }
 
 /* Describes the distribution. Makes no prescription — "you need more heavy work"
@@ -11003,7 +11158,8 @@ function wsAdaptBarHtml(m,max){
 }
 
 function wsRenderAdaptation(){
-  const d=wsAdaptBuckets(WS_TREND_WEEKS);
+  // v55: same window as the period picked at the top of Progress
+  const d=wsAdaptBuckets(wsTrendWeeksFor(typeof wsProgFrame!=='undefined'?wsProgFrame:'8W'));
   if(!d||!d.totalSets) return '';
   const ro=wsAdaptReadout(d);
   const max=d.muscles.length?d.muscles[0].total:0;
@@ -11013,7 +11169,7 @@ function wsRenderAdaptation(){
   const bars=d.muscles.slice(0,12).map(m=>wsAdaptBarHtml(m,max)).join('');
   return '<div class="wsad">'
     +'<div class="wsad-h">Adaptation mix</div>'
-    +'<div class="wsad-s">Working sets by rep range · last '+d.weeks+' weeks</div>'
+    +'<div class="wsad-s">Working sets by rep range · '+wsTrendFrameCaption(d.weeks)+'</div>'
     + (ro?'<div class="wsad-read">'+ro.text+'</div>':'')
     +'<div class="wsad-legend">'+legend+'</div>'
     +'<div class="wsad-bars">'+bars+'</div>'
@@ -11067,7 +11223,8 @@ function wsProgRender(){
       <div class="wsprog-hero-cell gold"><div class="wsprog-hn">${prCount}</div><div class="wsprog-hl">new bests</div></div>
     </div>
     ${wsRenderTrends()}
-    <div class="wsgrid" aria-label="last 12 weeks">${gcells}</div>`;
+    <div class="wsgrid-cap">Consistency · last 12 weeks</div>
+    <div class="wsgrid" aria-label="Consistency, last 12 weeks">${gcells}</div>`;
 
   // ── highlights (auto-curated) ──
   let hi='';
@@ -11096,9 +11253,23 @@ function wsProgRender(){
   // ── body ──
   let body='';
   if(data.list.length===0){
-    body=`<div class="hi-empty"><div class="hi-empty-icon"><svg viewBox="0 0 24 24"><polyline points="2 16 7 10 12 13 20 4"/><polyline points="15 4 20 4 20 9"/></svg></div>
-      <div class="hi-empty-title">No sessions yet</div>
-      <div class="hi-empty-sub">Log a workout and your exercise trends will appear here — strength, reps, pace and rounds, each tracked over time.</div></div>`;
+    // v55: "No sessions yet" was shown whenever the selected period was empty,
+    // even with months of history just outside it — so a fresh install showed
+    // 78 sessions in History and "No sessions yet" in Progress. Say which it is.
+    const hist=Array.isArray(HISTORY)?HISTORY:[];
+    const lastT=hist.reduce((m,r)=>{ const t=new Date(r.date).getTime(); return isNaN(t)?m:Math.max(m,t); },0);
+    const icon=`<div class="hi-empty-icon"><svg viewBox="0 0 24 24"><polyline points="2 16 7 10 12 13 20 4"/><polyline points="15 4 20 4 20 9"/></svg></div>`;
+    if(lastT && wsProgFrame!=='ALL'){
+      const when=new Date(lastT).toLocaleDateString(undefined,{day:'numeric',month:'short',year:(new Date(lastT).getFullYear()!==new Date().getFullYear()?'numeric':undefined)});
+      body=`<div class="hi-empty">${icon}
+        <div class="hi-empty-title">Nothing in the last ${frameLabel}</div>
+        <div class="hi-empty-sub">Your most recent session was ${hiEscape(when)}. Pick a longer period to see your trends.</div>
+        <button class="wsprog-empty-btn" onclick="wsProgSetFrame('ALL')">Show all time</button></div>`;
+    } else {
+      body=`<div class="hi-empty">${icon}
+        <div class="hi-empty-title">No sessions yet</div>
+        <div class="hi-empty-sub">Log a workout and your exercise trends will appear here — strength, reps, pace and rounds, each tracked over time.</div></div>`;
+    }
   } else if(wsProgFilter==='days'){
     body=wsProgDaysHtml();
   } else {

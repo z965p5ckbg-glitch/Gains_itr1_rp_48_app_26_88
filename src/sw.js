@@ -7,7 +7,7 @@
 // background refresh so a newly pushed version is picked up on the NEXT launch.
 // Deliberately never update mid-session — swapping the app out from under
 // someone mid-workout is worse than showing yesterday's build for one session.
-const CACHE = 'gains-shell-v54';
+const CACHE = 'gains-shell-v@@GAINS_VERSION@@';
 const SHELL = ['./', './index.html'];
 
 self.addEventListener('install', e => {

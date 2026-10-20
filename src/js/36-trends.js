@@ -40,7 +40,35 @@ function wsTrendWeekStart(t){   // Monday 00:00 local
   return d.getTime();
 }
 
-// One row per week: how much, how heavy, how hard.
+// v55: trends cover the period picked at the top of Progress — N complete
+// weeks ending last Sunday, plus this week so far. Until v54 they were fixed at
+// 12 weeks and ended at the last logged session, so the screen said "8 weeks"
+// directly above a 12-week chart, and after a week off it showed the wrong
+// weeks entirely.
+//
+// WHY THIS WEEK IS SEPARATE
+// The current week is unfinished. Counted as a full week it drags every
+// comparison down — on a Tuesday, two days of training sit beside seven, and
+// the panels read as a drop-off that has not happened. Comparisons use complete
+// weeks only; this week is drawn as an open dot and never enters a delta.
+function wsTrendWeeksFor(frame){
+  const w={'4W':4,'8W':8,'6M':26,'1Y':52}[frame];
+  if(w) return w;
+  const hist=Array.isArray(HISTORY)?HISTORY:[];
+  let minT=Infinity;
+  for(const r of hist){ const t=new Date(r.date).getTime(); if(!isNaN(t)&&t<minT) minT=t; }
+  if(!isFinite(minT)) return WS_TREND_WEEKS;
+  // complete weeks from the first session's week up to last week
+  const full=Math.round((wsTrendWeekStart(Date.now())-wsTrendWeekStart(minT))/(7*86400000));
+  return Math.max(4, Math.min(156, full));
+}
+function wsTrendFrameCaption(weeks){
+  return (typeof wsProgFrame!=='undefined' && wsProgFrame==='ALL')
+    ? 'all '+weeks+' weeks' : 'last '+weeks+' weeks';
+}
+
+// One row per week: how much, how heavy, how hard. Returns `weeks` complete
+// weeks followed by the current week, which is flagged partial:true.
 function wsTrendBuckets(exKey, weeks){
   weeks = weeks || WS_TREND_WEEKS;
   const hist = Array.isArray(HISTORY) ? HISTORY : [];
@@ -48,10 +76,11 @@ function wsTrendBuckets(exKey, weeks){
   let maxT=0;
   for(const r of hist){ const t=new Date(r.date).getTime(); if(!isNaN(t)&&t>maxT) maxT=t; }
   if(!maxT) return [];
-  const lastWeek = wsTrendWeekStart(maxT);
+  const thisWeek = wsTrendWeekStart(Date.now());
+  const lastWeek = wsTrendWeekStart(Math.max(Date.now(), maxT));
   const W = 7*86400000;
   const rows=[];
-  for(let i=weeks-1;i>=0;i--){
+  for(let i=weeks;i>=0;i--){
     rows.push({ t:lastWeek-i*W, sets:0, volume:0, loadSum:0, loadN:0,
                 effSum:0, effN:0, sessions:0, _days:Object.create(null) });
   }
@@ -94,7 +123,8 @@ function wsTrendBuckets(exKey, weeks){
     load: r.loadN ? Math.round((r.loadSum/r.loadN)*10)/10 : null,
     effort: r.effN ? Math.round((r.effSum/r.effN)*10)/10 : null,   // null = never rated
     effortEstimated: !!r.effEst,
-    sessions:r.sessions
+    sessions:r.sessions,
+    partial: r.t>=thisWeek            // unfinished: shown, never compared
   }));
 }
 
@@ -115,8 +145,9 @@ function wsTrendExList(){
   return Object.keys(seen).map(k=>seen[k]).sort((a,b)=>b.t-a.t);
 }
 
-// second half of the window vs first half, per series
+// second half of the window vs first half, per series — complete weeks only
 function wsTrendDelta(rows,field){
+  rows=rows.filter(r=>!r.partial);
   const vals=rows.map(r=>r[field]).filter(v=>typeof v==='number'&&isFinite(v));
   if(vals.length<4) return null;
   const half=Math.floor(rows.length/2);
@@ -132,6 +163,7 @@ function wsTrendDelta(rows,field){
    "you were ill" or "you deloaded" — those are causes, and a tracker that
    guesses causes and gets one wrong loses the user's trust in all of it. */
 function wsTrendReadout(rows){
+  rows=rows.filter(r=>!r.partial);
   const dl=wsTrendDelta(rows,'load');
   const ds=wsTrendDelta(rows,'sets');
   const de=wsTrendDelta(rows,'effort');
@@ -158,31 +190,40 @@ function wsTrendReadout(rows){
   return {text:cap.charAt(0).toUpperCase()+cap.slice(1)+' over the last '+rows.length+' weeks.',tone:tone};
 }
 
-// sparkline; nulls become gaps, never zeros
-function wsTrendSpark(vals,accent){
-  const W=280,H=40,P=3;
-  const nums=vals.filter(v=>typeof v==='number'&&isFinite(v));
+// sparkline; nulls become gaps, never zeros. If partialIdx is given, that
+// point (this week so far) is drawn as an open dot, off the line.
+function wsTrendSpark(vals,accent,partialIdx){
+  const W=280,H=40,P=4;
+  const isNum=v=>typeof v==='number'&&isFinite(v);
+  const nums=vals.filter((v,i)=>isNum(v)&&i!==partialIdx);
   if(nums.length<2) return '<div class="wstrend-nodata">Not enough data yet</div>';
+  if(isNum(vals[partialIdx])) nums.push(vals[partialIdx]);   // keep it on the scale
   let lo=Math.min.apply(null,nums), hi=Math.max.apply(null,nums);
   if(hi===lo){ hi=lo+1; lo=Math.max(0,lo-1); }
   const x=i=>P+(i*(W-2*P))/(vals.length-1);
   const y=v=>H-P-((v-lo)/(hi-lo))*(H-2*P);
   let d='',open=false,dots='';
   vals.forEach((v,i)=>{
-    if(typeof v!=='number'||!isFinite(v)){ open=false; return; }
+    if(!isNum(v)||i===partialIdx){ open=false; return; }
     d += (open?' L ':' M ')+x(i).toFixed(1)+' '+y(v).toFixed(1);
     open=true;
   });
-  const last=vals.length-1;
-  if(typeof vals[last]==='number') dots='<circle cx="'+x(last).toFixed(1)+'" cy="'+y(vals[last]).toFixed(1)+'" r="3" fill="'+accent+'"/>';
+  let last=vals.length-1;
+  if(last===partialIdx){
+    if(isNum(vals[last])) dots+='<circle cx="'+x(last).toFixed(1)+'" cy="'+y(vals[last]).toFixed(1)+'" r="2.6" fill="var(--bg)" stroke="'+accent+'" stroke-width="1.4" opacity=".85"/>';
+    last--;
+  }
+  if(isNum(vals[last])) dots+='<circle cx="'+x(last).toFixed(1)+'" cy="'+y(vals[last]).toFixed(1)+'" r="3" fill="'+accent+'"/>';
   return '<svg class="wstrend-spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'
        + '<path d="'+d.trim()+'" fill="none" stroke="'+accent+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
        + dots + '</svg>';
 }
 
+// Volume with its unit. v55: callers used to append ' kg' to a value already
+// in tonnes, printing "34t kg".
 function wsTrendFmtVol(v){
-  if(v>=1000) return (v/1000).toFixed(v>=10000?0:1)+'t';
-  return String(Math.round(v));
+  if(v>=1000) return (v/1000).toFixed(v>=10000?0:1)+' t';
+  return Math.round(v)+' kg';
 }
 function wsTrendDeltaChip(d,inverse){
   if(d==null) return '<span class="wstrend-d flat">—</span>';
@@ -191,49 +232,54 @@ function wsTrendDeltaChip(d,inverse){
   return '<span class="wstrend-d '+cls+'">'+sign+d+'%</span>';
 }
 
-function wsTrendPanel(title,sub,vals,cur,delta,accent){
+// The figure beside each title is LAST WEEK's (the latest complete week), and
+// says so — this week is unfinished and would read as a slump.
+function wsTrendPanel(title,sub,vals,cur,delta,accent,partialIdx){
   return '<div class="wstrend-p">'
     +'<div class="wstrend-h">'
       +'<span class="wstrend-t">'+title+'</span>'
-      +'<span class="wstrend-v">'+cur+'</span>'
+      +'<span class="wstrend-v">'+cur+'<small> last wk</small></span>'
       + wsTrendDeltaChip(delta)
     +'</div>'
     + (sub?'<div class="wstrend-s">'+sub+'</div>':'')
-    + wsTrendSpark(vals,accent)
+    + wsTrendSpark(vals,accent,partialIdx)
   +'</div>';
 }
 
 function wsRenderTrends(){
-  const rows=wsTrendBuckets(wsTrendEx,WS_TREND_WEEKS);
+  const weeks=wsTrendWeeksFor(typeof wsProgFrame!=='undefined'?wsProgFrame:'8W');
+  const rows=wsTrendBuckets(wsTrendEx,weeks);
   if(!rows.length) return '';
-  const last=rows[rows.length-1];
+  const done=rows.filter(r=>!r.partial);            // complete weeks
+  const pIdx=rows.length-1;                         // this week, in progress
+  const last=done[done.length-1]||rows[rows.length-1];
   const list=wsTrendExList();
   const opts=['<option value="ALL">All exercises</option>']
     .concat(list.map(e=>'<option value="'+e.key.replace(/"/g,'&quot;')+'"'
       +(e.key===wsTrendEx?' selected':'')+'>'+e.name+'</option>')).join('');
 
-  const ratedWeeks=rows.filter(r=>r.effort!=null).length;
-  const estWeeks=rows.filter(r=>r.effortEstimated).length;
+  const ratedWeeks=done.filter(r=>r.effort!=null).length;
+  const estWeeks=done.filter(r=>r.effortEstimated).length;
   const effortSub = ratedWeeks===0
     ? 'Not rated yet — rate a session at the end of your workout'
     : (estWeeks ? estWeeks+' of '+ratedWeeks+' rated weeks are estimated'
-      : (ratedWeeks<rows.length ? ratedWeeks+' of '+rows.length+' weeks rated' : 'session rating, 1-10'));
+      : (ratedWeeks<done.length ? ratedWeeks+' of '+done.length+' weeks rated' : 'session rating, 1-10'));
 
   const ro=wsTrendReadout(rows);
   const readout = ro ? '<div class="wstrend-read '+ro.tone+'">'+ro.text+'</div>' : '';
 
-  const avgSess=Math.round((rows.reduce((a,r)=>a+r.sessions,0)/rows.length)*10)/10;
+  const avgSess=Math.round((done.reduce((a,r)=>a+r.sessions,0)/Math.max(1,done.length))*10)/10;
 
   return '<div class="wstrend">'
     +'<div class="wstrend-bar">'
-      +'<span class="wstrend-cap">Trends · last '+WS_TREND_WEEKS+' weeks</span>'
+      +'<span class="wstrend-cap">Trends · '+wsTrendFrameCaption(weeks)+'</span>'
       +'<select class="wstrend-sel" onchange="wsTrendSetEx(this.value)" aria-label="Filter by exercise">'+opts+'</select>'
     +'</div>'
     + readout
-    + wsTrendPanel('Sets','per week · '+avgSess+' sessions/wk avg',
-        rows.map(r=>r.sets), last.sets, wsTrendDelta(rows,'sets'), 'var(--acc)')
+    + wsTrendPanel('Sets','per week · '+avgSess+(avgSess===1?' session':' sessions')+'/wk avg'+(rows[pIdx]&&rows[pIdx].partial?' · ○ this week so far':''),
+        rows.map(r=>r.sets), last.sets, wsTrendDelta(rows,'sets'), 'var(--acc)', pIdx)
     + wsTrendPanel('Volume','per week',
-        rows.map(r=>r.volume), wsTrendFmtVol(last.volume)+' kg', wsTrendDelta(rows,'volume'), 'var(--lilac)')
+        rows.map(r=>r.volume), wsTrendFmtVol(last.volume), wsTrendDelta(rows,'volume'), 'var(--lilac)', pIdx)
     + (function(){
         // Across all exercises, raw kg/set is a mean over a heterogeneous basket
         // and moves with the exercise MIX. Verified: 3 Aug -> 10 Aug it reported
@@ -243,17 +289,17 @@ function wsRenderTrends(){
         if(single){
           return wsTrendPanel('Load','average per set',
             rows.map(r=>r.load), (last.load==null?'—':last.load+' kg'),
-            wsTrendDelta(rows,'load'), '#6fb3d2');
+            wsTrendDelta(rows,'load'), '#6fb3d2', pIdx);
         }
         const ix=wsTrendLoadIndex(rows,'ALL')||[];
-        const cur=ix.length?ix[ix.length-1]:null;
+        const cur=ix.length>1?ix[ix.length-2]:null;   // last complete week
         const first=ix.find(v=>v!=null);
         const d=(cur!=null&&first!=null&&first>0)?Math.round((cur-first)*10)/10:null;
         return wsTrendPanel('Load','each lift vs its own baseline · controls for exercise mix',
-          ix, (cur==null?'—':cur+'%'), d, '#6fb3d2');
+          ix, (cur==null?'—':cur+'%'), d, '#6fb3d2', pIdx);
       })()
     + wsTrendPanel('Effort', effortSub,
-        rows.map(r=>r.effort), (last.effort==null?'—':last.effort+'/10'), wsTrendDelta(rows,'effort'), '#d99a4e')
+        rows.map(r=>r.effort), (last.effort==null?'—':last.effort+'/10'), wsTrendDelta(rows,'effort'), '#d99a4e', pIdx)
     + wsRenderAdaptation()
   +'</div>';
 }

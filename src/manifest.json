@@ -18,7 +18,8 @@
     "16-progress.css",
     "17-data-sheet.css",
     "18-accessibility-hig.css",
-    "19-v47-v53-additions.css"
+    "19-v47-v53-additions.css",
+    "20-v55.css"
   ],
   "js": [
     "01-icons.js",

@@ -1,8 +1,13 @@
-// LEGACY HARNESS (v29–v54), kept verbatim as a regression net.
+// LEGACY HARNESS (v29–v54), kept as a regression net. Unchanged except where a
+// later version deliberately changed behaviour; every such edit is marked 'v55:'.
 // It runs app code against a fake DOM and mostly asserts on source text, so it
 // proves much less than tests/e2e. Do not add to it — add browser tests instead.
 // Driven by tests/e2e/09-legacy-harness.test.mjs, which supplies the files it
 // expects (./extracted.js, ./gains_v54_work.html, ./sw.js) in a scratch folder.
+
+// v55: the version is single-sourced from package.json and stamped by the
+// build; the runner passes it in. These checks used to pin 'v54' by hand.
+const _CUR=process.env.GAINS_VERSION||'54';
 
 // GAINS consolidated boot-sim harness — banked artifact (survives container resets via outputs).
 // Runs the full battery: engine sim, inline/takeover render, editor v2, picker, templates,
@@ -541,8 +546,8 @@ try{
     profileSectionExists:_newSec>-1,
     profileAboveDisplay:_newSec>-1&&_dispSec>-1&&_newSec<_dispSec,
     profileRowOutsideCollapse:_h.indexOf('wsOpenProfile()')<_dispSec,
-    versionStamped:_h.includes('Gains v54')&&_h.includes('<title>Gains — v54</title>'),
-    swCacheBumped:_sw2.includes("gains-shell-v54"),
+    versionStamped:_h.includes('Gains v'+_CUR)&&_h.includes('<title>Gains — v'+_CUR+'</title>'),
+    swCacheBumped:_sw2.includes('gains-shell-v'+_CUR),
     swInstallReload:_sw2.includes("cache: 'reload'")
   };
 }catch(e){ global.__R.v43ui={err:e.message}; }
@@ -562,7 +567,7 @@ try{
     storageFailureShown:_h3.includes('ws-data-alert'),
     backupAgeTracked:_h3.includes('function wsBackupAgeDays')&&_h3.includes('_lastBackupAt'),
     backupAgeShown:_h3.includes('ws-data-age'),
-    versionStamped44:_h3.includes('Gains v54')&&_h3.includes('<title>Gains — v54</title>')
+    versionStamped44:_h3.includes('Gains v'+_CUR)&&_h3.includes('<title>Gains — v'+_CUR+'</title>')
   };
 }catch(e){ global.__R.v44qol={err:e.message}; }
 
@@ -764,10 +769,12 @@ try{
   // warm-up + bodyweight correctness
   HISTORY=[{date:new Date(now).toISOString(),entries:[
     {exId:'sq',name:'sq',kind:'weighted',sets:[{reps:10,weightKg:40,completed:true,warmup:true},{reps:5,weightKg:100,completed:true}]}]}];
-  const wu=wsTrendBuckets('ALL',2)[1];
+  // v55: buckets are N complete weeks followed by the current week, so data
+  // logged "now" lives in the LAST row rather than at index N-1.
+  const wu=wsTrendBuckets('ALL',2).slice(-1)[0];
   HISTORY=[{date:new Date(now).toISOString(),entries:[
     {exId:'pu',name:'pu',kind:'bodyweight',sets:[{reps:5,offsetKg:18,bodyweightKg:76,completed:true}]}]}];
-  const bw=wsTrendBuckets('ALL',2)[1];
+  const bw=wsTrendBuckets('ALL',2).slice(-1)[0];
 
   global.__R.v48trends={
     oldAcuteChronicHeadlineNotRendered:!/wsprog-load\$\{lt\.ratio/.test(_h8)
@@ -777,7 +784,7 @@ try{
     trendsRendered:/\$\{wsRenderTrends\(\)\}/.test(_h8),
     fourPanels:/wsTrendPanel\('Sets'/.test(_h8)&&/wsTrendPanel\('Volume'/.test(_h8)
       &&/wsTrendPanel\('Load'/.test(_h8)&&/wsTrendPanel\('Effort'/.test(_h8),
-    weeklyBuckets:rows.length===12,
+    weeklyBuckets:rows.length===13 && rows[12].partial===true && rows.slice(0,12).every(r=>!r.partial),
     setsSeries:typeof rows[11].sets==='number',
     volumeSeries:typeof rows[11].volume==='number',
     loadSeries:typeof rows[11].load==='number',
@@ -823,8 +830,10 @@ try{
   wk(0,[['rdl',86,4],['hack',80,3],['toe',80,3],['lat',10,4],['curl',14,4]]);
   const rows=wsTrendBuckets('ALL',4);
   const ix=wsTrendLoadIndex(rows,'ALL');
-  const rawPrev=rows[2].load, rawNow=rows[3].load;
-  const ixPrev=ix[2], ixNow=ix[3];
+  // v55: the last row is the current week (wk(0)); the one before is wk(1)
+  const n=rows.length;
+  const rawPrev=rows[n-2].load, rawNow=rows[n-1].load;
+  const ixPrev=ix[n-2], ixNow=ix[n-1];
 
   // seeded effort must be marked and reversible
   HISTORY.forEach(r=>{delete r.sessionRpe;delete r.sessionRpeEstimated;});
@@ -1177,7 +1186,7 @@ try{
     replaceWarnsItDeletes:/DELETES the/.test(_hE),
     replaceStyledAsDanger:/ws-data-btn-danger/.test(_hE),
     sortHelperExists:/function wsHistorySortByDate/.test(_hE),
-    versionStamped54:_hE.includes('<title>Gains — v54</title>')
+    versionStamped54:_hE.includes('<title>Gains — v'+_CUR+'</title>')
   };
 }catch(e){ global.__R.v54merge={err:e.message}; }
 

@@ -242,7 +242,7 @@ function hiEmptyHtml(){
 // ── LIST view ──
 function hiRenderList(root){
   const recs=hiSorted();
-  const sub=recs.length+' session'+(recs.length===1?'':'s')+' · v42.0';
+  const sub=recs.length+' session'+(recs.length===1?'':'s')+' · v'+GAINS_VERSION;
   let body='';
   if(recs.length===0){
     body=hiEmptyHtml();
