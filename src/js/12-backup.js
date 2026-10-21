@@ -26,19 +26,40 @@ function wsBackupStats(){
     first:b.history.length?b.history.map(r=>r.date).sort()[0]:null,
     last:b.history.length?b.history.map(r=>r.date).sort().slice(-1)[0]:null };
 }
-// Download as a real FILE — the only copy that survives a cleared browser.
+// Save the backup as a real FILE — the only copy that survives a cleared browser.
+// v56: an iPhone home-screen web app silently ignores <a download>, so this
+// button did nothing there. iOS (the only platform with navigator.standalone)
+// now gets the share sheet with a real file, where Save to Files is one tap.
+// Everywhere else it is an ordinary download. The backup date is recorded only
+// once the file has actually gone somewhere — not when the sheet was cancelled.
 function wsBackupDownload(){
+  let json;
+  try{ json=JSON.stringify(wsBuildBackup()); }catch(e){ wsToastMsg('Could not build the backup'); return; }
+  const name='gains-backup-'+new Date().toISOString().slice(0,10)+'.json';
   try{
-    const json=JSON.stringify(wsBuildBackup());
-    const blob=new Blob([json],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
+    if(('standalone' in navigator) && navigator.share && typeof File!=='undefined'){
+      const file=new File([json],name,{type:'application/json'});
+      if(!navigator.canShare || navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'Gains backup'})
+          .then(()=>{ wsMarkBackedUp(); wsToastMsg('Backup saved'); wsBackupRefreshSheet(); })
+          .catch(e=>{ if(!(e&&e.name==='AbortError')) wsToastMsg('Sharing failed — use Copy backup text'); });
+        return;
+      }
+    }
+    const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
     const a=document.createElement('a');
-    const d=new Date().toISOString().slice(0,10);
-    a.href=url; a.download='gains-backup-'+d+'.json';
+    a.href=url; a.download=name;
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },400);
-    wsToastMsg('Backup saved to Files');
-  }catch(e){ wsToastMsg('Download failed — try Share'); }
+    wsMarkBackedUp(); wsToastMsg('Backup downloaded'); wsBackupRefreshSheet();
+  }catch(e){ wsToastMsg('Saving failed — use Copy backup text'); }
+}
+// Re-render the data sheet (if open) so "Last backup" updates at once.
+function wsBackupRefreshSheet(){
+  try{
+    const el=document.getElementById('wsDataSheet');
+    if(el && el.classList.contains('on') && /Your data/.test(el.textContent) && typeof wsOpenData==='function') wsOpenData();
+  }catch(_){}
 }
 function wsBackupShare(){
   const json=JSON.stringify(wsBuildBackup());

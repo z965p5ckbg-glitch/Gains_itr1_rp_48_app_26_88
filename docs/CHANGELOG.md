@@ -7,6 +7,11 @@ the project's original notes and isn't repeated here.
 > **v45–v54 were built but never deployed.** The phone ran v44 until v55, so
 > v55 is the first time any of the v45–v54 work reaches it.
 
+## v56: backup that works on the phone
+- **Save backup file** now opens the iPhone share sheet with a real `.json` file (Save to Files is one tap). An iPhone home-screen app ignores ordinary downloads, so the button used to do nothing. The separate "Share backup…" row is gone; the backup date is recorded only once the file is actually saved.
+- Settings closes by swiping the grabber down, not only with Done (all bottom sheets with a grabber).
+- Removed two settings rows that did nothing ("Export workout history — coming soon", "Help & tips"), and the stale "Gains 0.19 — prototype" label now shows the real version.
+
 ## v55: the repository becomes the source of truth
 
 **How the app is built and tested**
