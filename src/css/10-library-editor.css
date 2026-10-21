@@ -1,0 +1,128 @@
+/* ─── Library editor modal ────────────────────────────────────────────
+   Shares the .ws-de-* sheet pattern (handle, scrollable body, sticky
+   action footer) and adds library-specific field widgets: a kind
+   selector (segmented), a defaults block whose fields swap based on kind,
+   inline sets editor, tag chips, used-in list, and secondary actions
+   (Duplicate, Delete). */
+#wsLibEditModal{position:fixed;inset:0;max-width:430px;margin:0 auto;background:rgba(0,0,0,.78);z-index:240;display:none;align-items:flex-end;opacity:0;transition:opacity .22s}
+#wsLibEditModal.open{display:flex;opacity:1}
+#wsLibEditModal.open .ws-de-sheet{transform:translateY(0)}
+
+/* Title field — large, ember Bebas Neue, conveys the title's role as identity */
+.ws-le-title-input{width:100%;background:var(--s1);border:1px solid var(--b2);color:var(--acc);font-family:'Bebas Neue',sans-serif;font-size:24px;outline:none;padding:12px 14px;border-radius:9px;letter-spacing:.02em;transition:border-color .15s}
+.ws-le-title-input:focus{border-color:var(--acc-m);background:var(--s2)}
+.ws-le-title-input::placeholder{color:var(--tx4);font-style:italic;font-family:'DM Sans',sans-serif;font-size:16px;letter-spacing:0}
+
+.ws-le-hint{font-size:13px;color:var(--tx4);margin-top:6px;line-height:1.45;font-style:italic}
+
+/* Scope banner — shown at top of editor when scope is 'instance' or 'fromDay'.
+   Distinct from regular hints because it communicates the editing context,
+   not field guidance. Ember-tinted left border to mark it as important. */
+.ws-le-scope-banner{background:var(--s1);border:1px solid var(--b2);border-left:3px solid var(--acc);border-radius:8px;padding:10px 12px;margin:0 0 14px;font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.5;color:var(--tx2)}
+.ws-le-scope-banner strong{color:var(--acc);font-weight:600}
+
+/* Locked title display — used in instance scope where the title isn't editable.
+   Same visual weight as the input but presented as a static block, with a
+   small lock glyph to communicate the locked state. */
+.ws-le-title-locked{width:100%;background:var(--s2);border:1px solid var(--b1);color:var(--acc);font-family:'Bebas Neue',sans-serif;font-size:24px;padding:12px 14px;border-radius:9px;letter-spacing:.02em;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ws-le-locked-icon{font-size:13px;opacity:.6;flex-shrink:0}
+
+/* Kind selector: segmented chips */
+.ws-le-kind-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--s3);border:1px solid var(--b2);border-radius:10px;padding:4px}
+.ws-le-kind-opt{height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:7px;transition:all .14s ease;touch-action:manipulation;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);letter-spacing:.06em;font-weight:600;text-transform:uppercase;text-align:center;line-height:1.2;padding:0 6px}
+.ws-le-kind-opt:active{background:var(--b1)}
+.ws-le-kind-opt.active{background:var(--acc);color:var(--on-acc);box-shadow:0 1px 4px rgba(240,120,48,.3)}
+
+/* Defaults block — explicit label that these only apply on add */
+.ws-le-defaults{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.ws-le-defaults-label{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.10em;text-transform:uppercase;font-weight:500;line-height:1.5}
+.ws-le-defaults-label em{font-style:normal;color:var(--tx4);font-weight:400;text-transform:none;letter-spacing:.04em;display:block;margin-top:3px}
+/* Critical: each flex child sets min-width:0 so the row never overflows the
+   container. Without this, inputs use their default min-width (~180px on
+   iOS) and force horizontal scroll on the sheet. */
+.ws-le-row{display:flex;align-items:center;gap:10px;min-width:0;width:100%}
+.ws-le-row .ws-le-row-label{flex:0 0 76px;font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;font-weight:500;min-width:0}
+.ws-le-row .ws-de-input{flex:1 1 0;min-width:0}
+.ws-le-row-suffix{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx3);letter-spacing:.06em;flex-shrink:0}
+
+/* Body of the editor sheet must never scroll horizontally. The fields are
+   set up to shrink-fit, but if any flex child slips through, this stops the
+   damage at the container boundary. */
+#wsLibEditModal .ws-de-body{overflow-x:hidden;min-width:0}
+
+/* Sets editor: rows of weight × reps */
+.ws-le-sets{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ws-le-sets-head{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;font-weight:500;display:flex;gap:8px;align-items:center;margin-bottom:2px;min-width:0}
+.ws-le-set-row{display:flex;gap:6px;align-items:center;min-width:0;width:100%}
+.ws-le-set-num{width:22px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx4);font-weight:500;flex-shrink:0}
+.ws-le-set-input{flex:1 1 0;min-width:0;width:100%;background:var(--s2);border:1px solid var(--b2);color:var(--tx);font-family:'DM Mono',monospace;font-size:13px;outline:none;padding:8px 10px;border-radius:7px;font-weight:500;text-align:center;-webkit-appearance:none;-moz-appearance:textfield}
+.ws-le-set-input::-webkit-outer-spin-button,.ws-le-set-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ws-le-set-input:focus{border-color:var(--acc-m);background:var(--s3)}
+.ws-le-set-x{font-family:'DM Mono',monospace;font-size:13px;color:var(--tx4);font-weight:500}
+.ws-le-set-del{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--tx4);font-size:18px;cursor:pointer;border-radius:6px;line-height:1;padding:0}
+.ws-le-set-del:active{background:var(--s3);color:var(--tx2)}
+.ws-le-set-add{margin-top:2px;background:transparent;border:1px dashed var(--b3);color:var(--tx3);border-radius:8px;padding:8px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+.ws-le-set-add:active{background:var(--s2);color:var(--acc);border-color:var(--acc-m)}
+
+/* Used-in list */
+.ws-le-usedin{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.ws-le-usedin-label{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.10em;text-transform:uppercase;font-weight:500}
+.ws-le-usedin-list{display:flex;flex-wrap:wrap;gap:6px}
+.ws-le-usedin-chip{font-size:13px;color:var(--tx2);background:var(--s3);border:1px solid var(--b2);border-radius:8px;padding:5px 10px;font-family:'DM Sans',sans-serif;font-weight:500}
+.ws-le-usedin-chip em{font-style:normal;color:var(--tx4);font-weight:400;margin-left:5px}
+.ws-le-usedin-empty{font-size:12px;color:var(--tx4);font-style:italic;font-family:'DM Sans',sans-serif}
+
+/* Advanced tags block (only shown when wsAdvancedTags is true) */
+.ws-le-advanced{background:var(--s1);border:1px dashed var(--b2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.ws-le-advanced-label{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.10em;text-transform:uppercase;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.ws-le-advanced-label::after{content:"●";color:var(--acc);font-size:8px}
+.ws-le-tag-group-label{font-size:12px;font-family:'DM Mono',monospace;color:var(--tx4);letter-spacing:.08em;text-transform:uppercase;font-weight:500;margin-bottom:6px}
+.ws-le-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ws-le-tag{font-size:13px;color:var(--tx2);background:var(--s3);border:1px solid var(--b2);border-radius:8px;padding:5px 10px;font-family:'DM Mono',monospace;letter-spacing:.04em;font-weight:500;cursor:pointer;transition:background .12s, border-color .12s, color .12s;-webkit-tap-highlight-color:transparent}
+.ws-le-tag:active{background:var(--s4)}
+.ws-le-tag.active{background:var(--acc-d);border-color:var(--acc-m);color:var(--acc)}
+/* Prime-mover chips: crimson accent to distinguish "the muscle doing most of the work" */
+.ws-le-tag.pm.active{background:rgba(217,99,107,.13);border-color:rgba(217,99,107,.45);color:#d9636b}
+.ws-le-tag-group-label.pm-label{color:#d9636b;opacity:.85}
+.ws-le-tag-empty{font-size:12px;color:var(--tx4);font-family:'DM Mono',monospace;padding:4px 2px}
+/* Risk-note input: warning-styled (crimson icon + subtle crimson border) */
+.ws-le-risk{display:flex;align-items:center;gap:9px;background:rgba(217,99,107,.06);border:1px solid rgba(217,99,107,.28);border-radius:10px;padding:0 11px}
+.ws-le-risk-icon{width:17px;height:17px;color:#d9636b;flex-shrink:0}
+.ws-le-risk-input{flex:1;background:transparent;border:none;outline:none;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13.5px;padding:11px 0}
+.ws-le-risk-input::placeholder{color:var(--tx4)}
+/* Add-to-day button in the editor — primary-ish action, sage/green to read as "add" */
+.ws-le-addday{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:18px 0 4px;padding:14px;border-radius:12px;background:var(--hiit-d);border:1px solid var(--hiit-m);color:var(--hiit);font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+.ws-le-addday:active{background:rgba(95,207,138,.16)}
+.ws-le-addday svg{width:18px;height:18px}
+/* Merged "in your days" section: shows membership + a Manage days action */
+.ws-le-days-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.ws-le-days-label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-le-days-manage{flex-shrink:0;padding:7px 12px;border-radius:9px;background:var(--hiit-d);border:1px solid var(--hiit-m);color:var(--hiit);font-family:'DM Mono',monospace;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
+.ws-le-days-manage:active{background:rgba(95,207,138,.16)}
+/* Day-picker sheet list */
+.ws-daypick-sheet{max-height:72vh;display:flex;flex-direction:column}
+.ws-daypick-list{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.ws-daypick-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;border-radius:12px;background:var(--s3);border:1px solid var(--b2);cursor:pointer;text-align:left;transition:background .14s,border-color .14s}
+.ws-daypick-row:active{background:var(--s4);border-color:var(--b3)}
+.ws-daypick-row.added{background:rgba(95,207,138,.09);border-color:var(--hiit-m)}
+.ws-daypick-row-main{display:flex;align-items:center;gap:9px;min-width:0}
+.ws-daypick-name{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.02em;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ws-daypick-draft{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx4);background:var(--s1);border:1px solid var(--b2);border-radius:5px;padding:2px 6px;flex-shrink:0}
+.ws-daypick-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);flex-shrink:0}
+.ws-daypick-added{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--hiit);flex-shrink:0}
+.ws-daypick-added svg{width:14px;height:14px}
+.ws-daypick-done{width:100%;margin-top:14px;padding:15px;border-radius:12px;background:var(--hiit);color:#06231a;border:none;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;flex-shrink:0}
+.ws-daypick-done:active{filter:brightness(1.08)}
+/* Confirmation toast */
+.ws-le-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(14px);max-width:80%;background:var(--hiit);color:#06231a;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:12px 20px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:400;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s}
+.ws-le-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Secondary actions (Duplicate, Delete) inside the body, before the save bar */
+.ws-le-secondary{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.ws-le-sec-btn{height:42px;display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;border:1px solid var(--b2);border-radius:10px;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .12s, border-color .12s, color .12s;-webkit-tap-highlight-color:transparent}
+.ws-le-sec-btn:active:not(.disabled){background:var(--s3);color:var(--acc);border-color:var(--acc-m)}
+.ws-le-sec-btn.danger{color:#c87a72;border-color:#5a3030}
+.ws-le-sec-btn.danger:active{background:rgba(200,80,80,.10);color:#ff8e84}
+.ws-le-sec-btn.disabled{opacity:.45;cursor:not-allowed;color:var(--tx4)}
+.ws-le-sec-hint{font-size:13px;color:var(--tx4);font-style:italic;text-align:center;margin-top:-2px;line-height:1.4}
+

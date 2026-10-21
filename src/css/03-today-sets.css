@@ -1,0 +1,30 @@
+/* ─── Strength set rows (each set = one row) ─────────────────────────── */
+.set-list{padding:4px 8px 6px}
+.set-row{display:flex;align-items:center;gap:6px;padding:8px 0;border-radius:10px;user-select:none}
+.set-row + .set-row{border-top:1px solid var(--b1)}
+.set-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3);width:14px;text-align:center;flex-shrink:0}
+.set-row.done .set-num{color:var(--acc)}
+
+/* value group: [− value +] as one pill, value-tap opens the slider sheet */
+.val-group{display:flex;align-items:center;background:var(--s2);border:1px solid var(--b2);border-radius:9px;overflow:hidden;flex:1;min-width:0}
+.step-btn{width:32px;height:38px;background:none;border:none;color:var(--tx3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation}
+.step-btn:active{background:var(--s3);color:var(--acc)}
+.val-tap{flex:1;min-width:0;height:38px;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0;touch-action:manipulation}
+.val-tap:active{background:var(--s3)}
+.val-num{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--tx);line-height:1}
+.val-num.zero{color:var(--b4)}
+.val-num.long{font-size:15px}  /* 102.5 and up: fits the 44pt value box on a 375pt phone */
+.val-unit{font-family:'DM Mono',monospace;font-size:8px;color:var(--tx4);letter-spacing:.06em;margin-top:1px}
+.set-row.done .val-num{color:var(--tx2)}
+
+/* ember check — the done toggle */
+.set-check{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--b3);background:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:background .16s,border-color .16s,transform .12s;touch-action:manipulation}
+.set-check svg{width:16px;height:16px;stroke:var(--tx4);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .16s}
+.set-check:active{transform:scale(.92)}
+.set-row.done .set-check{background:var(--acc);border-color:var(--acc)}
+.set-row.done .set-check svg{stroke:var(--on-acc)}
+@keyframes cellBounce{0%{transform:scale(1)}40%{transform:scale(1.08)}70%{transform:scale(.95)}100%{transform:scale(1)}}
+.set-check.bounce{animation:cellBounce .3s ease-out}
+@keyframes valFlash{0%{opacity:0;transform:scale(1.18)}100%{opacity:1;transform:scale(1)}}
+.flash{animation:valFlash .22s ease-out}
+

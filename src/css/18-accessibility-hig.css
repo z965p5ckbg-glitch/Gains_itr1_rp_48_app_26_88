@@ -1,0 +1,109 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   v46 — HIG TAP TARGETS
+   Apple's floor is 44x44pt and has been since the original iPhone HIG. An audit
+   of every class appearing on a clickable element found 48 below it.
+
+   Two techniques, chosen per control:
+   (A) GROW — for block/row buttons where extra height is harmless.
+   (B) EXPAND HIT AREA — for icon buttons and steppers, where growing the box
+       would wreck a tuned layout. A centred ::after pseudo-element enlarges the
+       touch region to 44x44 without moving a single visible pixel.
+
+   (B) is applied ONLY to controls that are visually isolated. Adjacent pairs
+   (steppers, +/- on a set row) are grown for real instead, because overlapping
+   invisible 44px targets would make neighbours steal each other's taps — worse
+   than the problem being fixed.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --- (A) grow: block and row buttons ------------------------------------- */
+.ws-data-btn,.ws-sheet-done,.ws-add-day-btn,.ws-de-addex-btn,.ws-lib-add-btn,
+.ws-rm-cancel,.ws-rm-confirm,.ws-daypick-done,.ws-le-days-manage,.ws-lib-arch-btn,
+.today-add-btn,.hi-mode-opt,.ws-le-kind-opt,.ws-de-status-opt,.ws-le-sec-btn,
+.rest-show-btn,.ws-ce-tpl,.ws-ce-adv,.wsprog-sortbtn,.wsprog-more,.ws-le-tag,
+.hi-eb-fix,.hi-dt-edit,.ws-le-set-add,.ws-lib-arch-delete,.ws-rpe-pill,.rmt-btn,
+.ws-hint-dismiss{
+  min-height:44px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.ws-data-btn,.ws-le-set-add,.ws-add-day-btn,.ws-de-addex-btn{ display:flex; }
+
+/* --- (B) expand hit area, keep the visual box ---------------------------- */
+.ws-lens-x,.ws-fix-x,.ws-confirm-x,.ws-lib-search-clear,.ws-pk-search-clear,
+.ws-close,.settings-btn,.hi-hdr-gear,.ws-wrench,.cardio-icon,.hi-cal-arrow,
+.ws-le-set-del{ position:relative; }
+.ws-lens-x::after,.ws-fix-x::after,.ws-confirm-x::after,
+.ws-lib-search-clear::after,.ws-pk-search-clear::after,.ws-close::after,
+.settings-btn::after,.hi-hdr-gear::after,.ws-wrench::after,
+.cardio-icon::after,.hi-cal-arrow::after,.ws-le-set-del::after{
+  content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:100%;height:100%;min-width:44px;min-height:44px;
+}
+
+/* --- steppers and set controls: grown for real, and spaced so the enlarged
+       targets cannot overlap. These are the controls hit mid-set with a pump,
+       so they matter most. ------------------------------------------------ */
+.step-btn{ width:44px;height:44px; }
+.ws-step-b{ width:44px;height:44px; }
+.set-pm-btn{ width:44px;min-height:44px; }
+.val-tap{ height:44px; }
+.hi-setinput{ min-height:44px; }
+.adv-round-add,.adv-round-del,.ws-add-st{ min-height:44px;min-width:44px;
+  display:inline-flex;align-items:center;justify-content:center; }
+
+/* toggle: the switch stays 52x30, but the tappable row region reaches 44 */
+.tog{ position:relative; }
+.tog::after{ content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);width:100%;height:44px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v46 — SYSTEM ACCESSIBILITY SETTINGS
+   Apple auto-applies Reduce Motion / Increase Contrast when the user sets them
+   system-wide. The web equivalents are free; Gains honoured none of them.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+@media (prefers-contrast: more){
+  :root{
+    --tx:#fff; --tx2:#e8e8ec; --tx3:#c8c8d0; --tx4:#a8a8b4;
+    --b2:rgba(255,255,255,.34); --b3:rgba(255,255,255,.28);
+  }
+  .ws-data-btn,.ws-step-b,.tog{ border-color:rgba(255,255,255,.42); }
+}
+
+
+/* --- v46 second pass: controls the first audit missed -------------------- */
+/* set-check is the most-tapped control in the app - it gets hit after every
+   single set, one-handed, mid-pump. 38px was the worst offender here. */
+.set-check{ width:44px;height:44px; }
+
+.wspd-back,.ws-pk-new-btn,.ws-rm-mini,.hi-rpe-pill{
+  min-height:44px; display:inline-flex; align-items:center;
+}
+.wspd-back{ display:flex; }
+
+/* exrow icons sit side by side, so an invisible 44px overlay on each would
+   overlap and steal taps. Grown for real to 44 wide instead, which the row
+   has space for. */
+.ws-de-exrow-remove,.ws-de-exrow-wrench{ width:44px;height:44px; }
+
+/* the library star sits flush against the row edge with negative margins;
+   expand its hit area without disturbing that alignment */
+.ws-lib-star{ position:relative; }
+.ws-lib-star::after{ content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);width:44px;height:44px; }
+
+
+/* --- v46 contrast: --tx4 was the only token failing WCAG AA -------------
+   Measured: 4.12:1 on --s3 and 3.78:1 on --s4, both under the 4.5:1 floor for
+   normal text. Every other token passes on every surface. Lifted just enough
+   to clear it on the lightest surface while staying visibly the quiet tone. */
+:root{ --tx4: #938a77; }
+
+

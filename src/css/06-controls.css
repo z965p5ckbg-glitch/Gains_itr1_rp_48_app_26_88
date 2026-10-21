@@ -1,0 +1,13 @@
+/* SEGMENTED CONTROL — for intensity */
+.segmented{display:flex;background:var(--s3);border:1px solid var(--b2);border-radius:10px;padding:3px;margin-bottom:18px;position:relative;height:48px}
+.seg-opt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border-radius:7px;transition:all .18s ease;touch-action:manipulation;font-family:'DM Mono',monospace;letter-spacing:.06em;font-weight:600;color:var(--tx3);text-transform:uppercase}
+.seg-opt-main{font-size:14px;line-height:1}
+.seg-opt-sub{font-size:12px;color:var(--tx4);margin-top:2px;font-weight:400;letter-spacing:.04em;text-transform:lowercase}
+.seg-opt:active{background:var(--b2)}
+.seg-opt.active{background:var(--acc);color:var(--on-acc);box-shadow:0 1px 4px rgba(240,120,48,.3)}
+.seg-opt.active .seg-opt-sub{color:rgba(12,9,5,.65)}
+
+.dur-row{display:flex;gap:10px;margin-bottom:18px}
+.dur-col{flex:1}
+.dur-col-l{font-size:13px;font-family:'DM Mono',monospace;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:6px}
+
