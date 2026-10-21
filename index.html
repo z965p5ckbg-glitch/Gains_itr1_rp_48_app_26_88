@@ -33,7 +33,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23090807'/%3E%3Crect x='30' y='84' width='120' height='12' rx='6' fill='%23f07830'/%3E%3Crect x='36' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3Crect x='122' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3C/svg%3E">
 <meta name="screen-orientation" content="portrait">
 <meta name="x5-orientation" content="portrait">
-<title>Gains — v55</title>
+<title>Gains — v56</title>
 <!-- Fonts are embedded below as base64 woff2. No external font request is made:
      it removes a supply-chain dependency, stops every launch pinging a third party,
      lets the app render correctly with zero signal, and is what allows the strict
@@ -2466,6 +2466,13 @@ input,textarea{-webkit-touch-callout:default}
 
 /* Trend panels: the figure is last week's, and says so */
 .wstrend-v small{ font-size:11px; color:var(--tx4); letter-spacing:.04em; }
+/* v56 — the sheet grabber becomes a real drag zone (see 53-sheet-swipe.js).
+   The visible pill is unchanged; the touchable strip is the full width and the
+   same 29px it already occupied. touch-action:none stops iOS from treating the
+   drag as a scroll of the sheet underneath. */
+.sheet > .sh-handle{ width:auto; height:29px; margin:0; background:none; position:relative; touch-action:none; cursor:grab; }
+.sheet > .sh-handle::before{ content:''; position:absolute; left:50%; top:12px; width:38px; height:5px; margin-left:-19px; border-radius:3px; background:var(--b3); }
+.sheet > .sh-title{ touch-action:none; }
 </style>
 </head>
 <body>
@@ -2592,7 +2599,7 @@ input,textarea{-webkit-touch-callout:default}
         <div class="settings-row" onclick="wsOpenProfile()"><div class="settings-row-info"><div class="settings-row-title">About me &amp; bodyweight</div><div class="settings-row-sub">Unlocks relative strength and gives the coach real context</div></div><div class="settings-chev">&rsaquo;</div></div>
         <div class="settings-row" onclick="wsOpenCoach()"><div class="settings-row-info"><div class="settings-row-title">Ask my coach</div><div class="settings-row-sub">Copy a training brief into any AI &mdash; no account, no key</div></div><div class="settings-chev">&rsaquo;</div></div>
         <div class="settings-row" onclick="wsOpenData()"><div class="settings-row-info"><div class="settings-row-title">Your data — backup &amp; restore</div><div class="settings-row-sub">Save a copy outside the app, or start a fresh log</div></div><div class="settings-chev">›</div></div>
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub">Gains v55 &middot; offline build</div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub">Gains v56 &middot; offline build</div></div></div>
       </div>
     </div>
     <div class="settings-section">
@@ -2641,7 +2648,6 @@ input,textarea{-webkit-touch-callout:default}
       </div>
       <div class="settings-card collapsible-body" id="dataSectionBody">
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Effort ratings (RPE)</div><div class="settings-row-sub">Rate how hard each exercise felt, 1–10 · shown with the exercise in History, and the key to spotting work that starts feeling easier</div></div><div class="tog" id="togIntensityScore" onclick="toggleIntensityScore(this)"></div></div>
-        <div class="settings-row tappable" onclick="wsToast('Export coming soon')"><div class="settings-row-info"><div class="settings-row-title">Export workout history</div><div class="settings-row-sub">CSV or JSON</div></div><span class="chevron">›</span></div>
         <div class="settings-row tappable" onclick="wsResetAllAttempt()"><div class="settings-row-info"><div class="settings-row-title danger">Reset all data</div><div class="settings-row-sub">Clears history, plan, and preferences · this can't be undone</div></div><span class="chevron">›</span></div>
       </div>
     </div>
@@ -2651,8 +2657,7 @@ input,textarea{-webkit-touch-callout:default}
         <span class="collapse-btn" id="aboutChevron">+</span>
       </div>
       <div class="settings-card collapsible-body" id="aboutSectionBody">
-        <div class="settings-row tappable"><div class="settings-row-info"><div class="settings-row-title">Help & tips</div><div class="settings-row-sub">How to use Gains effectively</div></div><span class="chevron">›</span></div>
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Version</div><div class="settings-row-sub">Gains 0.19 — prototype</div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Version</div><div class="settings-row-sub">Gains v56</div></div></div>
       </div>
     </div>
     <div class="sh-actions"><button class="sh-cancel" onclick="closeSettings()" style="flex:1">Done</button></div>
@@ -2853,7 +2858,7 @@ input,textarea{-webkit-touch-callout:default}
 
 
 <script>// Stamped by build.mjs from package.json — the single source of the version.
-const GAINS_VERSION='55';
+const GAINS_VERSION='56';
 
 const ICONS={
   rowing:{name:'Row',svg:'<path d="M3 13.5c1.2-1 2.4-1 3.6 0s2.4 1 3.6 0 2.4-1 3.6 0 2.4 1 3.6 0 2.4-1 3.6 0M5 9 L9 11 L11 9 L13 11 L15 9 L17 11 L19 9 L20 5 L17 6 L15 9"/>'},
@@ -4728,19 +4733,40 @@ function wsBackupStats(){
     first:b.history.length?b.history.map(r=>r.date).sort()[0]:null,
     last:b.history.length?b.history.map(r=>r.date).sort().slice(-1)[0]:null };
 }
-// Download as a real FILE — the only copy that survives a cleared browser.
+// Save the backup as a real FILE — the only copy that survives a cleared browser.
+// v56: an iPhone home-screen web app silently ignores <a download>, so this
+// button did nothing there. iOS (the only platform with navigator.standalone)
+// now gets the share sheet with a real file, where Save to Files is one tap.
+// Everywhere else it is an ordinary download. The backup date is recorded only
+// once the file has actually gone somewhere — not when the sheet was cancelled.
 function wsBackupDownload(){
+  let json;
+  try{ json=JSON.stringify(wsBuildBackup()); }catch(e){ wsToastMsg('Could not build the backup'); return; }
+  const name='gains-backup-'+new Date().toISOString().slice(0,10)+'.json';
   try{
-    const json=JSON.stringify(wsBuildBackup());
-    const blob=new Blob([json],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
+    if(('standalone' in navigator) && navigator.share && typeof File!=='undefined'){
+      const file=new File([json],name,{type:'application/json'});
+      if(!navigator.canShare || navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'Gains backup'})
+          .then(()=>{ wsMarkBackedUp(); wsToastMsg('Backup saved'); wsBackupRefreshSheet(); })
+          .catch(e=>{ if(!(e&&e.name==='AbortError')) wsToastMsg('Sharing failed — use Copy backup text'); });
+        return;
+      }
+    }
+    const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
     const a=document.createElement('a');
-    const d=new Date().toISOString().slice(0,10);
-    a.href=url; a.download='gains-backup-'+d+'.json';
+    a.href=url; a.download=name;
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },400);
-    wsToastMsg('Backup saved to Files');
-  }catch(e){ wsToastMsg('Download failed — try Share'); }
+    wsMarkBackedUp(); wsToastMsg('Backup downloaded'); wsBackupRefreshSheet();
+  }catch(e){ wsToastMsg('Saving failed — use Copy backup text'); }
+}
+// Re-render the data sheet (if open) so "Last backup" updates at once.
+function wsBackupRefreshSheet(){
+  try{
+    const el=document.getElementById('wsDataSheet');
+    if(el && el.classList.contains('on') && /Your data/.test(el.textContent) && typeof wsOpenData==='function') wsOpenData();
+  }catch(_){}
 }
 function wsBackupShare(){
   const json=JSON.stringify(wsBuildBackup());
@@ -15736,7 +15762,6 @@ tryLockPortrait();
         '<div class="ws-data-age'+(_stale?' stale':'')+'">'+_ageTxt+'</div>'+
         '<div class="ws-data-note">Your log lives on this device only. Browsers can clear local data without warning — keep a backup file somewhere safe.</div>'+
         '<div class="ws-data-btn primary" onclick="wsBackupDownload()">Save backup file</div>'+
-        '<div class="ws-data-btn" onclick="wsBackupShare()">Share backup…</div>'+
         '<div class="ws-data-btn" onclick="wsBackupCopy()">Copy backup text</div>'+
         '<div class="ws-data-sep">Restore</div>'+
         '<textarea id="wsRestoreIn" class="ws-data-ta" placeholder="Paste backup text here"></textarea>'+
@@ -15937,6 +15962,41 @@ tryLockPortrait();
     wsToastMsg('Saved');
     wsOpenProfile();
   };
+})();
+
+// ─── Swipe a sheet down to close it (v56) ───────────────────────────────
+// The sheets drew an iOS grabber but nothing listened to it, so Settings could
+// only be closed with Done. Dragging the grabber or the title down now follows
+// the finger and closes past 90px; a shorter drag springs back. Closing goes
+// through the overlay's own backdrop handler, so each sheet keeps its normal
+// close behaviour (Cancel semantics — nothing is saved by swiping).
+// Only the top strip listens, so scrolling the sheet's content is unaffected.
+(function(){
+  let drag=null;
+  const zone=t=>{
+    const z=t&&t.closest&&t.closest('.sheet > .sh-handle, .sheet > .sh-title');
+    if(!z) return null;
+    const sheet=z.parentElement, ov=sheet.parentElement;
+    return (ov && ov.classList.contains('overlay') && ov.classList.contains('open')) ? {sheet,ov} : null;
+  };
+  document.addEventListener('pointerdown',e=>{
+    const z=zone(e.target); if(!z) return;
+    drag={sheet:z.sheet, ov:z.ov, id:e.pointerId, y0:e.clientY, dy:0};
+    z.sheet.style.transition='none';
+  });
+  document.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id) return;
+    drag.dy=Math.max(0,e.clientY-drag.y0);
+    drag.sheet.style.transform=drag.dy?'translateY('+drag.dy+'px)':'';
+  });
+  const end=e=>{
+    if(!drag||e.pointerId!==drag.id) return;
+    const d=drag; drag=null;
+    d.sheet.style.transition=''; d.sheet.style.transform='';
+    if(d.dy>90) d.ov.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+  };
+  document.addEventListener('pointerup',end);
+  document.addEventListener('pointercancel',end);
 })();
 </script>
 </body>

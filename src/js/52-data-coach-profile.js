@@ -18,7 +18,6 @@
         '<div class="ws-data-age'+(_stale?' stale':'')+'">'+_ageTxt+'</div>'+
         '<div class="ws-data-note">Your log lives on this device only. Browsers can clear local data without warning — keep a backup file somewhere safe.</div>'+
         '<div class="ws-data-btn primary" onclick="wsBackupDownload()">Save backup file</div>'+
-        '<div class="ws-data-btn" onclick="wsBackupShare()">Share backup…</div>'+
         '<div class="ws-data-btn" onclick="wsBackupCopy()">Copy backup text</div>'+
         '<div class="ws-data-sep">Restore</div>'+
         '<textarea id="wsRestoreIn" class="ws-data-ta" placeholder="Paste backup text here"></textarea>'+
