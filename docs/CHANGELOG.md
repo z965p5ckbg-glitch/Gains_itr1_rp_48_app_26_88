@@ -7,6 +7,17 @@ the project's original notes and isn't repeated here.
 > **v45–v54 were built but never deployed.** The phone ran v44 until v55, so
 > v55 is the first time any of the v45–v54 work reaches it.
 
+## v57: the workout screen
+- **One scrolling page for the whole session.** Each exercise shows every set. Its next set (the first one not yet ticked) is the only row with steppers and the orange check; the others are one quiet line each, still tappable. Ticking moves the mark on. When every set is done, the exercise goes quiet and says DONE. Each exercise keeps its own mark, so you can move between exercises in a superset without losing your place.
+- A set bar under each exercise (done, next, to do), the exercise number on the right, and last time's sets and date under the name ("LAST 65 × 8·8·8·8 · 13 OCT").
+- **Rest starts by itself** when you tick a set, directly under that set: pause and resume, a pencil that opens one slider for the length (and the end-of-rest sound), Skip, and a button that shrinks it to a slim bar (remembered). If you scroll away it docks above the tab bar; tap it to go back. One rest at a time: ticking a set in another exercise moves the rest there. Un-ticking the set cancels its rest.
+- The countdown follows the clock, so after the phone has been locked it shows the real time left instead of resuming where it froze.
+- Editing a value no longer resets a running rest.
+- **What you did carries forward**: change the weight or reps on a set and tick it, and the later sets that still had the same planned numbers take yours. Sets you changed yourself, and pyramids, are left alone.
+- **Logging opens a summary** built from the saved record: sets, exercises, records, each exercise against the last time you did it, what was not done (so not saved), and the session effort rating. Done closes it; Undo (10 seconds) takes the record back out of History with every tick still in place.
+- Colour has one job each on this screen: orange is the next thing to do, cream is done, blue is rest, gold is a record. The per-exercise effort pill and the 1RM figure are neutral now.
+- Exercise names are cream, not orange. "+ Set / − Set" moved from the header to the foot of each exercise.
+
 ## v56: backup that works on the phone
 - **Save backup file** now opens the iPhone share sheet with a real `.json` file (Save to Files is one tap). An iPhone home-screen app ignores ordinary downloads, so the button used to do nothing. The separate "Share backup…" row is gone; the backup date is recorded only once the file is actually saved.
 - Settings closes by swiping the grabber down, not only with Done (all bottom sheets with a grabber).

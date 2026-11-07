@@ -59,12 +59,14 @@ function saveSet(){
   // v47: editing a value is NOT a claim that you performed the set. Ticking is
   // a separate, deliberate act (tap the circle). Previously every edit silently
   // marked the set as done, with no way to opt out.
+  if(set.w!==editW||set.r!==editR) wsMarkTouched(set);
   set.w=editW;set.r=editR;
   const _wt=document.getElementById('shWarmTog');
   if(_wt){ if(_wt.classList.contains('on')) set.warmup=true; else delete set.warmup; }
   playSaveSet(ex);
   btn.classList.add('saved');btn.textContent='SAVED';
-  ex.rl=ex.rest;ex.rs='idle';
+  // v57: editing a value no longer resets the rest timer (it used to stop a
+  // running rest whenever you corrected a number mid-rest).
   wsPersistSave();
   renderAll(false);
   setTimeout(()=>{btn.textContent='SAVE SET';btn.classList.remove('saved');closeSheet();renderAll(false);},650);
@@ -126,9 +128,10 @@ function bindSlide(){
     DAYS[curDay].logged=true;
     DAYS[curDay]._loggedAt=Date.now(); // for the completed-day TTL (see wsMaybeResetStaleDay)
     // Capture the immutable session record into HISTORY before clearing timers.
+    let _rec=null;
     try{
       const rec=captureSessionRecord(curDay);
-      if(rec){ HISTORY.push(rec); }
+      if(rec){ HISTORY.push(rec); _rec=rec; }
     }catch(e){ if(console&&console.warn) console.warn('Session capture failed:',e&&e.message); }
     Object.keys(restIntervals).forEach(k=>clearInterval(restIntervals[k]));
     Object.keys(hiitIntervals).forEach(k=>clearInterval(hiitIntervals[k]));
@@ -141,7 +144,9 @@ function bindSlide(){
     wsPersistFlush();
     track.classList.add('logged');thumb.style.transform=`translateX(${maxX()}px)`;
     document.getElementById('slideLbl').textContent='SESSION LOGGED';
-    setTimeout(()=>renderAll(false),700);
+    // v57: logging opens the summary of what was saved; Done closes it.
+    const _day=curDay;
+    setTimeout(()=>{ renderAll(false); if(_rec) wsFinishOpen(_rec.id,_day); },500);
   };
   const start=x=>{dragging=true;startX=x-curX;thumb.style.transition='none';};
   const move=x=>{if(!dragging) return;curX=Math.max(0,Math.min(maxX(),x-startX));thumb.style.transform=`translateX(${curX}px)`;if(curX>=maxX()-8){dragging=false;doLog();}};

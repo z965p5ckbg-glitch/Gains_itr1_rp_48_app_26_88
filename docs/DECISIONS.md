@@ -145,6 +145,14 @@ the app, never inferred from history.
   = rest and ready, lilac = setup, periwinkle = break between rounds,
   straw-gold = achievement (records, round complete), blue = cardio and
   distance, crimson = effort and risk.
+- **v57 workout screen: colour is for meaning only.** Orange = the next thing to
+  do (the next set's check, its number and its segment), cream = done, blue =
+  rest, gold = a record. The day header keeps its orange word for now. No
+  separate colour for effort: the coral pill sat next to orange and read as
+  "act now". It is neutral, like every other secondary control.
+- **The whole session on one page**, not one exercise at a time. Supersets
+  alternate exercises, so a per-exercise focus screen means a tap to switch
+  every set. A marker per exercise keeps your place instead.
 - **No Liquid Glass.** Translucency costs legibility and battery and needs live
   blur. A gym app is read sweaty, at arm's length, sometimes upside down on a
   bench. Opaque, high contrast and big numerals win. The principles (clarity,

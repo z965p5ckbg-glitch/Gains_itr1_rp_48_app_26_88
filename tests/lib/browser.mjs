@@ -150,7 +150,14 @@ export async function slide(phone, trackSel, thumbSel) {
   await page.mouse.up();
   await wait(900);
 }
-export const slideToLog = phone => slide(phone, '#slideTrack', '#slideThumb');
+// v57: logging opens a summary over the screen; Done closes it. Most tests
+// care about what happens after, so this closes it unless asked not to.
+export async function slideToLog(phone, { keepSummary = false } = {}) {
+  await slide(phone, '#slideTrack', '#slideThumb');
+  if (keepSummary) return;
+  const closed = await phone.page.evaluate(() => { const b = document.querySelector('#fkFinish .fkf-done'); if (b) b.click(); return !!b; });
+  if (closed) await wait(400);
+}
 
 // Start from an empty log using the app's own "start empty" path.
 export async function startEmpty(phone) {

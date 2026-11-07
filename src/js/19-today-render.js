@@ -12,7 +12,7 @@ function renderAll(triggerShimmer){
   // Ensure items[] exists and is in sync for this day. Defensive: covers any
   // edge case where a mutation path didn't run wsDayItemsBuild.
   wsDayItemsBuild(d);
-  let html='';
+  let html=wsWorkoutProgressHtml(d);
   // Walk items[] in canonical order, dispatching each to the right card
   // renderer based on its kind tag. ei = index into items[]; all downstream
   // handlers resolve back to the instance via DAYS[curDay].items[ei].
@@ -40,6 +40,8 @@ function renderAll(triggerShimmer){
   });
   // Bind hold-to-confirm buttons (Done, Cancel, save-slider) after every render
   bindAllHoldButtons();
+  // v57: the rest timer docks above the tab bar when its exercise scrolls away
+  wsRestDockBind(); wsRestDockUpdate();
 }
 
 // Resolve a day exercise's display as a two-line headline/subheadline, matching
@@ -92,50 +94,68 @@ function wsDayEffortStrip(){
   const se=wsSessionEffort(rec);
   return wsEffortStripHtml(rec.id, se?se.value:null, se?se.source:null);
 }
+// v57: the workout screen. Every set of every exercise stays on screen and the
+// whole session scrolls as one page (no per-exercise focus mode), because that
+// is what supersets need: you move between exercises without losing your place.
+// Each exercise marks ITS next set (the first one not yet ticked): that row gets
+// the steppers and the ember check; the others are quiet one-line rows. Ticking
+// moves the mark on; when every set is done the exercise goes quiet. The rest
+// timer appears inline, directly under the set you just ticked (wsRestInline).
 function renderExCard(ex,ei,shimmer){
   const d=DAYS[curDay];
-  const isAct=ei===0&&!d.logged;
-  const canRemove=ex.sets.length>1;
-  const shim=shimmer?' shimmer shimmer-small':'';
-  const tint=exerciseTint(ex.name);
-  const tintStyle=tint?` style="background:linear-gradient(180deg,${tint.bg},transparent 60%),var(--s1);border-color:${tint.border}"`:'';
+  const logged=!!d.logged;
+  const next=logged?-1:wsNextSetIdx(ex);
+  const complete=(ex.sets||[]).length>0 && (ex.sets||[]).every(s=>s._logged);
   const _dp=wsExDisplayParts(ex);
-  let html=`<div class="ex-card${isAct?' act':''}" data-ei="${ei}"${tintStyle}>
-    <div class="ex-head"><span class="ex-name-wrap"><span class="ex-name">${wsEscape(_dp.title)}</span>${_dp.subtitle?`<span class="ex-name-sub">${wsEscape(_dp.subtitle)}</span>`:''}</span>
-      <div class="set-pm${shim}">
-        <div class="set-pm-btn${canRemove?'':' disabled'}" onclick="removeSet(${ei})"><svg viewBox="0 0 11 11"><line x1="2" y1="5.5" x2="9" y2="5.5"/></svg></div>
-        <div class="set-pm-lbl">SET</div>
-        <div class="set-pm-btn" onclick="addSet(${ei})"><svg viewBox="0 0 11 11"><line x1="5.5" y1="2" x2="5.5" y2="9"/><line x1="2" y1="5.5" x2="9" y2="5.5"/></svg></div>
-      </div>
+  const idx=String(ei+1).padStart(2,'0');
+  const last=wsLastPerf(ex);
+  let html=`<div class="ex-card fk${complete?' fk-done':''}" data-ei="${ei}">
+    <div class="fk-head">
+      <span class="fk-name-wrap"><span class="fk-name">${wsEscape(_dp.title)}</span>${_dp.subtitle?`<span class="fk-sub">${wsEscape(_dp.subtitle)}</span>`:''}</span>
+      <span class="fk-idx">${complete?'DONE · ':''}${idx}</span>
     </div>
-    <div class="ex-cue">${ex.cue}</div>
-    <div class="set-list">`;
+    <div class="fk-last">${last?wsEscape(last.text):'No earlier sessions'}</div>
+    ${ex.cue?`<div class="ex-cue fk-cue">${ex.cue}</div>`:''}
+    <div class="fk-segs" aria-hidden="true">${(ex.sets||[]).map((s,si)=>`<span class="fk-seg${s._logged?' done':(si===next?' next':'')}"></span>`).join('')}</div>
+    <div class="set-list fk-list">`;
   ex.sets.forEach((s,si)=>{
-    const done=s._logged;
-    const rowCls=done?'set-row done':'set-row';
-    const rZero=!done&&s.r===0;
-    // Each row: number · [− weight +] · [− reps +] · ember check.
-    // v55: the × between the pills was dropped - the KG / REPS labels already
-    // say it, and its width was what squeezed the values under 44pt.
-    // Steppers nudge inline (weight ±1, reps ±1). Tapping a value opens the
-    // existing slider sheet (openEdit) for typing / fine-tune / apply-to-all.
-    // The check toggles the logged state (cellTap).
-    html+=`<div class="${rowCls}" data-si="${si}">
-      <span class="set-num">${si+1}</span>
-      <div class="val-group">
-        <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',-1)">−</button>
-        <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${fmtSetW(s.w).length>4?' long':''}">${fmtSetW(s.w)}</span><span class="val-unit">KG</span></button>
-        <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',1)">+</button>
-      </div>
-      <div class="val-group">
-        <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'r',-1)">−</button>
-        <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${rZero?' zero':''}">${s.r}</span><span class="val-unit">REPS</span></button>
-        <button class="step-btn" onclick="event.stopPropagation();stepSetVal(${ei},${si},'r',1)">+</button>
-      </div>
-      <button class="set-check" onclick="cellTap(${ei},${si})" aria-label="Mark set ${si+1} done"><svg viewBox="0 0 16 16"><polyline points="3,8 6.5,11.5 13,4.5"/></svg></button>
-    </div>`;
+    const done=!!s._logged;
+    const wTxt=wsSetWText(ex,s);
+    if(si===next){
+      html+=`<div class="set-row fk-active" data-si="${si}">
+        <span class="set-num">${si+1}</span>
+        <div class="val-group">
+          <button class="step-btn" aria-label="Less weight" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',-1)">−</button>
+          <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${wTxt.length>4?' long':''}">${wTxt}</span><span class="val-unit">KG</span></button>
+          <button class="step-btn" aria-label="More weight" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',1)">+</button>
+        </div>
+        <div class="val-group">
+          <button class="step-btn" aria-label="One rep fewer" onclick="event.stopPropagation();stepSetVal(${ei},${si},'r',-1)">−</button>
+          <button class="val-tap" onclick="event.stopPropagation();openEdit(${ei},${si})"><span class="val-num${!s.r?' zero':''}">${s.r}</span><span class="val-unit">REPS</span></button>
+          <button class="step-btn" aria-label="One rep more" onclick="event.stopPropagation();stepSetVal(${ei},${si},'r',1)">+</button>
+        </div>
+        <button class="set-check" onclick="cellTap(${ei},${si})" aria-label="Mark set ${si+1} done"><svg viewBox="0 0 16 16"><polyline points="3,8 6.5,11.5 13,4.5"/></svg></button>
+      </div>`;
+    } else {
+      // Quiet row. Weight and reps stay separately tappable (they open the set
+      // sheet), and the check still works out of order.
+      html+=`<div class="set-row fk-quiet${done?' done':''}${s.warmup?' warm':''}" data-si="${si}">
+        <span class="set-num">${si+1}</span>
+        <button class="val-tap fk-v" onclick="event.stopPropagation();openEdit(${ei},${si})">${wTxt}<span class="fk-u">kg</span></button>
+        <span class="fk-x">×</span>
+        <button class="val-tap fk-v fk-r" onclick="event.stopPropagation();openEdit(${ei},${si})">${s.r}</button>
+        <span class="fk-fill"></span>
+        <button class="set-check" onclick="cellTap(${ei},${si})" aria-label="${done?'Undo set '+(si+1):'Mark set '+(si+1)+' done'}"><svg viewBox="0 0 16 16"><polyline points="3,8 6.5,11.5 13,4.5"/></svg></button>
+      </div>`;
+    }
+    if(!logged && ex._restRow===si && (ex.rs==='running'||ex.rs==='paused'||ex.rs==='ready')) html+=wsRestInline(ex,ei);
   });
-  html+=`</div>`+renderRestSection(ex,ei,'strength')+wsEffortStrip(ex,ei)+`</div>`;
+  html+=`</div>`;
+  if(!logged) html+=`<div class="fk-foot">
+      <button class="fk-setbtn" onclick="addSet(${ei})" aria-label="Add a set">+ Set</button>
+      ${(ex.sets||[]).length>1?`<button class="fk-setbtn" onclick="removeSet(${ei})" aria-label="Remove the last set">− Set</button>`:''}
+    </div>`;
+  html+=wsEffortStrip(ex,ei)+`</div>`;
   return html;
 }
 
@@ -161,6 +181,7 @@ function stepSetVal(ei,si,field,dir){
   const ex=DAYS[curDay].items[ei];
   if(!ex||!ex.sets||!ex.sets[si]) return;
   const set=ex.sets[si];
+  wsMarkTouched(set);
   if(field==='w'){
     let w=Number(set.w)||0;
     w=Math.max(0,w+dir); // step of exactly 1, never below 0
