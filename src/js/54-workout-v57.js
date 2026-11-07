@@ -249,6 +249,9 @@ function wsRestDockUpdate(){
     let dock=document.getElementById('fkrDock');
     const ei=wsRestActiveIdx();
     const onToday=sc && sc.offsetParent!==null && !(DAYS[curDay]&&DAYS[curDay].logged);
+    // While a rest runs, the list gets room at the bottom so the docked bar
+    // never sits on top of the last set or the log slider.
+    if(sc) sc.classList.toggle('fk-resting', ei>=0 && !!onToday);
     let show=false;
     if(ei>=0 && onToday){
       const row=document.getElementById('fkr'+ei);

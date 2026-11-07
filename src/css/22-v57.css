@@ -149,3 +149,4 @@
 
 @media (prefers-reduced-motion: reduce){ .fkr-fill,.fkr-bar,.fk-prog-bar span{transition:none} }
 .fkr-sh-row .tog.on{background:var(--fk-rest)}
+#scroll.fk-resting{padding-bottom:84px}

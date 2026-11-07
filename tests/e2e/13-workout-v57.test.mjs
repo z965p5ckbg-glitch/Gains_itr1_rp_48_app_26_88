@@ -109,6 +109,8 @@ export default async function (t) {
     t.ok(dockOn, 'the timer docks above the tab bar when its exercise scrolls away');
     const dockBox = await page.evaluate(() => { const d = document.getElementById('fkrDock').getBoundingClientRect(), n = document.getElementById('nav').getBoundingClientRect(); return { dockBottom: d.bottom, navTop: n.top, h: d.height }; });
     t.ok(dockBox.dockBottom <= dockBox.navTop && dockBox.h >= 44, 'it sits above the tab bar and is big enough to tap', dockBox);
+    const clear = await page.evaluate(() => { const d = document.getElementById('fkrDock').getBoundingClientRect(), tr = document.getElementById('slideTrack').getBoundingClientRect(); return tr.bottom <= d.top || tr.top >= d.bottom; });
+    t.ok(clear, 'scrolled to the bottom, the docked timer does not cover the log slider');
     await page.click('#fkrDock'); await wait(900);
     const dockOff = await page.evaluate(() => !document.getElementById('fkrDock').classList.contains('on'));
     t.ok(dockOff, 'tapping it scrolls back to the timer');
