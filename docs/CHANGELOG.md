@@ -10,6 +10,7 @@ the project's original notes and isn't repeated here.
 ## v56: backup that works on the phone
 - **Save backup file** now opens the iPhone share sheet with a real `.json` file (Save to Files is one tap). An iPhone home-screen app ignores ordinary downloads, so the button used to do nothing. The separate "Share backup…" row is gone; the backup date is recorded only once the file is actually saved.
 - Settings closes by swiping the grabber down, not only with Done (all bottom sheets with a grabber).
+- Progress no longer drops the weeks before a clock change. After summer time ended (25 Oct in Europe and Israel), every session before that date vanished from the weekly trends for eight weeks.
 - Removed two settings rows that did nothing ("Export workout history — coming soon", "Help & tips"), and the stale "Gains 0.19 — prototype" label now shows the real version.
 
 ## v55: the repository becomes the source of truth

@@ -10487,10 +10487,14 @@ function wsTrendBuckets(exKey, weeks){
   if(!maxT) return [];
   const thisWeek = wsTrendWeekStart(Date.now());
   const lastWeek = wsTrendWeekStart(Math.max(Date.now(), maxT));
-  const W = 7*86400000;
+  // v57: step back by calendar weeks, not by 7×24 hours. Across a clock change
+  // (summer time ending or starting) local Monday midnights are 167 or 169
+  // hours apart, so the old arithmetic produced keys one hour off and every
+  // session before the change fell out of Progress for the next eight weeks.
+  const weekAt=i=>{ const d=new Date(lastWeek); d.setDate(d.getDate()-7*i); return wsTrendWeekStart(d.getTime()); };
   const rows=[];
   for(let i=weeks;i>=0;i--){
-    rows.push({ t:lastWeek-i*W, sets:0, volume:0, loadSum:0, loadN:0,
+    rows.push({ t:weekAt(i), sets:0, volume:0, loadSum:0, loadN:0,
                 effSum:0, effN:0, sessions:0, _days:Object.create(null) });
   }
   const byT = Object.create(null);
