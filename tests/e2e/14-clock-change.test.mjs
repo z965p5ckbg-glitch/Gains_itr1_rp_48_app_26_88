@@ -1,9 +1,9 @@
 // Progress across a clock change. Weekly trend buckets were keyed by stepping
 // back 7×24 hours from this week's Monday. Local Mondays either side of a
 // summer-time change are 167 or 169 hours apart, so every week before the
-// change got a key one hour off and its sessions silently vanished from
-// Progress, for eight weeks after every change. Found on 7 Nov 2026, two weeks
-// after Europe and Israel turned their clocks back on 25 Oct.
+// change got a key one hour off and its sessions silently vanished from the
+// weekly trends, in every time frame, until the next change. Found on
+// 7 Nov 2026, two weeks after the clocks went back on 25 Oct.
 import { serve, newPhone, open, wait } from '../lib/browser.mjs';
 
 export default async function (t) {
