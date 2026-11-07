@@ -52,7 +52,7 @@ function wsAdaptBuckets(weeks){
   weeks=weeks||WS_TREND_WEEKS;
   const rows=wsTrendBuckets('ALL',weeks);
   if(!rows.length) return null;
-  const from=rows[0].t, to=rows[rows.length-1].t+7*86400000;
+  const from=rows[0].t, to=wsAddDays(rows[rows.length-1].t,7);   // v58: calendar week, safe across clock changes
   const hist=Array.isArray(HISTORY)?HISTORY:[];
   const muscles=Object.create(null);
   const bands={heavy:0,mod:0,light:0};

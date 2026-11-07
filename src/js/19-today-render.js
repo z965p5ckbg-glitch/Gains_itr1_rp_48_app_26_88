@@ -107,9 +107,12 @@ function renderExCard(ex,ei,shimmer){
   const next=logged?-1:wsNextSetIdx(ex);
   const complete=(ex.sets||[]).length>0 && (ex.sets||[]).every(s=>s._logged);
   const _dp=wsExDisplayParts(ex);
-  const idx=String(ei+1).padStart(2,'0');
+  const ss=wsSsInfo(ei);
+  const idx=ss?ss.letter+ss.pos:String(ei+1).padStart(2,'0');
   const last=wsLastPerf(ex);
-  let html=`<div class="ex-card fk${complete?' fk-done':''}" data-ei="${ei}">
+  let html='';
+  if(ss && ss.pos===1) html+=`<div class="fk-ss-head"><span>${ss.size>2?'GIANT SET':'SUPERSET'} ${ss.letter}</span><i></i><span>REST AFTER ${ss.letter}${ss.size}</span></div>`;
+  html+=`<div class="ex-card fk${complete?' fk-done':''}${ss?' fk-ss fk-ss-'+(ss.pos===1?'first':(ss.pos===ss.size?'last':'mid')):''}" data-ei="${ei}">
     <div class="fk-head">
       <span class="fk-name-wrap"><span class="fk-name">${wsEscape(_dp.title)}</span>${_dp.subtitle?`<span class="fk-sub">${wsEscape(_dp.subtitle)}</span>`:''}</span>
       <span class="fk-idx">${complete?'DONE · ':''}${idx}</span>
@@ -148,13 +151,21 @@ function renderExCard(ex,ei,shimmer){
         <button class="set-check" onclick="cellTap(${ei},${si})" aria-label="${done?'Undo set '+(si+1):'Mark set '+(si+1)+' done'}"><svg viewBox="0 0 16 16"><polyline points="3,8 6.5,11.5 13,4.5"/></svg></button>
       </div>`;
     }
-    if(!logged && ex._restRow===si && (ex.rs==='running'||ex.rs==='paused'||ex.rs==='ready')) html+=wsRestInline(ex,ei);
+    if(!logged && ex._restRow===si && (ex.rs==='running'||ex.rs==='paused'||ex.rs==='ready'||ex.rs==='idle')) html+=wsRestInline(ex,ei);
   });
   html+=`</div>`;
-  if(!logged) html+=`<div class="fk-foot">
-      <button class="fk-setbtn" onclick="addSet(${ei})" aria-label="Add a set">+ Set</button>
-      ${(ex.sets||[]).length>1?`<button class="fk-setbtn" onclick="removeSet(${ei})" aria-label="Remove the last set">− Set</button>`:''}
+  if(!logged){
+    const n=(ex.sets||[]).length;
+    const nextIsWeighted=(()=>{ const it=DAYS[curDay].items[ei+1]; return !!it && (it._itemKind||wsTagItemKind(it))==='weighted'; })();
+    html+=`<div class="fk-foot">
+      <div class="fk-setstep" role="group" aria-label="Number of sets">
+        <button class="fk-ss-btn" onclick="removeSet(${ei})" aria-label="Remove the last set"${n<=1?' disabled':''}>−</button>
+        <span class="fk-setn"><b>${n}</b> ${n===1?'SET':'SETS'}</span>
+        <button class="fk-ss-btn" onclick="addSet(${ei})" aria-label="Add a set">+</button>
+      </div>
+      ${nextIsWeighted||ex.ss?`<button class="fk-pair${ex.ss?' on':''}" onclick="wsTogglePair(${ei})" aria-pressed="${ex.ss?'true':'false'}">${ex.ss?'Paired with next':'Pair with next'}</button>`:''}
     </div>`;
+  }
   html+=wsEffortStrip(ex,ei)+`</div>`;
   return html;
 }
@@ -183,8 +194,10 @@ function stepSetVal(ei,si,field,dir){
   const set=ex.sets[si];
   wsMarkTouched(set);
   if(field==='w'){
+    // v58: one tap moves by this exercise's weight step (wsWStep), never below 0
+    const step=wsWStep(ex);
     let w=Number(set.w)||0;
-    w=Math.max(0,w+dir); // step of exactly 1, never below 0
+    w=Math.max(0,Math.round((w+dir*step)*100)/100);
     set.w=w;
   } else {
     let r=Number(set.r)||0;

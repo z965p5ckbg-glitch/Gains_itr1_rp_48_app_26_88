@@ -1,0 +1,82 @@
+/* ─── v58: the workout screen, second pass ──────────────────────────────────── */
+
+/* An unticked set is an empty ring that looks tappable, never a tick (a tick
+   inside an unticked circle read as "already done"). */
+.set-row.fk-active .set-check svg{stroke:transparent}
+.set-row.fk-active .set-check{background:transparent;border:2.5px solid var(--acc)}
+.set-row.fk-active .set-check:active{background:rgba(240,120,48,.15)}
+
+/* session progress: the set counter is the loudest thing; time says what it is */
+.fk-prog{padding:6px 6px 0}
+.fk-prog-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.fk-prog-time{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;color:var(--tx3);padding-bottom:5px}
+.fk-prog-count{display:flex;align-items:baseline;gap:2px;color:var(--acc);white-space:nowrap}
+.fk-prog-count b{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:38px;line-height:.9}
+.fk-prog-count i{font-style:normal;font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:.9;color:var(--tx2)}
+.fk-prog-count em{font-style:normal;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--tx3);margin-left:6px}
+.fk-prog-bar{margin-top:8px}
+.fk-prog-bar span{background:var(--acc)}
+
+/* foot of each exercise: SETS − n +, and pairing */
+.fk-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0 0}
+.fk-setstep{display:flex;align-items:center;border:1px solid var(--b2);border-radius:12px;overflow:hidden}
+.fk-ss-btn{width:46px;height:44px;border:none;background:none;color:var(--tx);font-size:20px}
+.fk-ss-btn:active{background:var(--s2)}
+.fk-ss-btn[disabled]{color:var(--tx4)}
+.fk-setn{min-width:72px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;color:var(--tx3)}
+.fk-setn b{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:22px;color:var(--tx);margin-right:2px}
+.fk-pair{min-height:44px;padding:0 12px;border:1px solid var(--b2);border-radius:12px;background:none;color:var(--tx3);font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.fk-pair.on{color:var(--tx);border-color:var(--tx3)}
+
+/* supersets: one bracket around the group, labels A1/A2, rest after the round */
+.fk-ss-head{margin:24px 6px 0;display:flex;align-items:center;gap:10px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--tx3)}
+.fk-ss-head span:first-child{color:var(--tx)}
+.fk-ss-head i{flex:1;height:1px;background:var(--b2)}
+.ex-card.fk.fk-ss{margin:0 6px;padding:0 12px 10px;background:#14110e;border-top:1px solid rgba(236,231,221,.08)}
+.ex-card.fk.fk-ss-first{margin-top:8px;border-top:2px solid var(--tx);border-radius:0 0 0 0}
+.ex-card.fk.fk-ss-last{border-radius:0 0 14px 14px}
+.ex-card.fk.fk-ss .fk-idx{color:var(--tx)}
+
+/* ─── rest timer: the old timer's controls in the new look ─────────────────── */
+.fkr{flex-direction:column;align-items:stretch;gap:6px;padding:8px 8px 8px 12px;min-height:0}
+.fkr-top{position:relative;display:flex;align-items:center;gap:4px}
+.fkr-time{flex:1;min-width:0;min-height:48px;border:none;background:none;padding:0;display:flex;align-items:baseline;gap:10px;text-align:left;color:inherit}
+.fkr-time .fkr-t{font-size:36px}
+.fkr-sub{font-size:13px;color:var(--tx3);white-space:nowrap}
+.fkr[data-state="idle"] .fkr-time .fkr-t{color:var(--tx2)}
+.fkr[data-state="paused"] .fkr-time .fkr-t{color:var(--tx2)}
+.fkr-icon{width:44px;height:44px;border:none;background:none;display:flex;align-items:center;justify-content:center;padding:0}
+.fkr-icon svg{width:20px;height:20px;fill:none;stroke:var(--fk-rest);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fkr-icon.off svg{stroke:var(--tx3)}
+.fkr-icon:last-child svg{stroke:var(--tx3)}
+.fkr-ctrls{position:relative;display:grid;grid-template-columns:1fr 1.3fr 1fr 1fr;gap:6px}
+.fkr-ctrls .fkr-btn{min-width:0;height:46px;font-size:15px}
+.fkr-play svg{width:20px;height:20px}
+.fkr[data-state="idle"] .fkr-play{background:var(--fk-rest)}
+.fkr[data-state="idle"] .fkr-play .fkr-fillsvg{fill:#0d1620}
+.fkr-next-line{position:relative;padding:0 2px}
+.fkr-mini{display:flex;align-items:stretch;gap:0;padding:0}
+.fkr-mini-play{width:48px;min-height:44px;border:none;background:var(--fk-rest-btn);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fkr-mini-play svg{width:16px;height:16px}
+.fkr-mini-play .fkr-fillsvg{fill:var(--fk-rest)}
+.fkr-mini .fkr-mini-main{flex:1;min-width:0}
+
+/* the sheet: length, and the live time left so the two never look out of step */
+.fkr-sh-left{margin-top:4px;font-family:'DM Mono',monospace;font-size:13px;color:var(--tx2)}
+
+/* docked timer: slides in from the tab bar, glides back to its row, no bounce */
+.fkr-dock{display:flex;opacity:0;pointer-events:none;transform:translateY(calc(100% + 24px));transition:transform .26s cubic-bezier(.2,0,0,1),opacity .2s ease-out}
+.fkr-dock.on{opacity:1;pointer-events:auto;transform:translateY(0)}
+@media (prefers-reduced-motion: reduce){ .fkr-dock{transition:opacity .12s linear} }
+
+/* the set sheet: sliders and the weight step */
+.fk-sliders{padding:4px 2px 2px}
+.fk-sl-lbl{display:block;margin-top:10px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
+.fk-range{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:0}
+.fk-range::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--s3)}
+.fk-range::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--tx);margin-top:-12px;border:3px solid var(--bg)}
+.fk-steprow{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--tx3)}
+.fk-stepchips{display:flex;gap:4px;flex:1}
+.fk-stepchip{flex:1;min-width:0;height:44px;border:1px solid var(--b2);border-radius:10px;background:none;color:var(--tx2);font-family:'DM Mono',monospace;font-size:13px}
+.fk-stepchip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.fkr.fkr-mini{flex-direction:row;align-items:stretch;padding:0;gap:0}

@@ -153,6 +153,14 @@ the app, never inferred from history.
 - **The whole session on one page**, not one exercise at a time. Supersets
   alternate exercises, so a per-exercise focus screen means a tap to switch
   every set. A marker per exercise keeps your place instead.
+- **v58: rest is manual by default** (the owner's preference), with a setting.
+  Changing a rest's length always moves its time left by the same amount, and
+  both numbers are shown together, so the timer never seems to disagree with
+  the sheet.
+- **v58: dates.** Instants are stored as ISO instants; days are the phone's
+  local calendar days (`wsLocalDayKey`); stepping uses the calendar
+  (`wsAddDays`), never ×86400000; the time zone is the phone's own. See
+  `55-dates.js`. `16-time-zones` and `14-clock-change` guard it.
 - **No Liquid Glass.** Translucency costs legibility and battery and needs live
   blur. A gym app is read sweaty, at arm's length, sometimes upside down on a
   bench. Opaque, high contrast and big numerals win. The principles (clarity,

@@ -592,12 +592,14 @@ try{
     engineExists:_h5.includes('function wsImportLegacy')&&_h5.includes('function wsApplyLegacyImport'),
     keysOnNameNotId:_h5.includes('WS_LEGACY_MAP')&&!/WS_LEGACY_MAP\[[^\]]*\.id\]/.test(_h5),
     onlyCompletedSets:_h5.includes('st.completed===true'),
-    groupsByIsraelDay:_h5.includes("timeZone:'Asia/Jerusalem'"),
+    // v58: days follow the phone's time zone (16-time-zones covers it on screen)
+    groupsByDeviceDay:_h5.includes('function wsLegacyDayKey')&&_h5.includes('wsLocalDayKey(iso)'),
     mergesSameDay:_h5.includes('day.byName.has(label)'),
     flagsMixedDays:_h5.includes('_mixed:mixed'),
     keepsProvenance:_h5.includes('_sources:d.titles'),
-    bodyweightStamped:_h5.includes('WS_LEGACY_BW_KG = 76')||_h5.includes('WS_LEGACY_BW_KG=76'),
-    bodyweightUsesOffset:_h5.includes('offsetKg:w,bodyweightKg:WS_LEGACY_BW_KG'),
+    // v58: bodyweight comes from your profile, or is left out; never a fixed number
+    bodyweightFromProfile:_h5.includes('function wsLegacyBwKg')&&!/WS_LEGACY_BW_KG\s*=\s*\d/.test(_h5),
+    bodyweightUsesOffset:_h5.includes('{reps:r,completed:true,offsetKg:w}'),
     clearsStaleMaxes:/wsApplyLegacyImport[\s\S]{0,900}delete wsMaxes\[k\]/.test(_h5),
     uiPresent:_h5.includes('wsDoImportLegacy')&&_h5.includes('wsLegacyIn'),
     confirmsBeforeReplacing:/wsDoImportLegacy[\s\S]{0,900}confirm\(/.test(_h5)

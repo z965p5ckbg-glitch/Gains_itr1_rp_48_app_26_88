@@ -85,7 +85,7 @@ function wsApplyLegacyImport(text){
     if(typeof settings==='object'&&settings){
       settings._planHistoryInjected=true;                  // never re-seed demo over real data
       if(!Array.isArray(settings.bodyLog)) settings.bodyLog=[];
-      if(settings.profile) settings.profile.bodyweight=[{t:Date.now(),value:WS_LEGACY_BW_KG}];
+      // v58: no longer writes a made-up bodyweight into your profile
     }
     // Declared 1RMs are a user assertion, not something to infer from history.
     // Clearing stops demo PRs standing over real training.

@@ -161,7 +161,7 @@
         '<div class="ws-data-note">The one input that changes the numbers: it unlocks strength relative to your own weight. No goal weight, no BMI, no calorie maths &mdash; this app logs and reports, nothing more.</div>'+
         (bw?('<div class="ws-data-stat"><b>'+bw.kg+'</b> kg<br><span>logged '+esc(bw.d)+(a7!=null?' &middot; 7-day average '+a7+' kg':'')+'</span></div>'):'')+
         '<input type="number" step="0.1" inputmode="decimal" id="wsWtIn" class="ws-fix-date" placeholder="Weight in kg (e.g. 76)">'+
-        '<input type="date" id="wsWtDate" class="ws-fix-date" value="'+(new Date()).toISOString().slice(0,10)+'">'+
+        '<input type="date" id="wsWtDate" class="ws-fix-date" value="'+wsLocalDayKey()+'">'+
         '<div class="ws-data-btn primary" onclick="wsSaveWeight()">Log weight</div>'+
         (recent?('<div class="ws-data-sep">Recent entries</div>'+recent):'')+
         (rel.length?('<div class="ws-data-sep">Relative strength</div>'+

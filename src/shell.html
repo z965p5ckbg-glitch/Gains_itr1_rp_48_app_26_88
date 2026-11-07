@@ -102,6 +102,13 @@
       <div class="sh-f"><span class="sh-fl">Weight</span><div class="stepper"><button class="sb" onclick="stepW(-1)">−</button><div class="sm"><span class="sv" id="wVal">14</span><span class="su">kg</span></div><button class="sb" onclick="stepW(1)">+</button></div></div>
       <div class="sh-f"><span class="sh-fl">Reps</span><div class="stepper"><button class="sb" onclick="stepR(-1)">−</button><div class="sm"><span class="sv" id="rVal">8</span><span class="su">reps</span></div><button class="sb" onclick="stepR(1)">+</button></div></div>
     </div>
+    <div class="fk-sliders">
+      <label class="fk-sl-lbl" for="wRange">Weight</label>
+      <input class="fk-range" id="wRange" type="range" min="0" max="100" step="1" value="0" oninput="wsEditSlideW(this.value)">
+      <div class="fk-steprow"><span>Step</span><div class="fk-stepchips" id="wStepChips"></div><span>kg</span></div>
+      <label class="fk-sl-lbl" for="rRange">Reps</label>
+      <input class="fk-range" id="rRange" type="range" min="1" max="30" step="1" value="8" oninput="wsEditSlideR(this.value)">
+    </div>
     <div class="sh-div"></div>
     <div class="apply-section">
       <span class="apply-lbl-above" id="applyLbl">Apply weight to all sets</span>
@@ -212,6 +219,7 @@
         <span class="collapse-btn" id="dataChevron">+</span>
       </div>
       <div class="settings-card collapsible-body" id="dataSectionBody">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Start rest automatically</div><div class="settings-row-sub">When on, ticking a set starts the rest timer. When off, the timer waits under the set until you tap ▶</div></div><div class="tog" id="togRestAuto" onclick="wsSetRestAuto(!wsRestAuto())"></div></div>
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Effort ratings (RPE)</div><div class="settings-row-sub">Rate how hard each exercise felt, 1–10 · shown with the exercise in History, and the key to spotting work that starts feeling easier</div></div><div class="tog" id="togIntensityScore" onclick="toggleIntensityScore(this)"></div></div>
         <div class="settings-row tappable" onclick="wsResetAllAttempt()"><div class="settings-row-info"><div class="settings-row-title danger">Reset all data</div><div class="settings-row-sub">Clears history, plan, and preferences · this can't be undone</div></div><span class="chevron">›</span></div>
       </div>

@@ -11,7 +11,7 @@ import { serve, newPhone, open, tab, tapCheck, slideToLog, wait } from '../lib/b
 
 const ex0 = page => page.evaluate(() => { const e = DAYS[curDay].items[0]; return { rs: e.rs, rl: e.rl, rest: e.rest, row: e._restRow, sets: e.sets.map(s => ({ w: s.w, r: s.r, done: !!s._logged })) }; });
 const activeRow = (page, ei) => page.evaluate(ei => { const r = document.querySelector(`.ex-card[data-ei="${ei}"] .fk-active`); return r ? +r.dataset.si : -1; }, ei);
-const restText = page => page.evaluate(() => { const t = document.querySelector('.fkr-t'); return t ? t.textContent : ''; });
+const restText = page => page.evaluate(() => { const t = document.querySelector('.fkr .fkr-t'); const s = document.querySelector('.fkr .fkr-sub'); return t ? (t.textContent + ' | ' + (s ? s.textContent : '')) : ''; });
 const secs = txt => { const m = /(\d+):(\d\d)/.exec(txt); return m ? +m[1] * 60 + +m[2] : null; };
 const clickLabel = (page, label) => page.evaluate(l => { const b = document.querySelector(`[aria-label="${l}"]`); if (b) b.click(); return !!b; }, label);
 
@@ -31,9 +31,14 @@ export default async function (t) {
     const segs = await page.evaluate(() => [...document.querySelectorAll('.ex-card[data-ei="0"] .fk-seg')].map(s => s.className.replace('fk-seg', '').trim() || '-').join(','));
     t.ok(segs === 'done,next,-,-', 'the set bar shows done / next / to do', segs);
 
-    // ── rest starts by itself, under the ticked set
+    // ── by default rest waits under the ticked set until you start it (v58)
     let e = await ex0(page);
-    t.ok(e.rs === 'running' && e.row === 0, 'rest starts by itself after a tick', e);
+    t.ok(e.rs === 'idle' && e.row === 0, 'by default, ticking puts a ready timer under the set without starting it', e);
+    t.ok(/REST 1:30/.test(await restText(page)) && await page.$('.fkr-ctrls [aria-label="Start rest"]') !== null, 'the waiting timer shows its length and a start button', await restText(page));
+    t.ok(await clickLabel(page, 'Start rest'), 'tap start');
+    await wait(300);
+    e = await ex0(page);
+    t.ok(e.rs === 'running', 'the rest runs after tapping start', e.rs);
     const under = await page.evaluate(() => { const r = document.getElementById('fkr0'); const p = r && r.previousElementSibling; return p ? p.dataset.si : null; });
     t.ok(under === '0', 'the timer sits directly under the set just ticked', under);
 
@@ -41,18 +46,33 @@ export default async function (t) {
     t.ok(await clickLabel(page, 'Pause rest'), 'there is a pause button');
     await wait(300);
     const p1 = await restText(page); await wait(2200); const p2 = await restText(page);
-    t.ok(/PAUSED/.test(p1) && p1 === p2, 'paused, the time holds still', [p1, p2]);
+    t.ok(/Paused/.test(p1) && p1 === p2, 'paused, the time holds still', [p1, p2]);
     await clickLabel(page, 'Resume rest'); await wait(2200);
     const r1 = await restText(page);
-    t.ok(/^REST/.test(r1) && secs(r1) < secs(p2), 'resumed, it counts down again', [p2, r1]);
+    t.ok(/Left/.test(r1) && secs(r1) < secs(p2), 'resumed, it counts down again', [p2, r1]);
+
+    // ── ±15 changes the length and the time left by the same amount (both shown)
+    const n0 = await ex0(page); const l0 = secs(await restText(page));
+    await clickLabel(page, '15 seconds more'); await wait(150);
+    const n1 = await ex0(page); const l1 = secs(await restText(page));
+    t.ok(n1.rest === n0.rest + 15 && Math.abs((l1 - l0) - 15) <= 1, '+15 adds 15 s to the length and to the time left', [n0.rest, n1.rest, l0, l1]);
+    t.ok(new RegExp('of ' + Math.floor(n1.rest / 60) + ':' + String(n1.rest % 60).padStart(2, '0')).test(await restText(page)), 'the timer shows the new length beside the time left', await restText(page));
+    await clickLabel(page, '15 seconds less'); await wait(150);
 
     // ── edit with one slider
-    await clickLabel(page, 'Change rest time'); await wait(300);
-    t.ok(await page.$('#fkrSheet input[type=range]') !== null, 'edit opens a sheet with a single slider');
+    const before150 = await ex0(page); const leftBefore = secs(await restText(page));
+    await clickLabel(page, 'Change rest length'); await wait(300);
+    t.ok(await page.$('#fkrSheet input[type=range]') !== null, 'tapping the time opens a sheet with a single slider');
     await page.evaluate(() => { const r = document.querySelector('#fkrRange'); const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(r, '150'); r.dispatchEvent(new Event('input', { bubbles: true })); });
+    await wait(100);
+    const sheetTxt = await page.evaluate(() => document.getElementById('fkrSheet').innerText);
+    const expectLeft = leftBefore + (150 - before150.rest);
+    const shownLeft = secs((/This rest: (\d+:\d\d)/.exec(sheetTxt) || [])[1] || '');
+    t.ok(/2:30/.test(sheetTxt) && Math.abs(shownLeft - expectLeft) <= 2, 'the sheet shows the new length and the live time left, consistent with each other', [sheetTxt.slice(0, 80), shownLeft, expectLeft]);
     await page.evaluate(() => document.querySelector('.fkr-sh-done').click()); await wait(300);
     e = await ex0(page);
-    t.ok(e.rest === 150 && e.rl > 100, 'the slider sets the rest length and the running rest follows', e);
+    const shownAfter = secs(await restText(page));
+    t.ok(e.rest === 150 && Math.abs(shownAfter - expectLeft) <= 2 && /of 2:30/.test(await restText(page)), 'after closing, the timer shows that same time left, of 2:30', [await restText(page), expectLeft]);
 
     // ── collapse and expand (a standing preference)
     await clickLabel(page, 'Make the timer smaller'); await wait(300);
@@ -60,6 +80,8 @@ export default async function (t) {
     await clickLabel(page, 'Show the full timer'); await wait(300);
     t.ok(await page.$('.fkr:not(.fkr-mini)') !== null, 'tapping the slim bar opens it again');
 
+    // from here on, rest starts by itself (the setting)
+    await page.evaluate(() => wsSetRestAuto(true));
     // ── wall clock: a phone asleep for 60s comes back 60s later, not where JS froze
     const before = secs(await restText(page));
     await page.evaluate(() => { const x = DAYS[curDay].items[0]; x._restEnd -= 60000; });
@@ -70,7 +92,7 @@ export default async function (t) {
     // ── editing a value mid-rest keeps the rest running (it used to reset it)
     const vt = await page.$$('.ex-card[data-ei="0"] .val-tap');
     await vt[2].click(); await wait(400);
-    for (let i = 0; i < 4; i++) { await page.click('[onclick="stepW(1)"]'); await wait(30); }   // +2 kg on set 2
+    for (let i = 0; i < 4; i++) { await page.click('[onclick="stepW(1)"]'); await wait(30); }   // four steps up on set 2
     await page.click('#saveSetBtn'); await wait(1000);
     e = await ex0(page);
     t.ok(e.rs === 'running', 'saving an edited value does not stop the rest', e.rs);
@@ -80,7 +102,7 @@ export default async function (t) {
     await page.evaluate(() => { const s = DAYS[curDay].items[0].sets[3]; s.w = s.w; });   // untouched
     await tapCheck(phone, 1);
     e = await ex0(page);
-    t.ok(e.sets[2].w === e.sets[1].w && e.sets[3].w === e.sets[1].w && e.sets[1].w === planned + 2,
+    t.ok(e.sets[2].w === e.sets[1].w && e.sets[3].w === e.sets[1].w && e.sets[1].w === planned + 4 * (await page.evaluate(() => wsWStep(DAYS[curDay].items[0]))),
       'what you did on set 2 carries to the untouched sets after it', e.sets.map(s => s.w));
     t.ok(e.row === 1, 'the rest moved to the set just ticked', e.row);
 
@@ -105,7 +127,7 @@ export default async function (t) {
     await tapCheck(phone, cIdx);
     await page.evaluate(() => { const s = document.getElementById('scroll'); s.scrollTop = s.scrollHeight; s.dispatchEvent(new Event('scroll')); });
     await wait(400);
-    const dockOn = await page.evaluate(() => { const d = document.getElementById('fkrDock'); return !!d && d.classList.contains('on') && /REST/.test(d.textContent); });
+    const dockOn = await page.evaluate(() => { const d = document.getElementById('fkrDock'); return !!d && d.classList.contains('on') && /\d:\d\d/.test(d.textContent); });
     t.ok(dockOn, 'the timer docks above the tab bar when its exercise scrolls away');
     const dockBox = await page.evaluate(() => { const d = document.getElementById('fkrDock').getBoundingClientRect(), n = document.getElementById('nav').getBoundingClientRect(); return { dockBottom: d.bottom, navTop: n.top, h: d.height }; });
     t.ok(dockBox.dockBottom <= dockBox.navTop && dockBox.h >= 44, 'it sits above the tab bar and is big enough to tap', dockBox);

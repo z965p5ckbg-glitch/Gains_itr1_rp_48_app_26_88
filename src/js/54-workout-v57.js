@@ -77,6 +77,9 @@ function wsGroupSets(list,bw){
 }
 
 // ── session progress, top of the list ─────────────────────────────────────────
+// v58: the set counter is the most prominent thing here (ember, large), and the
+// time reads as what it is: time since your first ticked set, with the clock
+// time you started. It ticks on its own (wsElapsedTick), not only on redraw.
 function wsWorkoutProgressHtml(d){
   let done=0,total=0;
   for(const ex of (d.items||[])){
@@ -86,23 +89,104 @@ function wsWorkoutProgressHtml(d){
   }
   if(!total) return '';
   const pct=Math.round(done/total*100);
-  return `<div class="fk-prog"><div class="fk-prog-t"><span>${done} / ${total} SETS</span>${d._startedAt&&!d.logged?`<span>${Math.max(1,Math.round((Date.now()-d._startedAt)/60000))} MIN</span>`:''}</div><div class="fk-prog-bar"><span style="width:${pct}%"></span></div></div>`;
+  return `<div class="fk-prog">
+    <div class="fk-prog-row">
+      <span class="fk-prog-time" id="fkElapsed">${wsElapsedText(d)}</span>
+      <span class="fk-prog-count" aria-label="${done} of ${total} sets done"><b>${done}</b><i>/${total}</i><em>SETS</em></span>
+    </div>
+    <div class="fk-prog-bar"><span style="width:${pct}%"></span></div>
+  </div>`;
+}
+function wsElapsedText(d){
+  if(d.logged) return 'SESSION LOGGED';
+  if(!d._startedAt) return 'NOT STARTED · TICK A SET TO BEGIN';
+  const st=new Date(d._startedAt);
+  const hh=String(st.getHours()).padStart(2,'0'), mm=String(st.getMinutes()).padStart(2,'0');
+  const mins=Math.max(0,Math.floor((Date.now()-d._startedAt)/60000));
+  const dur=mins<60?mins+' MIN':Math.floor(mins/60)+' H '+String(mins%60).padStart(2,'0')+' MIN';
+  return 'STARTED '+hh+':'+mm+' · '+dur+' IN';
+}
+function wsElapsedTick(){
+  try{
+    const el=document.getElementById('fkElapsed'); if(!el) return;
+    const d=DAYS[curDay]; if(d) el.textContent=wsElapsedText(d);
+  }catch(_){}
+}
+
+// ── supersets ────────────────────────────────────────────────────────────────
+// ex.ss = true means "paired with the next exercise". A chain of ss flags makes
+// a superset (two) or giant set (three or more). Stored on the workout's item,
+// so the pairing stands every time you do that workout. No migration: absent
+// means not paired.
+function wsSsGroups(items){
+  const out=new Array(items.length).fill(null); let letter=0;
+  for(let i=0;i<items.length;i++){
+    const k=items[i]._itemKind||wsTagItemKind(items[i]);
+    if(k!=='weighted'||out[i]) continue;
+    if(!items[i].ss) continue;
+    let j=i; const members=[i];
+    while(items[j] && items[j].ss && items[j+1] && (items[j+1]._itemKind||wsTagItemKind(items[j+1]))==='weighted'){ j++; members.push(j); }
+    if(members.length<2) continue;
+    const L=String.fromCharCode(65+letter++);
+    members.forEach((m,pos)=>{ out[m]={letter:L,pos:pos+1,size:members.length,first:members[0],last:members[members.length-1]}; });
+  }
+  return out;
+}
+function wsSsInfo(ei){ const items=(DAYS[curDay]&&DAYS[curDay].items)||[]; return wsSsGroups(items)[ei]; }
+function wsTogglePair(ei){
+  const d=DAYS[curDay]; const ex=d&&d.items&&d.items[ei]; if(!ex) return;
+  ex.ss=!ex.ss; if(!ex.ss) delete ex.ss;
+  wsPersistSave(); renderAll(false);
+}
+// After ticking a set in a superset: if a partner still has sets, the round is
+// not over, so no rest. The partner to go to next is the next member (wrapping)
+// that still has a set left.
+function wsSsPartnerNext(ei){
+  const g=wsSsInfo(ei); if(!g) return -1;
+  const items=DAYS[curDay].items;
+  for(let step=1;step<g.size;step++){
+    const m=g.first+((ei-g.first+step)%g.size);
+    if(wsNextSetIdx(items[m])>=0) return m;
+  }
+  return -1;
+}
+function wsSsRoundOpen(ei){
+  // the round stays open while a LATER member of the group still has a set at
+  // the same depth as the set just done
+  const g=wsSsInfo(ei); if(!g||ei===g.last) return false;
+  const items=DAYS[curDay].items;
+  const done=(items[ei].sets||[]).filter(s=>s._logged).length;
+  for(let m=ei+1;m<=g.last;m++){ const n=(items[m].sets||[]).filter(s=>s._logged).length; if(n<done && wsNextSetIdx(items[m])>=0) return true; }
+  return false;
 }
 
 // ── rest timer ───────────────────────────────────────────────────────────────
-// State lives on the exercise, as before: ex.rs ('idle'|'running'|'paused'|
-// 'ready'), ex.rl (seconds left), ex.rest (length). New: ex._restRow (the set
-// it follows) and ex._restEnd (wall-clock end), so a phone that sleeps or
-// reloads mid-rest shows the right time when it wakes instead of resuming where
-// the JavaScript was frozen.
+// State lives on the exercise: ex.rs ('idle'|'running'|'paused'|'ready'),
+// ex.rl (seconds left), ex.rest (length), ex._restRow (the set it follows),
+// ex._restEnd (wall-clock end while running, so a phone that sleeps or reloads
+// mid-rest shows the right time when it wakes).
+// One rule for every change: the rest is a LENGTH you are partway through.
+// Changing the length (±15 or the slider) moves "time left" by the same amount.
+// Both numbers are always on screen ("1:20 left · of 1:45"), so they can't
+// look like they disagree.
+// v58: rest starts by itself only when settings.restAuto is on (off by
+// default). Otherwise ticking a set puts a ready-to-start timer under it.
+function wsRestAuto(){ try{ return !!settings.restAuto; }catch(_){ return false; } }
+function wsSetRestAuto(on){
+  try{ settings.restAuto=!!on; wsPersistSave(); }catch(_){}
+  const t1=document.getElementById('togRestAuto'); if(t1) t1.classList.toggle('on',!!on);
+  const t2=document.getElementById('fkrAutoTog'); if(t2) t2.classList.toggle('on',!!on);
+}
 function wsRestBegin(ei,si){
   const d=DAYS[curDay]; const ex=(d.items||[])[ei]; if(!ex) return;
   (d.items||[]).forEach((o,oi)=>{ if(oi!==ei && (o._itemKind||wsTagItemKind(o))==='weighted' && o._restRow!=null) wsRestStop(oi,true); });
   if(restIntervals[ei]) clearInterval(restIntervals[ei]);
   const len=Math.max(0,Number(ex.rest)||0);
-  if(!len){ wsRestStop(ei,true); return; }
-  ex._restRow=si; ex.rl=len; ex.rs='running'; ex._restEnd=Date.now()+len*1000;
-  try{ acquireWakeLockIfActive(); }catch(_){}
+  // mid-superset: the round isn't over, go straight to the partner
+  if(!len || wsSsRoundOpen(ei)){ wsRestStop(ei,true); return; }
+  ex._restRow=si; ex.rl=len;
+  if(wsRestAuto()){ ex.rs='running'; ex._restEnd=Date.now()+len*1000; try{ acquireWakeLockIfActive(); }catch(_){} }
+  else { ex.rs='idle'; delete ex._restEnd; }
 }
 function wsRestStop(ei,quiet){
   const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
@@ -111,22 +195,46 @@ function wsRestStop(ei,quiet){
   try{ maybeReleaseWakeLock(); }catch(_){}
   if(!quiet){ wsRestDockUpdate(); }
 }
+// Start, pause, resume: one button.
 function wsRestToggle(ei){
   const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
   if(ex.rs==='running'){
     ex.rl=wsRestLeft(ex); ex.rs='paused'; delete ex._restEnd;
     if(restIntervals[ei]){ clearInterval(restIntervals[ei]); delete restIntervals[ei]; }
     try{ maybeReleaseWakeLock(); }catch(_){}
-  } else if(ex.rs==='paused'){
+  } else if(ex.rs==='paused'||ex.rs==='idle'){
+    if(ex.rs==='idle') ex.rl=Math.max(1,Number(ex.rest)||1);
     ex.rs='running'; ex._restEnd=Date.now()+Math.max(1,ex.rl)*1000;
     try{ acquireWakeLockIfActive(); }catch(_){}
   }
-  renderAll(false); wsPersistSave();     // re-render swaps the pause/play button; running rests restart
+  renderAll(false); wsPersistSave();     // re-render swaps the button; running rests restart
 }
 function wsRestSkip(ei){ wsRestStop(ei); renderAll(false); wsPersistSave(); }
 function wsRestLeft(ex){
   if(ex.rs==='running' && typeof ex._restEnd==='number') return Math.max(0,Math.ceil((ex._restEnd-Date.now())/1000));
   return Math.max(0,Number(ex.rl)||0);
+}
+// Change the length to `len`; time left moves by the same amount.
+function wsRestSetLength(ex,len){
+  len=Math.max(15,Math.min(900,Math.round(len)));
+  const old=Math.max(1,Number(ex.rest)||1);
+  const left=wsRestLeft(ex);
+  const elapsed=Math.max(0,old-left);
+  ex.rest=len;
+  if(ex.rs==='running'){ const l=Math.max(1,len-elapsed); ex._restEnd=Date.now()+l*1000; ex.rl=l; }
+  else if(ex.rs==='paused'){ ex.rl=Math.max(1,len-elapsed); }
+  else ex.rl=len;
+}
+function wsRestNudge(ei,delta){
+  const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
+  try{ playKnock(); }catch(_){}
+  wsRestSetLength(ex,(Number(ex.rest)||0)+delta);
+  wsRestRefresh(ei); wsPersistSave();
+}
+function wsRestSound(ei){
+  const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
+  ex.sound=ex.sound===false?true:false;
+  wsPersistSave(); renderAll(false);
 }
 // Collapsed or full is a standing preference, not per exercise.
 function wsRestSetMini(on){
@@ -135,11 +243,12 @@ function wsRestSetMini(on){
 }
 function wsRestIsMini(){ try{ return !!(settings&&settings._restMini); }catch(_){ return false; } }
 
-// What comes after this rest: this exercise's next set, or else the next
-// exercise on the day with sets left.
+// What comes after this rest: the superset partner, this exercise's next set,
+// or the next exercise with sets left.
 function wsRestNextText(ei){
   const items=DAYS[curDay].items||[];
-  const order=[ei].concat(items.map((_,i)=>i).filter(i=>i>ei), items.map((_,i)=>i).filter(i=>i<ei));
+  const p=wsSsPartnerNext(ei);
+  const order=(p>=0?[p]:[]).concat([ei], items.map((_,i)=>i).filter(i=>i>ei), items.map((_,i)=>i).filter(i=>i<ei));
   for(const i of order){
     const ex=items[i]; if((ex._itemKind||wsTagItemKind(ex))!=='weighted') continue;
     const n=wsNextSetIdx(ex); if(n<0) continue;
@@ -148,136 +257,244 @@ function wsRestNextText(ei){
   }
   return 'All sets done · slide to log';
 }
-function wsRestLabel(ex){
+function wsRestMainText(ex){
   if(ex.rs==='ready') return 'REST OVER';
-  return (ex.rs==='paused'?'PAUSED ':'REST ')+fmtMS(wsRestLeft(ex));
+  if(ex.rs==='idle') return 'REST '+fmtMS(Number(ex.rest)||0);
+  return fmtMS(wsRestLeft(ex));
+}
+function wsRestSubText(ex){
+  if(ex.rs==='idle') return 'Tap ▶ to start';
+  if(ex.rs==='ready') return 'Rest of '+fmtMS(Number(ex.rest)||0)+' is over';
+  return (ex.rs==='paused'?'Paused · ':'Left · ')+'of '+fmtMS(Number(ex.rest)||0);
 }
 function wsRestPct(ex){
   const len=Math.max(1,Number(ex.rest)||1);
   if(ex.rs==='ready') return 100;
+  if(ex.rs==='idle') return 0;
   return Math.max(0,Math.min(100,Math.round((1-wsRestLeft(ex)/len)*100)));
+}
+function wsRestPlayIcon(ex){
+  return ex.rs==='running'
+    ?'<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" class="fkr-fillsvg"/><rect x="14" y="4" width="4" height="16" rx="1" class="fkr-fillsvg"/></svg>'
+    :'<svg viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20" class="fkr-fillsvg"/></svg>';
 }
 function wsRestInline(ex,ei){
   const next=wsEscape(wsRestNextText(ei));
   const pct=wsRestPct(ex);
-  const ready=ex.rs==='ready';
-  if(wsRestIsMini()||ready){
-    return `<div class="fkr fkr-mini${ready?' ready':''}" id="fkr${ei}">
-      <button class="fkr-mini-main" onclick="${ready?`wsRestSkip(${ei})`:'wsRestSetMini(false)'}" aria-label="${ready?'Dismiss':'Show the full timer'}">
-        <span class="fkr-bar" id="fkrbar${ei}" style="width:${pct}%"></span>
-        <span class="fkr-t" id="fkrt${ei}">${wsRestLabel(ex)}</span>
-        <span class="fkr-next">${next}</span>
-        ${ready?'<span class="fkr-x">✕</span>':'<svg class="fkr-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>'}
-      </button>
-    </div>`;
+  const st=ex.rs;
+  const playLbl=st==='running'?'Pause rest':(st==='paused'?'Resume rest':'Start rest');
+  if(st==='ready'){
+    return `<div class="fkr fkr-mini ready" id="fkr${ei}" data-state="ready">
+      <button class="fkr-mini-main" onclick="wsRestSkip(${ei})" aria-label="Dismiss">
+        <span class="fkr-bar" style="width:100%"></span>
+        <span class="fkr-t">REST OVER</span><span class="fkr-next">${next}</span><span class="fkr-x">✕</span>
+      </button></div>`;
   }
-  const paused=ex.rs==='paused';
-  return `<div class="fkr" id="fkr${ei}">
+  if(wsRestIsMini()){
+    return `<div class="fkr fkr-mini" id="fkr${ei}" data-state="${st}">
+      <button class="fkr-mini-play" onclick="wsRestToggle(${ei})" aria-label="${playLbl}">${wsRestPlayIcon(ex)}</button>
+      <button class="fkr-mini-main" onclick="wsRestSetMini(false)" aria-label="Show the full timer">
+        <span class="fkr-bar" id="fkrbar${ei}" style="width:${pct}%"></span>
+        <span class="fkr-t" id="fkrt${ei}">${wsRestMainText(ex)}</span>
+        <span class="fkr-next">${st==='idle'?'Ready':next}</span>
+        <svg class="fkr-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button></div>`;
+  }
+  const snd=exSnd(ex,'timer');
+  return `<div class="fkr" id="fkr${ei}" data-state="${st}">
     <span class="fkr-fill" id="fkrbar${ei}" style="width:${pct}%"></span>
-    <div class="fkr-main">
-      <span class="fkr-t" id="fkrt${ei}">${wsRestLabel(ex)}</span>
-      <span class="fkr-next">${next}</span>
+    <div class="fkr-top">
+      <button class="fkr-time" onclick="wsRestEdit(${ei})" aria-label="Change rest length">
+        <span class="fkr-t" id="fkrt${ei}">${wsRestMainText(ex)}</span>
+        <span class="fkr-sub" id="fkrs${ei}">${wsRestSubText(ex)}</span>
+      </button>
+      <button class="fkr-icon${snd?'':' off'}" onclick="wsRestSound(${ei})" aria-label="${snd?'Sound on — tap to mute':'Muted — tap for sound'}">${snd
+        ?'<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>'
+        :'<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l4 6M21 9l-4 6"/></svg>'}</button>
+      <button class="fkr-icon" onclick="wsRestSetMini(true)" aria-label="Make the timer smaller"><svg viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg></button>
     </div>
-    <button class="fkr-btn" onclick="wsRestToggle(${ei})" aria-label="${paused?'Resume rest':'Pause rest'}">${paused
-      ?'<svg viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20" class="fkr-fillsvg"/></svg>'
-      :'<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" class="fkr-fillsvg"/><rect x="14" y="4" width="4" height="16" rx="1" class="fkr-fillsvg"/></svg>'}</button>
-    <button class="fkr-btn" onclick="wsRestEdit(${ei})" aria-label="Change rest time"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
-    <button class="fkr-btn fkr-skip" onclick="wsRestSkip(${ei})">Skip</button>
-    <button class="fkr-btn fkr-col" onclick="wsRestSetMini(true)" aria-label="Make the timer smaller"><svg viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg></button>
+    <div class="fkr-ctrls">
+      <button class="fkr-btn" onclick="wsRestNudge(${ei},-15)" aria-label="15 seconds less">−15</button>
+      <button class="fkr-btn fkr-play" onclick="wsRestToggle(${ei})" aria-label="${playLbl}">${wsRestPlayIcon(ex)}</button>
+      <button class="fkr-btn" onclick="wsRestNudge(${ei},15)" aria-label="15 seconds more">+15</button>
+      <button class="fkr-btn fkr-skip" onclick="wsRestSkip(${ei})">Skip</button>
+    </div>
+    <div class="fkr-next fkr-next-line">${next}</div>
   </div>`;
 }
 // Per-second update without re-rendering the page.
 function wsRestRefresh(ei){
   const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
-  const t=document.getElementById('fkrt'+ei), b=document.getElementById('fkrbar'+ei);
-  if(t) t.textContent=wsRestLabel(ex);
+  const t=document.getElementById('fkrt'+ei), b=document.getElementById('fkrbar'+ei), s=document.getElementById('fkrs'+ei);
+  if(t) t.textContent=wsRestMainText(ex);
+  if(s) s.textContent=wsRestSubText(ex);
   if(b) b.style.width=wsRestPct(ex)+'%';
+  const live=document.getElementById('fkrSheetLeft'); if(live) live.textContent=wsRestSheetLeftText(ex);
   wsRestDockUpdate();
 }
 
-// ── edit sheet: one slider ───────────────────────────────────────────────────
+// ── edit sheet: one slider for the length ────────────────────────────────────
+function wsRestSheetLeftText(ex){
+  if(ex.rs==='running') return 'This rest: '+fmtMS(wsRestLeft(ex))+' left';
+  if(ex.rs==='paused') return 'This rest: '+fmtMS(wsRestLeft(ex))+' left, paused';
+  return 'Not running';
+}
 function wsRestEdit(ei){
   const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
-  wsRestEditClose();
+  wsRestEditClose(true);
   const max=Math.max(300,Number(ex.rest)||0);
   const ov=document.createElement('div');
   ov.className='fkr-ov open'; ov.id='fkrSheet';
   ov.onclick=e=>{ if(e.target===ov) wsRestEditClose(); };
-  const snd=exSnd(ex,'timer');
   ov.innerHTML=`<div class="sheet fkr-sheet">
     <div class="sh-handle"></div>
-    <div class="fkr-sh-k">REST AFTER ${wsEscape(wsExDisplayParts(ex).title).toUpperCase()}</div>
+    <div class="fkr-sh-k">REST LENGTH · ${wsEscape(wsExDisplayParts(ex).title).toUpperCase()}</div>
     <div class="fkr-sh-v" id="fkrSheetV">${fmtMS(ex.rest)}</div>
+    <div class="fkr-sh-left" id="fkrSheetLeft">${wsRestSheetLeftText(ex)}</div>
     <input class="fkr-range" id="fkrRange" type="range" min="15" max="${max}" step="15" value="${ex.rest}" aria-label="Rest length" oninput="wsRestEditInput(${ei},this.value)">
     <div class="fkr-sh-scale"><span>0:15</span><span>${fmtMS(Math.round(max/2/15)*15)}</span><span>${fmtMS(max)}</span></div>
-    <button class="fkr-sh-row" aria-label="Sound when rest ends" onclick="wsRestEditSound(${ei})"><span>Sound when rest ends</span><span class="tog${snd?' on':''}" id="fkrSnd"></span></button>
-    <div class="fkr-sh-note">Changes this rest and the next ones for this exercise.</div>
+    <div class="fkr-sh-note">Applies to this rest and the next ones for this exercise. If a rest is running, the time left moves by the same amount.</div>
+    <button class="fkr-sh-row" aria-label="Start rest automatically after each set" onclick="wsSetRestAuto(!wsRestAuto())"><span>Start rest automatically after each set</span><span class="tog${wsRestAuto()?' on':''}" id="fkrAutoTog"></span></button>
     <button class="fkr-sh-done" onclick="wsRestEditClose()">Done</button>
   </div>`;
   document.getElementById('app').appendChild(ov);
 }
 function wsRestEditInput(ei,v){
   const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
-  const len=Math.max(15,Math.round(Number(v)/15)*15);
-  const elapsed=(Number(ex.rest)||0)-wsRestLeft(ex);
-  ex.rest=len;
-  if(ex.rs==='running'){ const left=Math.max(1,len-elapsed); ex._restEnd=Date.now()+left*1000; ex.rl=left; }
-  else if(ex.rs==='paused'){ ex.rl=Math.max(1,len-elapsed); }
-  else ex.rl=len;
-  const out=document.getElementById('fkrSheetV'); if(out) out.textContent=fmtMS(len);
+  wsRestSetLength(ex,Number(v));
+  const out=document.getElementById('fkrSheetV'); if(out) out.textContent=fmtMS(ex.rest);
   wsRestRefresh(ei);
 }
-function wsRestEditSound(ei){
-  const ex=(DAYS[curDay].items||[])[ei]; if(!ex) return;
-  ex.sound=ex.sound===false?true:false;
-  const b=document.getElementById('fkrSnd'); if(b) b.classList.toggle('on',exSnd(ex,'timer'));
-}
-function wsRestEditClose(){
+function wsRestEditClose(silent){
   const ov=document.getElementById('fkrSheet');
-  if(ov){ ov.remove(); wsPersistSave(); renderAll(false); }
+  if(ov){ ov.remove(); if(!silent){ wsPersistSave(); renderAll(false); } }
 }
 
-// ── docked timer: when the resting exercise is scrolled out of view ───────────
+// ── docked timer: follows you while the running rest is scrolled away ─────────
+// Slides up from the tab bar when the rest leaves the screen; when the rest
+// scrolls back into view it glides to its place in the list and fades; when
+// paused, skipped or over it slides away. Transform and opacity only, 260 ms,
+// no bounce; instant with Reduce Motion.
 function wsRestActiveIdx(){
   const items=(DAYS[curDay]&&DAYS[curDay].items)||[];
-  for(let i=0;i<items.length;i++){ const ex=items[i]; if(ex._restRow!=null && (ex.rs==='running'||ex.rs==='paused')) return i; }
+  for(let i=0;i<items.length;i++){ const ex=items[i]; if(ex._restRow!=null && ex.rs==='running') return i; }
+  return -1;
+}
+function wsRestAnyIdx(){
+  const items=(DAYS[curDay]&&DAYS[curDay].items)||[];
+  for(let i=0;i<items.length;i++){ const ex=items[i]; if(ex._restRow!=null && ex.rs!=='idle') return i; }
   return -1;
 }
 function wsRestDockUpdate(){
   try{
     const app=document.getElementById('app'), sc=document.getElementById('scroll');
     let dock=document.getElementById('fkrDock');
-    const ei=wsRestActiveIdx();
     const onToday=sc && sc.offsetParent!==null && !(DAYS[curDay]&&DAYS[curDay].logged);
-    // While a rest runs, the list gets room at the bottom so the docked bar
-    // never sits on top of the last set or the log slider.
-    if(sc) sc.classList.toggle('fk-resting', ei>=0 && !!onToday);
-    let show=false;
+    if(sc) sc.classList.toggle('fk-resting', wsRestAnyIdx()>=0 && !!onToday);
+    const ei=wsRestActiveIdx();
+    let show=false, row=null, rowVisible=false;
     if(ei>=0 && onToday){
-      const row=document.getElementById('fkr'+ei);
+      row=document.getElementById('fkr'+ei);
       if(row){
         const a=sc.getBoundingClientRect(), b=row.getBoundingClientRect();
-        show = b.bottom < a.top+8 || b.top > a.bottom-8;
+        rowVisible = !(b.bottom < a.top+8 || b.top > a.bottom-8);
+        show=!rowVisible;
       }
     }
-    if(!show){ if(dock) dock.classList.remove('on'); return; }
-    const ex=DAYS[curDay].items[ei];
     if(!dock){
+      if(!show) return;
       dock=document.createElement('button'); dock.id='fkrDock'; dock.className='fkr-dock';
-      dock.onclick=()=>{ const i=wsRestActiveIdx(); const r=document.getElementById('fkr'+i); if(r) r.scrollIntoView({behavior:'smooth',block:'center'}); };
+      dock.setAttribute('aria-label','Rest timer — tap to go back to it');
+      dock.onclick=()=>{ const i=wsRestActiveIdx(); const r=document.getElementById('fkr'+i); if(r) r.scrollIntoView({behavior:wsReduceMotion()?'auto':'smooth',block:'center'}); };
       app.appendChild(dock);
     }
     const nav=document.getElementById('nav');
     dock.style.bottom=((nav?nav.offsetHeight:70)+10)+'px';
-    dock.innerHTML=`<span class="fkr-bar" style="width:${wsRestPct(ex)}%"></span><span class="fkr-t">${wsRestLabel(ex)}</span><span class="fkr-next">${wsEscape(wsExDisplayParts(ex).title)} · tap to go back</span>`;
-    dock.classList.add('on');
+    if(show){
+      const ex=DAYS[curDay].items[ei];
+      dock.innerHTML=`<span class="fkr-bar" style="width:${wsRestPct(ex)}%"></span><span class="fkr-t">${fmtMS(wsRestLeft(ex))}</span><span class="fkr-next">${wsEscape(wsExDisplayParts(ex).title)} · tap to go back</span>`;
+      if(!dock.classList.contains('on')){ dock.style.transform=''; dock.classList.add('on'); }
+      return;
+    }
+    if(!dock.classList.contains('on')) return;
+    // leaving: glide toward the timer's place in the list if it is on screen,
+    // otherwise slide back down behind the tab bar
+    if(rowVisible && row && !wsReduceMotion()){
+      const dr=dock.getBoundingClientRect(), rr=row.getBoundingClientRect();
+      dock.style.transform='translateY('+Math.round(rr.top-dr.top)+'px)';
+    } else dock.style.transform='';
+    dock.classList.remove('on');
   }catch(_){}
 }
+function wsReduceMotion(){ try{ return window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(_){ return false; } }
 function wsRestDockBind(){
   const sc=document.getElementById('scroll');
   if(!sc || sc._fkrBound) return;
   sc._fkrBound=true;
-  sc.addEventListener('scroll',()=>wsRestDockUpdate(),{passive:true});
+  let pending=false;
+  sc.addEventListener('scroll',()=>{ if(pending) return; pending=true; requestAnimationFrame(()=>{ pending=false; wsRestDockUpdate(); }); },{passive:true});
+  if(!window._fkElapsedTimer) window._fkElapsedTimer=setInterval(wsElapsedTick,15000);
+}
+
+// ── weight step per exercise ─────────────────────────────────────────────────
+// How much one tap of + or − changes the weight. Chosen per exercise (it
+// follows that exercise into every workout), with a default from the
+// equipment: a barbell moves by the smallest plate pair, a dumbbell rack by its
+// usual gap, added bodyweight load by the smallest plate.
+function wsWStepDefault(ex){
+  const s=((ex&&(ex.exId||''))+' '+((ex&&ex.name)||'')).toLowerCase();
+  if(ex&&ex._bodyweight) return 1.25;
+  if(/dumbbell|kettlebell|\bdb\b/.test(s)) return 2;
+  if(/barbell|smith|trap bar|trap-bar|hex bar|ez[- ]bar|landmine|machine|cable|pulldown|leg press|sled/.test(s)) return 2.5;
+  return 1;
+}
+function wsWStep(ex){
+  try{
+    const k=wsTrendExKey({exId:ex.exId,name:ex.name});
+    const v=settings.wSteps&&settings.wSteps[k];
+    if(v>0) return v;
+  }catch(_){}
+  return wsWStepDefault(ex);
+}
+function wsSetWStep(ex,v){
+  try{
+    if(!settings.wSteps) settings.wSteps={};
+    settings.wSteps[wsTrendExKey({exId:ex.exId,name:ex.name})]=v;
+    wsPersistSave();
+  }catch(_){}
+}
+function wsRoundTo(v,step){ return Math.round(Math.round(v/step)*step*100)/100; }
+
+// ── the set sheet's sliders (tap a value to open it) ─────────────────────────
+function wsEditSlidersInit(){
+  try{
+    const ex=DAYS[curDay].items[curEx]; if(!ex) return;
+    const step=wsWStep(ex);
+    const wr=document.getElementById('wRange'), rr=document.getElementById('rRange');
+    if(wr){
+      const lo=Math.max(0,wsRoundTo(Math.min(editW*0.5,editW-10*step),step));
+      const hi=wsRoundTo(Math.max(editW*1.5,editW+10*step,20),step);
+      wr.min=lo; wr.max=hi; wr.step=step; wr.value=editW;
+    }
+    if(rr){ rr.min=1; rr.max=Math.max(30,editR); rr.step=1; rr.value=editR; }
+    const chips=document.getElementById('wStepChips');
+    if(chips) chips.innerHTML=[0.5,1,1.25,2,2.5,5].map(v=>`<button class="fk-stepchip${v===step?' on':''}" onclick="wsEditPickStep(${v})" aria-label="Weight step ${v} kilograms">${v}</button>`).join('');
+  }catch(_){}
+}
+function wsEditPickStep(v){
+  const ex=DAYS[curDay].items[curEx]; if(!ex) return;
+  try{ playKnock(); }catch(_){}
+  wsSetWStep(ex,v);
+  wsEditSlidersInit();
+}
+function wsEditSlideW(v){
+  editW=Math.max(0,parseFloat(Number(v).toFixed(2)));
+  const el=document.getElementById('wVal'); if(el) el.textContent=fmtW(editW);
+  try{ wsApplyLabels(); resetApplyTrack(); }catch(_){}
+}
+function wsEditSlideR(v){
+  editR=Math.max(1,Math.round(Number(v)));
+  const el=document.getElementById('rVal'); if(el) el.textContent=editR;
 }
 
 // ── after logging: what was saved ─────────────────────────────────────────────

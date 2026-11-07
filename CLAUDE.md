@@ -88,10 +88,17 @@ check on the phone. Say which kind of check a claim rests on.
 
 ## Open threads
 
-- The **Claude Code fork** (branched from v34, about a week of separate work)
-  has not been reconciled. Rule: diff first and never overwrite. Where both
-  lines changed the same feature, show both versions to the owner rather than
-  picking one.
+- The **laptop line** ("GAINS STUDIO", a local git repo with no remote) was
+  inspected on 7 Nov 2026. It is v34 plus the chat-built v35 (whose Progress
+  engine this repo already carries via v36–v44), plus three laptop iterations:
+  vocabulary (Workouts / Sessions, no "Day" in the UI), colour tokens with
+  different meanings (ember = climbing, sage = steady, slate-blue = decline,
+  coral = effort), and a plan to replace Bebas/DM with Archivo + JetBrains Mono.
+  Its GAINS_SPEC.md holds five Claude Design rounds of decisions. Rule: never
+  overwrite; where it conflicts with this repo (colour meaning, type), the
+  owner decides. Its modeled seed is built on the owner's real routine, so it
+  stays out of this public repo. From now on the laptop works in a clone of
+  this repo, on branches, through pull requests.
 - Dynamic Type needs a refactor (fixed px everywhere) and device testing.
 - Ad-hoc logging (something not in the plan) and "save this as a day" are agreed
   in principle, with no automatic clustering.

@@ -7,6 +7,18 @@ the project's original notes and isn't repeated here.
 > **v45–v54 were built but never deployed.** The phone ran v44 until v55, so
 > v55 is the first time any of the v45–v54 work reaches it.
 
+## v58: the workout screen, second pass (built on v57, which was never deployed)
+- **Rest waits for you by default.** Ticking a set puts the timer under it, ready; tap ▶ to start. "Start rest automatically" is in Settings and in the rest sheet.
+- **The timer keeps the old one's controls in the new look**: start/pause, −15 / +15, Skip, sound on/off, shrink to a slim bar (with its own play button), and tap the time to set the length with one slider. One rule for every change: the rest is a length you are partway through, so changing the length moves the time left by the same amount, and both are always shown ("1:20 · Left · of 1:45"). The sheet shows the live time left as you drag.
+- **The docked timer moves smoothly**: it slides up from the tab bar when the running rest scrolls away, glides back to its place when the rest comes back into view, and slides away when paused or skipped (instant with Reduce Motion).
+- **Supersets**: "Pair with next" at the foot of an exercise. Paired exercises show as A1/A2 under one heading; there is no rest between them, and rest starts after the round. Three or more make a giant set.
+- **An unticked set is an empty ring**, with no tick inside.
+- **Tapping a weight or reps opens the set sheet with sliders** for both, plus the weight step for that exercise (0.5, 1, 1.25, 2, 2.5 or 5 kg), remembered for that exercise everywhere. Defaults: barbell, machine and cable 2.5, dumbbell 2, added bodyweight load 1.25. The + and − steppers use the same step.
+- **SETS − n +** at the foot of every exercise.
+- **The set counter is large and orange** at the top, and the time line says what it is: "STARTED 18:16 · 31 MIN IN", ticking on its own.
+- **Days follow the phone.** The consistency grid, bodyweight dates and backup file names use the phone's local day (they used the UTC day, so a session at 00:30 counted on the day before), days are stepped by the calendar so the 23- and 25-hour days of a clock change can't shift them, and the old-app import uses the phone's time zone instead of a fixed one.
+- The old-app import no longer writes a fixed bodyweight into records or your profile; it uses the bodyweight you entered, or leaves it out.
+
 ## v57: the workout screen
 - **One scrolling page for the whole session.** Each exercise shows every set. Its next set (the first one not yet ticked) is the only row with steppers and the orange check; the others are one quiet line each, still tappable. Ticking moves the mark on. When every set is done, the exercise goes quiet and says DONE. Each exercise keeps its own mark, so you can move between exercises in a superset without losing your place.
 - A set bar under each exercise (done, next, to do), the exercise number on the right, and last time's sets and date under the name ("LAST 65 × 8·8·8·8 · 13 OCT").

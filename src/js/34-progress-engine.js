@@ -358,11 +358,13 @@ function wsProgDayGrid(){
   // v55: end the grid today, like every other Progress window. It used to end
   // at the last logged session, so a two-week break did not show as a gap.
   refT=Math.max(refT, Date.now());
-  const D=86400000, start=refT-83*D;
+  // v58: local calendar days (the phone's), stepped by the calendar, so the
+  // grid matches the day you trained even after midnight and across clock changes.
+  const start=wsAddDays(wsLocalMidnight(refT),-83);
   const byDay={};
   for(const r of hist){
-    const t=new Date(r.date).getTime(); if(isNaN(t)||t<start-D) continue;
-    const dk=new Date(r.date).toISOString().slice(0,10);
+    const t=new Date(r.date).getTime(); if(isNaN(t)||t<start) continue;
+    const dk=wsLocalDayKey(t);
     let sets=0;
     for(const e of (r.entries||[])){
       if(e.kind==='weighted'||e.kind==='bodyweight'){
@@ -373,7 +375,7 @@ function wsProgDayGrid(){
   }
   const out=[];
   for(let i=0;i<84;i++){
-    const d=new Date(start+i*D).toISOString().slice(0,10);
+    const d=wsLocalDayKey(wsAddDays(start,i));
     out.push({ d, sets:byDay[d]||0 });
   }
   return out;
@@ -416,7 +418,7 @@ function wsProgSummary(frame){
     const t=new Date(rec.date).getTime();
     if(isNaN(t)||t<cutoff) continue;
     sessions++;
-    days.add(new Date(rec.date).toISOString().slice(0,10));
+    days.add(wsLocalDayKey(t));
     for(const e of (rec.entries||[])){
       if(e.kind==='weighted'||e.kind==='bodyweight'){
         for(const st of (e.sets||[])) if(st.completed!==false) sets++;

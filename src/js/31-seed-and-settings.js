@@ -192,6 +192,8 @@ function openSettings(){
   if(tog) tog.classList.toggle('on',!!wsAdvancedTags);
   const togIS=document.getElementById('togIntensityScore');
   if(togIS) togIS.classList.toggle('on',!!settings.showIntensityScore);
+  const togRA=document.getElementById('togRestAuto');
+  if(togRA) togRA.classList.toggle('on',wsRestAuto());
   document.getElementById('settingsOverlay').classList.add('open');
 }
 function closeSettings(){wsLogPush('close_settings');document.getElementById('settingsOverlay').classList.remove('open');}

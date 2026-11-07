@@ -47,11 +47,12 @@ function openEdit(ei,si){
   if(wt) wt.classList.toggle('on', !!set.warmup);
   wsApplyLabels();
   resetApplyTrack();
+  wsEditSlidersInit();     // v58: sliders and the weight step for this exercise
   document.getElementById('overlay').classList.add('open');
 }
 function fmtW(w){return w%1===0?String(w):w.toFixed(1);}
-function stepW(d){playKnock();editW=Math.max(0,Math.min(999,parseFloat((editW+d*0.5).toFixed(1))));const el=document.getElementById('wVal');el.textContent=fmtW(editW);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');wsApplyLabels();resetApplyTrack();}
-function stepR(d){playKnock();editR=Math.max(0,Math.min(100,editR+d));const el=document.getElementById('rVal');el.textContent=editR;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
+function stepW(d){playKnock();const _st=(DAYS[curDay]&&DAYS[curDay].items[curEx])?wsWStep(DAYS[curDay].items[curEx]):0.5;editW=Math.max(0,Math.min(999,Math.round((editW+d*_st)*100)/100));const _wr=document.getElementById('wRange');if(_wr) _wr.value=editW;const el=document.getElementById('wVal');el.textContent=fmtW(editW);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');wsApplyLabels();resetApplyTrack();}
+function stepR(d){playKnock();editR=Math.max(0,Math.min(100,editR+d));const _rr=document.getElementById('rRange');if(_rr) _rr.value=editR;const el=document.getElementById('rVal');el.textContent=editR;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
 function resetApplyTrack(){const t=document.getElementById('applyTrack');const thumb=document.getElementById('applyThumb');if(t) t.classList.remove('applied');if(thumb){thumb.style.transition='transform .3s';thumb.style.transform='translateX(0)';}}
 function saveSet(){
   const btn=document.getElementById('saveSetBtn');
