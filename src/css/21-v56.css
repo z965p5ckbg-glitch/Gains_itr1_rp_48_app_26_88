@@ -1,0 +1,7 @@
+/* v56 — the sheet grabber becomes a real drag zone (see 53-sheet-swipe.js).
+   The visible pill is unchanged; the touchable strip is the full width and the
+   same 29px it already occupied. touch-action:none stops iOS from treating the
+   drag as a scroll of the sheet underneath. */
+.sheet > .sh-handle{ width:auto; height:29px; margin:0; background:none; position:relative; touch-action:none; cursor:grab; }
+.sheet > .sh-handle::before{ content:''; position:absolute; left:50%; top:12px; width:38px; height:5px; margin-left:-19px; border-radius:3px; background:var(--b3); }
+.sheet > .sh-title{ touch-action:none; }

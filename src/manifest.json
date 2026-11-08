@@ -19,7 +19,8 @@
     "17-data-sheet.css",
     "18-accessibility-hig.css",
     "19-v47-v53-additions.css",
-    "20-v55.css"
+    "20-v55.css",
+    "21-v56.css"
   ],
   "js": [
     "01-icons.js",
@@ -73,7 +74,8 @@
     "49-day-editor.js",
     "50-day-delete.js",
     "51-boot.js",
-    "52-data-coach-profile.js"
+    "52-data-coach-profile.js",
+    "53-sheet-swipe.js"
   ],
   "tokens": {
     "css": "@@GAINS_CSS@@",
