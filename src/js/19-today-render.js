@@ -42,6 +42,8 @@ function renderAll(triggerShimmer){
   bindAllHoldButtons();
   // v57: the rest timer docks above the tab bar when its exercise scrolls away
   wsRestDockBind(); wsRestDockUpdate();
+  // v60: the slim top bar (count, up next, finish) once the counter scrolls away
+  wsTopBarUpdate();
 }
 
 // Resolve a day exercise's display as a two-line headline/subheadline, matching
@@ -110,22 +112,30 @@ function renderExCard(ex,ei,shimmer){
   const ss=wsSsInfo(ei);
   const idx=ss?ss.letter+ss.pos:String(ei+1).padStart(2,'0');
   const last=wsLastPerf(ex);
+  // v60: only the one set that is up next gets the orange ring; every other
+  // exercise's next set keeps its controls but stays neutral.
+  const up=logged?null:wsUpNext();
+  const upSi=(up&&up.ei===ei)?up.si:-1;
   let html='';
-  if(ss && ss.pos===1) html+=`<div class="fk-ss-head"><span>${ss.size>2?'GIANT SET':'SUPERSET'} ${ss.letter}</span><i></i><span>REST AFTER ${ss.letter}${ss.size}</span></div>`;
-  html+=`<div class="ex-card fk${complete?' fk-done':''}${ss?' fk-ss fk-ss-'+(ss.pos===1?'first':(ss.pos===ss.size?'last':'mid')):''}" data-ei="${ei}">
+  if(ss && ss.pos===1){
+    const order=Array.from({length:ss.size},(_,k)=>ss.letter+(k+1)).join(' → ');
+    html+=`<div class="fk-ss-head"><span>${ss.size>2?'GIANT SET':'SUPERSET'} ${ss.letter}</span><i></i><span>REST AFTER ${ss.letter}${ss.size}</span></div>
+    <div class="fk-ss-hint">${order}, then rest. One set of each in turn.</div>`;
+  }
+  html+=`<div class="ex-card fk${complete?' fk-done':''}${upSi>=0?' fk-upnext-card':''}${ss?' fk-ss fk-ss-'+(ss.pos===1?'first':(ss.pos===ss.size?'last':'mid')):''}" data-ei="${ei}">
     <div class="fk-head">
       <span class="fk-name-wrap"><span class="fk-name">${wsEscape(_dp.title)}</span>${_dp.subtitle?`<span class="fk-sub">${wsEscape(_dp.subtitle)}</span>`:''}</span>
       <span class="fk-idx">${complete?'DONE · ':''}${idx}</span>
     </div>
     <div class="fk-last">${last?wsEscape(last.text):'No earlier sessions'}</div>
     ${ex.cue?`<div class="ex-cue fk-cue">${wsEscape(ex.cue)}</div>`:''}
-    <div class="fk-segs" aria-hidden="true">${(ex.sets||[]).map((s,si)=>`<span class="fk-seg${s._logged?' done':(si===next?' next':'')}"></span>`).join('')}</div>
+    <div class="fk-segs" aria-hidden="true">${(ex.sets||[]).map((s,si)=>`<span class="fk-seg${s._logged?' done':(si===next?(si===upSi?' next':' next-q'):'')}"></span>`).join('')}</div>
     <div class="set-list fk-list">`;
   ex.sets.forEach((s,si)=>{
     const done=!!s._logged;
     const wTxt=wsSetWText(ex,s);
     if(si===next){
-      html+=`<div class="set-row fk-active" data-si="${si}">
+      html+=`<div class="set-row fk-active${si===upSi?' fk-upnext':''}" data-si="${si}">
         <span class="set-num">${si+1}</span>
         <div class="val-group">
           <button class="step-btn" aria-label="Less weight" onclick="event.stopPropagation();stepSetVal(${ei},${si},'w',-1)">−</button>
@@ -156,14 +166,17 @@ function renderExCard(ex,ei,shimmer){
   html+=`</div>`;
   if(!logged){
     const n=(ex.sets||[]).length;
-    const nextIsWeighted=(()=>{ const it=DAYS[curDay].items[ei+1]; return !!it && (it._itemKind||wsTagItemKind(it))==='weighted'; })();
+    // v60: "Superset with…" pairs this exercise with ANY other one (above or
+    // below); the chosen one moves to sit right after it. Shown when there is
+    // another weighted exercise to pair with.
+    const others=(DAYS[curDay].items||[]).some((it,j)=>j!==ei && wsIsWeighted(it));
     html+=`<div class="fk-foot">
       <div class="fk-setstep" role="group" aria-label="Number of sets">
         <button class="fk-ss-btn" onclick="removeSet(${ei})" aria-label="Remove the last set"${n<=1?' disabled':''}>−</button>
         <span class="fk-setn"><b>${n}</b> ${n===1?'SET':'SETS'}</span>
         <button class="fk-ss-btn" onclick="addSet(${ei})" aria-label="Add a set">+</button>
       </div>
-      ${nextIsWeighted||ex.ss?`<button class="fk-pair${ex.ss?' on':''}" onclick="wsTogglePair(${ei})" aria-pressed="${ex.ss?'true':'false'}">${ex.ss?'Paired with next':'Pair with next'}</button>`:''}
+      ${others||ss?`<button class="fk-pair${ss?' on':''}" onclick="wsSsOpen(${ei})" aria-haspopup="dialog">${ss?'Superset '+ss.letter:'Superset with…'}</button>`:''}
     </div>`;
   }
   html+=wsEffortStrip(ex,ei)+`</div>`;

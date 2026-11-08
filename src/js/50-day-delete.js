@@ -6,7 +6,7 @@ function openWsDeleteModal(dayIdx){
   const d=DAYS[dayIdx];
   if(!d) return;
   wsDeleteCtx={dayIdx};
-  document.getElementById('wsDelName').innerHTML=d.titleHtml;
+  document.getElementById('wsDelName').innerHTML=wsSafeTitleHtml(d.titleHtml);
   document.getElementById('wsDelSub').textContent=`This permanently removes ${d.label} and any exercises in it.`;
   // Reset slide
   const fill=document.getElementById('wsDelFill');

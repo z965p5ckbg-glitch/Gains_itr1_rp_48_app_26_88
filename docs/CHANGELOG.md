@@ -7,6 +7,31 @@ the project's original notes and isn't repeated here.
 > **v45–v54 were built but never deployed.** The phone ran v44 until v55, so
 > v55 is the first time any of the v45–v54 work reaches it.
 
+## v60: the workout screen, third pass
+**One next thing at a time**
+- Only the set that is up next has an orange ring. Every other exercise still shows its next set with the steppers, but in neutral, so the page no longer shows five orange rows at once.
+- An **Up next** line under the set counter names that set ("UP NEXT · A2 · Face Pull · 20 × 10"); tap it to scroll there. It follows the set you ticked last: your superset partner, then the same exercise, then the ones below.
+- **Finish** beside the counter takes you to the LOG SESSION slider from anywhere. Sliding still confirms.
+- Once the counter scrolls away, a slim bar at the top keeps the count, Up next and Finish one tap away.
+
+**Rest timer**
+- The round button says what it does: START, PAUSE or RESUME, inside the button.
+- A full-width progress bar sits under the time and fills as you rest (VoiceOver reads it too). The line beside the time only says what the number means ("left of 1:30").
+
+**Set circles**
+- An unticked set shows a grey tick again, so the circle reads as "tap to mark done". Done stays filled cream with a dark tick.
+
+**Supersets: pair with any exercise**
+- "Pair with next" is now **Superset with…**. It lists every other exercise in the workout; pick one and it moves to sit right after this one, from wherever it was, above or below. Undo puts the order back.
+- Inside a superset the same button reads "Superset A" and lets you add a third (a giant set) or take the exercise out.
+- Under the superset heading, one line says how it runs: "A1 → A2, then rest."
+- The new order and pairing are saved with the workout, so they stand next time.
+
+**Also**
+- The workout you're on is a neutral tab; orange stays for the next action and the header word.
+- Messages no longer shrink to half the screen; one with Undo puts the button beside the text.
+- Security: a workout's two-line title (stored as a little HTML) is no longer trusted. From a restored or imported file it could have run code; now only the line break and the second-line style survive, and everything else is shown as text.
+
 ## v59: what the independent review proved, plus the timer and stepper notes
 **Your records are trustworthy**
 - Warm-ups stay warm-ups in History. They were dropped when a session was saved, so every count, volume, record and trend treated warm-ups as working sets. (Sessions saved before v59 can't be repaired: the information wasn't kept.)

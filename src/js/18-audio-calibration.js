@@ -275,7 +275,7 @@ function renderTabs(){
 
 function renderHeader(){
   const d=DAYS[curDay];
-  document.getElementById('hdrTitle').innerHTML=d.titleHtml;
+  document.getElementById('hdrTitle').innerHTML=wsSafeTitleHtml(d.titleHtml);
   const lbl=document.getElementById('hdrLbl');
   lbl.textContent=d.label+' · '+todayStr();
   lbl.onclick=wsRenameDay;

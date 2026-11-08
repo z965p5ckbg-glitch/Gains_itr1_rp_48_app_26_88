@@ -18,7 +18,7 @@ changing anything a user sees. Recent history is in `docs/CHANGELOG.md`.
    screen). The legacy code guards this with `try{}` and `_wsPending*` holders.
    Follow that pattern rather than reordering files.
 3. **Order is meaningful.** `src/manifest.json` lists CSS in cascade order and JS
-   in load order. New CSS goes in a new file at the end (`20-v55.css` is the
+   in load order. New CSS goes in a new file at the end (`25-v60.css` is the
    current one) or beside the rule it changes, never in the middle of the order.
 4. **Run `npm test` before every commit.** Add a browser test for every bug you
    fix, and check that it fails on the old code before you trust it. For anything

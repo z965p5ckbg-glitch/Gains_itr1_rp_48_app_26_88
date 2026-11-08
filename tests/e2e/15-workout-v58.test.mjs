@@ -1,5 +1,5 @@
 // v58 workout screen, second pass, driven with real taps:
-//  - an unticked set is an empty ring (no tick inside)
+//  - an unticked set shows a grey tick (v60: brought back, grey not orange)
 //  - the set counter is prominent and orange; the time says what it is
 //  - SETS − n + at the foot of every exercise
 //  - tapping a value opens the set sheet with sliders; + and − move by the
@@ -20,8 +20,9 @@ export default async function (t) {
     await tab(phone, 'today');
 
     // ── empty ring
-    const ring = await page.evaluate(() => { const c = document.querySelector('.set-row.fk-active .set-check'); const svg = c.querySelector('svg'); const cs = getComputedStyle(svg); return { stroke: cs.stroke, border: getComputedStyle(c).borderTopColor }; });
-    t.ok(/rgba\(0, 0, 0, 0\)|transparent/.test(ring.stroke), 'an unticked set shows an empty ring, no tick inside', ring);
+    const ring = await page.evaluate(() => { const c = document.querySelector('.set-row.fk-active .set-check'); const svg = c.querySelector('svg'); const cs = getComputedStyle(svg); const q = getComputedStyle(document.querySelector('.set-row.fk-quiet .set-check svg')); return { stroke: cs.stroke, quiet: q.stroke, border: getComputedStyle(c).borderTopColor }; });
+    t.ok(ring.stroke === 'rgb(90, 84, 72)' && ring.quiet === 'rgb(90, 84, 72)', 'an unticked set shows a grey tick (not orange, not empty)', ring);
+    t.ok(ring.border === 'rgb(240, 120, 48)', 'the set that is up next has the orange ring', ring.border);
 
     // ── counter and time
     const head = await page.evaluate(() => ({ count: document.querySelector('.fk-prog-count').innerText.replace(/\s+/g, ' '), color: getComputedStyle(document.querySelector('.fk-prog-count b')).color, size: parseFloat(getComputedStyle(document.querySelector('.fk-prog-count b')).fontSize), time: (document.getElementById('fkElapsed') || {}).textContent || null }));
@@ -68,8 +69,11 @@ export default async function (t) {
 
     // ── supersets: pair exercise 1 with 2
     await page.evaluate(() => wsSetRestAuto(true));
+    // v60: the button opens "Superset with…"; choosing the exercise below pairs them
     const pairBtn = await page.evaluate(() => { const b = document.querySelector('.ex-card[data-ei="1"] .fk-pair'); if (b) b.click(); return !!b; });
     await wait(200);
+    await page.evaluate(() => { const want = wsExDisplayParts(DAYS[curDay].items[2]).title; [...document.querySelectorAll('.fkss-row')].find(r => r.querySelector('.fkss-n').textContent === want).click(); });
+    await wait(300);
     const lbl = await page.evaluate(() => ({ a1: document.querySelector('.ex-card[data-ei="1"] .fk-idx').textContent, a2: document.querySelector('.ex-card[data-ei="2"] .fk-idx').textContent, head: (document.querySelector('.fk-ss-head') || {}).innerText }));
     t.ok(pairBtn && lbl.a1 === 'A1' && lbl.a2 === 'A2' && /SUPERSET A/.test(lbl.head || '') && /REST AFTER A2/.test(lbl.head || ''), 'pairing labels the exercises A1 and A2 under one superset heading', lbl);
     const idxA1 = await page.evaluate(() => DAYS[curDay].items[0].sets.length);

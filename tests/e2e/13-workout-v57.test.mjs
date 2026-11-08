@@ -49,7 +49,7 @@ export default async function (t) {
     t.ok(/Paused/.test(p1) && p1 === p2, 'paused, the time holds still', [p1, p2]);
     await clickLabel(page, 'Resume rest'); await wait(2200);
     const r1 = await restText(page);
-    t.ok(/Left/.test(r1) && secs(r1) < secs(p2), 'resumed, it counts down again', [p2, r1]);
+    t.ok(/left of/.test(r1) && !/Paused/.test(r1) && secs(r1) < secs(p2), 'resumed, it counts down again', [p2, r1]);
 
     // ── ±15 changes the length and the time left by the same amount (both shown)
     const n0 = await ex0(page); const l0 = secs(await restText(page));

@@ -455,6 +455,16 @@ function saveWsDayEdit(){
 function wsEscape(s){
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+// v60: a workout's two-line title is stored as a little HTML ("Push +<br><em>
+// Pull</em>"). It can arrive from a backup file, so it is never trusted: only
+// <br> and <em> survive, every other tag is dropped, and the text is escaped.
+function wsSafeTitleHtml(s){
+  const ENT={amp:'&',lt:'<',gt:'>',quot:'"','#39':"'",'#x27':"'",nbsp:'\u00a0'};
+  const dec=t=>String(t).replace(/<[^>]*>?/g,'').replace(/&(amp|lt|gt|quot|#39|#x27|nbsp);/g,(m,e)=>ENT[e]);
+  return String(s==null?'':s).split(/(<br\s*\/?>|<em>|<\/em>)/i).map(p=>
+    /^<br\s*\/?>$/i.test(p)?'<br>':(/^<em>$/i.test(p)?'<em>':(/^<\/em>$/i.test(p)?'</em>':wsEscape(dec(p))))
+  ).join('');
+}
 
 // ──────────── Create new day ────────────
 

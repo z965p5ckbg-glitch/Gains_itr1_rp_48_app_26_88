@@ -170,6 +170,19 @@ the app, never inferred from history.
   history depends on the working day's state.
 - **v59: one rule for a working set** (`wsIsWorkSet`: completed, not a warm-up),
   used by every count, volume, record and trend.
+- **v60: one next action on the page.** Each exercise still marks its own next
+  set (supersets need that), but only the single set that is up next is
+  orange (`wsUpNext`: from the last-ticked set, partner first, then the same
+  exercise, then below, then above). Up next and Finish are one tap away
+  everywhere; Finish only scrolls to the slider, the slide still confirms.
+- **v60: supersets are chosen, not just "next".** "Superset with…" pairs any
+  two exercises and moves the chosen one beside the other, because a superset
+  is done in sequence and the list should read in the order you do it. The
+  order belongs to the workout and is saved. Leaving keeps the first member in
+  front; anyone else moves to straight after the group.
+- **v60: an unticked set shows a grey tick.** The empty ring (v58) lost the
+  cue that the circle is the thing to tap. Grey, not orange: orange is
+  reserved for the one next set.
 - **No Liquid Glass.** Translucency costs legibility and battery and needs live
   blur. A gym app is read sweaty, at arm's length, sometimes upside down on a
   bench. Opaque, high contrast and big numerals win. The principles (clarity,
@@ -218,6 +231,9 @@ the app, never inferred from history.
   the key is budget-capped at the provider.
 - The real attack surface is **who can change the served file**, which means the
   GitHub account. Protect it with a passkey or authenticator 2FA.
+- **v60: stored HTML is sanitised on render.** The only HTML kept in data is a
+  workout's two-line title; `wsSafeTitleHtml` lets through `<br>` and `<em>`
+  and escapes everything else, at every place it is shown.
 - `script-src 'unsafe-inline'` is required by the single-file design. The
   mitigation is the `connect-src` lock and treating restored JSON as data
   (escaped on render).

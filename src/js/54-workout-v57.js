@@ -79,21 +79,124 @@ function wsGroupSets(list,bw){
 // ── session progress, top of the list ─────────────────────────────────────────
 // v58: the set counter is the most prominent thing here (ember, large).
 // v59: the elapsed-time line was dropped at the owner's request.
-function wsWorkoutProgressHtml(d){
+// v60: one "Up next" line under the counter (the only orange set ring on the
+// page is that set's), and Finish, which takes you to the LOG SESSION slider
+// from anywhere (the slide still confirms).
+function wsSetCounts(d){
   let done=0,total=0;
   for(const ex of (d.items||[])){
     const k=ex._itemKind||wsTagItemKind(ex);
     if(k!=='weighted') continue;
     for(const s of (ex.sets||[])){ total++; if(s._logged) done++; }
   }
+  return {done:done,total:total};
+}
+function wsWorkoutProgressHtml(d){
+  const c=wsSetCounts(d), done=c.done, total=c.total;
   if(!total) return '';
   const pct=Math.round(done/total*100);
-  return `<div class="fk-prog">
+  const canFinish=!d.logged && wsDayHasWorkSafe();
+  return `<div class="fk-prog" id="fkProg">
     <div class="fk-prog-row">
       <span class="fk-prog-count" aria-label="${done} of ${total} sets done"><b>${done}</b><i>/${total}</i><em>SETS</em></span>
+      ${canFinish?`<button class="fk-finish" onclick="wsGoFinish()">Finish<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>`:''}
     </div>
     <div class="fk-prog-bar"><span style="width:${pct}%"></span></div>
+    ${d.logged?'':wsUpNextLineHtml()}
   </div>`;
+}
+function wsDayHasWorkSafe(){ try{ return !!wsDayHasWork(curDay); }catch(_){ return false; } }
+
+// ── up next ──────────────────────────────────────────────────────────────────
+// Where to go after exercise ei: its superset partner if the round isn't
+// finished (or the first member again once it is), then this exercise's next
+// set, then the exercises below it, then the ones above.
+function wsNextOrder(ei){
+  const items=(DAYS[curDay]&&DAYS[curDay].items)||[];
+  const p=wsSsPartnerNext(ei);
+  return (p>=0?[p]:[]).concat([ei], items.map((_,i)=>i).filter(i=>i>ei), items.map((_,i)=>i).filter(i=>i<ei));
+}
+// The one set to do next, counted from the set you ticked most recently (or
+// from the top before you start). Returns {ei,si} or null when all are done.
+function wsUpNext(){
+  const d=DAYS[curDay]; if(!d||d.logged) return null;
+  const items=d.items||[];
+  let anchor=-1, bt=-Infinity;
+  items.forEach((ex,ei)=>{
+    if((ex._itemKind||wsTagItemKind(ex))!=='weighted') return;
+    (ex.sets||[]).forEach(s=>{ if(s._logged){ const t=typeof s._doneAt==='number'?s._doneAt:0; if(t>=bt){ bt=t; anchor=ei; } } });
+  });
+  const order=anchor<0?items.map((_,i)=>i):wsNextOrder(anchor);
+  for(const i of order){
+    const ex=items[i]; if(!ex||(ex._itemKind||wsTagItemKind(ex))!=='weighted') continue;
+    const n=wsNextSetIdx(ex); if(n>=0) return {ei:i,si:n};
+  }
+  return null;
+}
+function wsUpNextLineHtml(){
+  const u=wsUpNext();
+  if(!u){
+    return wsDayHasWorkSafe()?`<button class="fk-upnext" onclick="wsGoFinish()"><span class="fk-un-k">ALL SETS DONE</span><span class="fk-un-v">Slide to log</span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></button>`:'';
+  }
+  const ex=DAYS[curDay].items[u.ei], s=ex.sets[u.si];
+  const ss=wsSsInfo(u.ei);
+  const who=(ss?ss.letter+ss.pos+' · ':'')+wsExDisplayParts(ex).title;
+  return `<button class="fk-upnext" onclick="wsGoUpNext()" aria-label="Up next: ${wsEscape(who)}, set ${u.si+1}, ${wsEscape(wsSetWText(ex,s))} kilos times ${s.r}. Tap to go there.">
+    <span class="fk-un-k">UP NEXT</span><span class="fk-un-v"><b>${wsEscape(who)}</b> · ${wsEscape(wsSetWText(ex,s))} × ${s.r}</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg></button>`;
+}
+function wsScrollTo(el,block){
+  if(!el) return;
+  try{ el.scrollIntoView({behavior:wsReduceMotion()?'auto':'smooth',block:block||'center'}); }catch(_){ el.scrollIntoView(); }
+}
+function wsFlash(el){
+  if(!el) return;
+  el.classList.remove('fk-flash'); void el.offsetWidth; el.classList.add('fk-flash');
+  setTimeout(()=>{ try{ el.classList.remove('fk-flash'); }catch(_){} },1200);
+}
+function wsGoUpNext(){
+  const u=wsUpNext(); if(!u) return wsGoFinish();
+  const row=document.querySelector('.ex-card[data-ei="'+u.ei+'"] .set-row[data-si="'+u.si+'"]');
+  wsScrollTo(row,'center'); wsFlash(row);
+}
+function wsGoFinish(){
+  const z=document.querySelector('.slide-zone');
+  wsScrollTo(z,'center'); wsFlash(document.getElementById('slideTrack'));
+}
+
+// A slim bar at the top of the list once the counter has scrolled away: the
+// count, Up next and Finish stay one tap away wherever you are in the session.
+function wsTopBarUpdate(){
+  try{
+    const app=document.getElementById('app'), sc=document.getElementById('scroll');
+    let bar=document.getElementById('fkTop');
+    const d=DAYS[curDay];
+    const prog=document.getElementById('fkProg');
+    const onToday=sc && sc.offsetParent!==null && d && !d.logged && !!prog;
+    let show=false;
+    if(onToday){
+      const a=sc.getBoundingClientRect(), b=prog.getBoundingClientRect();
+      show = b.bottom < a.top+4;
+    }
+    if(!bar){
+      if(!show) return;
+      bar=document.createElement('div'); bar.id='fkTop'; bar.className='fk-top';
+      app.appendChild(bar);
+    }
+    if(show){
+      bar.style.top=sc.offsetTop+'px';
+      const c=wsSetCounts(d), u=wsUpNext();
+      let mid;
+      if(u){
+        const ex=d.items[u.ei], s=ex.sets[u.si], ss=wsSsInfo(u.ei);
+        const who=(ss?ss.letter+ss.pos+' · ':'')+wsExDisplayParts(ex).title;
+        mid=`<button class="fk-top-next" onclick="wsGoUpNext()" aria-label="Up next: ${wsEscape(who)}. Tap to go there."><span class="fk-un-k">NEXT</span><span class="fk-un-v"><b>${wsEscape(who)}</b> · ${wsEscape(wsSetWText(ex,s))} × ${s.r}</span></button>`;
+      } else mid=`<button class="fk-top-next" onclick="wsGoFinish()"><span class="fk-un-k">ALL DONE</span><span class="fk-un-v">Slide to log</span></button>`;
+      const html=`<span class="fk-top-count" aria-label="${c.done} of ${c.total} sets done"><b>${c.done}</b>/${c.total}</span>${mid}${wsDayHasWorkSafe()?`<button class="fk-finish small" onclick="wsGoFinish()">Finish</button>`:''}`;
+      if(bar._html!==html){ bar.innerHTML=html; bar._html=html; }
+      bar.classList.add('on');
+    } else bar.classList.remove('on');
+  }catch(_){}
 }
 function wsElapsedText(d){
   if(d.logged) return 'SESSION LOGGED';
@@ -135,6 +238,110 @@ function wsTogglePair(ei){
   const d=DAYS[curDay]; const ex=d&&d.items&&d.items[ei]; if(!ex) return;
   ex.ss=!ex.ss; if(!ex.ss) delete ex.ss;
   wsPersistSave(); renderAll(false);
+}
+// v60: "Superset with…". Pick any other exercise in the workout, above or
+// below: it moves to sit right after this one (or at the end of this one's
+// superset) and they alternate. The order and pairing are saved with the
+// workout, so they stand next time too. Undo puts everything back.
+function wsIsWeighted(it){ return !!it && (it._itemKind||wsTagItemKind(it))==='weighted'; }
+function wsSsBlocks(items){
+  const g=wsSsGroups(items), blocks=[];
+  for(let i=0;i<items.length;i++){
+    if(g[i] && g[i].pos>1) continue;
+    blocks.push(g[i]?items.slice(g[i].first,g[i].last+1):[items[i]]);
+  }
+  return blocks;
+}
+function wsSsApplyBlocks(d,blocks){
+  const out=[];
+  blocks.forEach(b=>b.forEach((it,k)=>{ if(k<b.length-1) it.ss=true; else delete it.ss; out.push(it); }));
+  d.items=out; wsDayItemsSync(d);
+}
+function wsSsSnapshot(d){ return (d.items||[]).map(it=>({it:it,ss:!!it.ss})); }
+function wsSsRestore(d,snap){
+  d.items=snap.map(s=>{ if(s.ss) s.it.ss=true; else delete s.it.ss; return s.it; });
+  wsDayItemsSync(d); wsPersistSave(); renderAll(false);
+}
+function wsSsPair(ei,ej){
+  const d=DAYS[curDay]; const items=(d&&d.items)||[]; const X=items[ei], Y=items[ej];
+  if(!X||!Y||X===Y||!wsIsWeighted(X)||!wsIsWeighted(Y)) return false;
+  const blocks=wsSsBlocks(items).map(b=>b.filter(it=>it!==Y)).filter(b=>b.length);
+  const bx=blocks.find(b=>b.indexOf(X)>=0); if(!bx) return false;
+  bx.push(Y);
+  wsSsApplyBlocks(d,blocks);
+  wsSsSettleRests();
+  return true;
+}
+// A waiting (not yet started) rest that now sits mid-round is dropped: inside
+// a superset you go straight to the partner and rest after the round.
+function wsSsSettleRests(){
+  const items=(DAYS[curDay]&&DAYS[curDay].items)||[];
+  items.forEach((it,i)=>{ if(wsIsWeighted(it) && it._restRow!=null && it.rs==='idle' && wsSsRoundOpen(i)) wsRestStop(i,true); });
+}
+// Leaving: the first member stays in front of the rest; any other member moves
+// to straight after its old group. A group of two simply comes apart.
+function wsSsLeave(ei){
+  const d=DAYS[curDay]; const items=(d&&d.items)||[]; const X=items[ei]; if(!X) return false;
+  const blocks=wsSsBlocks(items);
+  const bi=blocks.findIndex(b=>b.indexOf(X)>=0); const b=blocks[bi];
+  if(!b || b.length<2){ delete X.ss; wsDayItemsSync(d); return true; }
+  const first=b[0]===X;
+  b.splice(b.indexOf(X),1);
+  blocks.splice(first?bi:bi+1,0,[X]);
+  wsSsApplyBlocks(d,blocks);
+  return true;
+}
+function wsSsOpen(ei){
+  const d=DAYS[curDay]; const items=(d&&d.items)||[]; const X=items[ei]; if(!X||d.logged) return;
+  wsSsClose(true);
+  try{ const t=document.getElementById('wsToast'); if(t) t.classList.remove('on'); }catch(_){}
+  const g=wsSsGroups(items), gx=g[ei];
+  const xt=wsEscape(wsExDisplayParts(X).title);
+  const rows=items.map((it,j)=>{
+    if(j===ei||!wsIsWeighted(it)) return '';
+    const gj=g[j], same=!!(gx&&gj&&gj.letter===gx.letter);
+    const idx=gj?gj.letter+gj.pos:String(j+1).padStart(2,'0');
+    const p=wsExDisplayParts(it);
+    const note=same?'In this superset':(gj?'Leaves superset '+gj.letter:(p.subtitle||''));
+    return `<button class="fkss-row${same?' in':''}"${same?' disabled aria-disabled="true"':''} onclick="wsSsChoose(${ei},${j})">
+      <span class="fkss-idx">${idx}</span>
+      <span class="fkss-mid"><span class="fkss-n">${wsEscape(p.title)}</span>${note?`<span class="fkss-s">${wsEscape(note)}</span>`:''}</span>
+      ${same?'<svg class="fkss-ok" viewBox="0 0 16 16" aria-hidden="true"><polyline points="3,8 6.5,11.5 13,4.5"/></svg>':''}
+    </button>`;
+  }).join('');
+  const ov=document.createElement('div');
+  ov.className='fkr-ov open'; ov.id='fkssSheet';
+  ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true'); ov.setAttribute('aria-labelledby','fkssTitle');
+  ov.onclick=e=>{ if(e.target===ov) wsSsClose(); };
+  ov.innerHTML=`<div class="sheet fkr-sheet fkss-sheet">
+    <div class="sh-handle"></div>
+    <div class="fkr-sh-k" id="fkssTitle">${gx?'SUPERSET '+gx.letter:'SUPERSET WITH…'}</div>
+    <div class="fkss-h">${xt}</div>
+    <div class="fkss-explain">${gx
+      ?'Add another exercise to this superset, or take '+xt+' out.'
+      :'A superset alternates two exercises: one set of the first, then one of the second, then rest. Pick the exercise to pair with '+xt+'. It moves to sit right after it, from wherever it is in the list.'}</div>
+    <div class="fkss-list">${rows}</div>
+    ${gx?`<button class="fkss-leave" onclick="wsSsLeaveChoose(${ei})">Take ${xt} out of superset ${gx.letter}</button>`:''}
+    <button class="fkr-sh-done fkss-cancel" onclick="wsSsClose()">Cancel</button>
+  </div>`;
+  document.getElementById('app').appendChild(ov);
+}
+function wsSsClose(silent){ const ov=document.getElementById('fkssSheet'); if(ov) ov.remove(); }
+function wsSsChoose(ei,ej){
+  const d=DAYS[curDay]; const snap=wsSsSnapshot(d);
+  const X=d.items[ei], Y=d.items[ej];
+  if(!wsSsPair(ei,ej)) return;
+  wsSsClose(); wsPersistSave(); renderAll(false);
+  const nx=d.items.indexOf(X), g=wsSsInfo(nx);
+  wsToastUndo('Superset '+(g?g.letter:'')+': '+wsExDisplayParts(X).title+' + '+wsExDisplayParts(Y).title, ()=>wsSsRestore(d,snap));
+  const card=document.querySelector('.ex-card[data-ei="'+nx+'"]');
+  if(card){ wsScrollTo(card,'start'); }
+}
+function wsSsLeaveChoose(ei){
+  const d=DAYS[curDay]; const snap=wsSsSnapshot(d); const X=d.items[ei];
+  if(!wsSsLeave(ei)) return;
+  wsSsClose(); wsPersistSave(); renderAll(false);
+  wsToastUndo(wsExDisplayParts(X).title+' is on its own again', ()=>wsSsRestore(d,snap));
 }
 // After ticking a set in a superset: if a partner still has sets, the round is
 // not over, so no rest. The partner to go to next is the next member (wrapping)
@@ -294,8 +501,7 @@ function wsRestIsMini(){ try{ return !!(settings&&settings._restMini); }catch(_)
 // or the next exercise with sets left.
 function wsRestNextText(ei){
   const items=DAYS[curDay].items||[];
-  const p=wsSsPartnerNext(ei);
-  const order=(p>=0?[p]:[]).concat([ei], items.map((_,i)=>i).filter(i=>i>ei), items.map((_,i)=>i).filter(i=>i<ei));
+  const order=wsNextOrder(ei);
   for(const i of order){
     const ex=items[i]; if((ex._itemKind||wsTagItemKind(ex))!=='weighted') continue;
     const n=wsNextSetIdx(ex); if(n<0) continue;
@@ -309,11 +515,15 @@ function wsRestMainText(ex){
   if(ex.rs==='idle') return 'REST '+fmtMS(Number(ex.rest)||0);
   return fmtMS(wsRestLeft(ex));
 }
+// v60: the instruction to start lives on the round button itself now
+// (START / PAUSE / RESUME), so this line only says what the number means.
 function wsRestSubText(ex){
-  if(ex.rs==='idle') return 'Tap ▶ to start';
+  if(ex.rs==='idle') return 'Tap the time to change it';
   if(ex.rs==='ready') return 'Rest of '+fmtMS(Number(ex.rest)||0)+' is over';
-  return (ex.rs==='paused'?'Paused · ':'Left · ')+'of '+fmtMS(Number(ex.rest)||0);
+  const len=fmtMS(Number(ex.rest)||0);
+  return ex.rs==='paused' ? 'Paused · left of '+len : 'left of '+len;
 }
+function wsRestBtnLabel(ex){ return ex.rs==='running'?'PAUSE':(ex.rs==='paused'?'RESUME':'START'); }
 function wsRestPct(ex){
   const len=Math.max(1,Number(ex.rest)||1);
   if(ex.rs==='ready') return 100;
@@ -359,9 +569,11 @@ function wsRestInline(ex,ei){
       </button></div>`;
   }
   const snd=exSnd(ex,'timer');
-  return `<div class="fkr fkr-v59" id="fkr${ei}" data-state="${st}">
+  // v60: the round button says what it does (START / PAUSE / RESUME), and a
+  // full-width progress bar sits under the time.
+  return `<div class="fkr fkr-v59 fkr-v60" id="fkr${ei}" data-state="${st}">
     <div class="fkr-top">
-      <button class="fkr-roundbtn" onclick="wsRestToggle(${ei})" aria-label="${playLbl}">${wsRestRing(ex,60)}${wsRestPlayIcon(ex)}</button>
+      <button class="fkr-roundbtn fkr-rb60" onclick="wsRestToggle(${ei})" aria-label="${playLbl}">${wsRestRing(ex,76)}<span class="fkr-rb-in">${wsRestPlayIcon(ex)}<span class="fkr-rb-l">${wsRestBtnLabel(ex)}</span></span></button>
       <button class="fkr-time" onclick="wsRestEdit(${ei})" aria-label="Change rest length">
         <span class="fkr-t" id="fkrt${ei}">${wsRestMainText(ex)}</span>
         <span class="fkr-sub" id="fkrs${ei}">${wsRestSubText(ex)}</span>
@@ -371,13 +583,13 @@ function wsRestInline(ex,ei){
         :'<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l4 6M21 9l-4 6"/></svg>'}</button>
       <button class="fkr-icon fkr-shrink" onclick="wsRestSetMini(true)" aria-label="Make the timer smaller"><svg viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg></button>
     </div>
+    <div class="fkr-track" role="progressbar" aria-label="Rest done" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span class="fkr-fillbar" id="fkrbar${ei}" style="width:${pct}%"></span></div>
     <div class="fkr-ctrls fkr-ctrls3">
       <button class="fkr-btn" onclick="wsRestNudge(${ei},-15)" aria-label="15 seconds less">−15 s</button>
       <button class="fkr-btn" onclick="wsRestNudge(${ei},15)" aria-label="15 seconds more">+15 s</button>
       <button class="fkr-btn fkr-skip" onclick="wsRestSkip(${ei})">Skip</button>
     </div>
     <div class="fkr-next fkr-next-line">${next}</div>
-    <span class="fkr-bar fkr-bar-bottom" id="fkrbar${ei}" style="width:${pct}%"></span>
   </div>`;
 }
 // Per-second update without re-rendering the page.
@@ -386,7 +598,7 @@ function wsRestRefresh(ei){
   const t=document.getElementById('fkrt'+ei), b=document.getElementById('fkrbar'+ei), s=document.getElementById('fkrs'+ei);
   if(t) t.textContent=wsRestMainText(ex);
   if(s) s.textContent=wsRestSubText(ex);
-  if(b) b.style.width=wsRestPct(ex)+'%';
+  if(b){ b.style.width=wsRestPct(ex)+'%'; const tr=b.parentElement; if(tr&&tr.classList.contains('fkr-track')) tr.setAttribute('aria-valuenow',wsRestPct(ex)); }
   const ring=document.querySelector('#fkr'+ei+' .fkr-ring-fg');
   if(ring){ const c=+ring.getAttribute('data-c'); ring.setAttribute('stroke-dashoffset',(c*(1-wsRestPct(ex)/100)).toFixed(2)); }
   const live=document.getElementById('fkrSheetLeft'); if(live) live.textContent=wsRestSheetLeftText(ex);
@@ -492,7 +704,7 @@ function wsRestDockBind(){
   if(!sc || sc._fkrBound) return;
   sc._fkrBound=true;
   let pending=false;
-  sc.addEventListener('scroll',()=>{ if(pending) return; pending=true; requestAnimationFrame(()=>{ pending=false; wsRestDockUpdate(); }); },{passive:true});
+  sc.addEventListener('scroll',()=>{ if(pending) return; pending=true; requestAnimationFrame(()=>{ pending=false; wsRestDockUpdate(); wsTopBarUpdate(); }); },{passive:true});
 }
 
 // ── weight step per exercise ─────────────────────────────────────────────────

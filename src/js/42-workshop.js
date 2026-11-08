@@ -133,7 +133,7 @@ function wsDayCardHtml(d,i,isActive){
   const cls=isActive?'active-day':'banked-day';
   return `<div class="ws-day-card ${cls}" data-day-idx="${i}" data-section="${isActive?'active':'banked'}">
     <div>
-      <div class="ws-day-title">${d.titleHtml}</div>
+      <div class="ws-day-title">${wsSafeTitleHtml(d.titleHtml)}</div>
     </div>
     <div>
       <div class="ws-day-label">${wsEscape(d.label)}</div>
