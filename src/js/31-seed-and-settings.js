@@ -118,7 +118,7 @@ function wsClearSeedHistory(){
 }
 
 function resetDay(){
-  const d=DAYS[curDay];d.logged=false;delete d._loggedAt;
+  const d=DAYS[curDay];d.logged=false;delete d._loggedAt;delete d._startedAt;
   for(const ex of (d.items||[])){
     // effort capture resets with the day
     delete ex.rpe; delete ex.peakRpe;
@@ -128,7 +128,8 @@ function resetDay(){
     if(k==='weighted'){
       ex.sets=(ex.sets||[]).filter(s=>!s._session);
       ex.sets.forEach(s=>{delete s._logged;});
-      ex.rl=ex.rest;ex.rs='idle';ex.deletedSets=[];
+      ex.rl=ex.rest;ex.rs='idle';ex.deletedSets=[];delete ex._restRow;delete ex._restEnd;
+      ex.sets.forEach(s=>{delete s._touched;delete s._plan;});
     } else {
       ex.logged=false;
       if(k==='cardio_time'){
@@ -191,6 +192,9 @@ function openSettings(){
   if(tog) tog.classList.toggle('on',!!wsAdvancedTags);
   const togIS=document.getElementById('togIntensityScore');
   if(togIS) togIS.classList.toggle('on',!!settings.showIntensityScore);
+  const togRA=document.getElementById('togRestAuto');
+  if(togRA) togRA.classList.toggle('on',wsRestAuto());
+  wsSettingsBackupSync();   // v61: how old the last backup is
   document.getElementById('settingsOverlay').classList.add('open');
 }
 function closeSettings(){wsLogPush('close_settings');document.getElementById('settingsOverlay').classList.remove('open');}

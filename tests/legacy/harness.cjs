@@ -266,9 +266,9 @@ try{
   window.__R.p2={
     sects:(p2.match(/wsprog-sect"/g)||[]).length,
     strength:p2.includes('>Strength</div>'), cond:p2.includes('>Conditioning</div>'),
-    cardio:p2.includes('>Cardio</div>'), muscle:p2.includes('Muscle volume'),
+    cardio:p2.includes('>Cardio</div>'), muscle:p2.includes('Sets per muscle'),   // v61 wording
     bars:(p2.match(/wspm-row/g)||[]).length, zone:p2.includes('wspm-zone'),
-    legend:p2.includes('evidence-based growth zone'),
+    legend:p2.includes('Common range 10–20'),   // v61 wording
     cap:p2.includes('This stretch'),
     chipGold:(p2.match(/wsprog-chip gold/g)||[]).length,
     chipWarn:(p2.match(/wsprog-chip warn/g)||[]).length,
@@ -592,12 +592,14 @@ try{
     engineExists:_h5.includes('function wsImportLegacy')&&_h5.includes('function wsApplyLegacyImport'),
     keysOnNameNotId:_h5.includes('WS_LEGACY_MAP')&&!/WS_LEGACY_MAP\[[^\]]*\.id\]/.test(_h5),
     onlyCompletedSets:_h5.includes('st.completed===true'),
-    groupsByIsraelDay:_h5.includes("timeZone:'Asia/Jerusalem'"),
+    // v58: days follow the phone's time zone (16-time-zones covers it on screen)
+    groupsByDeviceDay:_h5.includes('function wsLegacyDayKey')&&_h5.includes('wsLocalDayKey(iso)'),
     mergesSameDay:_h5.includes('day.byName.has(label)'),
     flagsMixedDays:_h5.includes('_mixed:mixed'),
     keepsProvenance:_h5.includes('_sources:d.titles'),
-    bodyweightStamped:_h5.includes('WS_LEGACY_BW_KG = 76')||_h5.includes('WS_LEGACY_BW_KG=76'),
-    bodyweightUsesOffset:_h5.includes('offsetKg:w,bodyweightKg:WS_LEGACY_BW_KG'),
+    // v58: bodyweight comes from your profile, or is left out; never a fixed number
+    bodyweightFromProfile:_h5.includes('function wsLegacyBwKg')&&!/WS_LEGACY_BW_KG\s*=\s*\d/.test(_h5),
+    bodyweightUsesOffset:_h5.includes('{reps:r,completed:true,offsetKg:w}'),
     clearsStaleMaxes:/wsApplyLegacyImport[\s\S]{0,900}delete wsMaxes\[k\]/.test(_h5),
     uiPresent:_h5.includes('wsDoImportLegacy')&&_h5.includes('wsLegacyIn'),
     confirmsBeforeReplacing:/wsDoImportLegacy[\s\S]{0,900}confirm\(/.test(_h5)

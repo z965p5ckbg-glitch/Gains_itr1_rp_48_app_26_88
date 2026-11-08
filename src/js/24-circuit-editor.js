@@ -103,7 +103,7 @@ function wsRenderCircEd(ei){
     ${adv?`<div class="ws-ce-card">
       <div class="ws-ce-cardt">Start mode</div>
       <div class="ws-chips">
-        <div class="ws-chip${ex.startMode==='takeover'?'':' on'}" onclick="wsCEStartMode(${ei},'inline')">In the day</div>
+        <div class="ws-chip${ex.startMode==='takeover'?'':' on'}" onclick="wsCEStartMode(${ei},'inline')">In the workout</div>
         <div class="ws-chip${ex.startMode==='takeover'?' on':''}" onclick="wsCEStartMode(${ei},'takeover')">Full screen</div>
       </div></div>`:''}
     <div class="ws-ce-adv" onclick="wsCEAdvToggle(${ei})"><span class="chev${adv?' open':''}">▸</span> Advanced${adv?'':' · per-station rest, setup, start mode'}</div>

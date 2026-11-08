@@ -94,7 +94,7 @@ function wsRenderDays(){
 
   const activeRowHtml=active.map(({d,i})=>wsDayCardHtml(d,i,true)).join('');
   const bankedRowHtml=banked.length===0
-    ? `<div class="ws-row empty">Drag a day here to bank it for later</div>`
+    ? `<div class="ws-row empty">Drag a workout here to bank it for later</div>`
     : `<div class="ws-row" id="wsBankedRow" data-section="banked">${banked.map(({d,i})=>wsDayCardHtml(d,i,false)).join('')}</div>`;
 
   // Subtle one-time affordance hint. Auto-hidden once the user dismisses.
@@ -102,20 +102,20 @@ function wsRenderDays(){
   const hintHtml = dismissed ? '' : `
     <div class="ws-hint" id="wsDaysHint">
       <span class="ws-hint-icon">●</span>
-      <span class="ws-hint-text"><strong>Tap</strong> a day to edit · <strong>long-press</strong> to drag</span>
+      <span class="ws-hint-text"><strong>Tap</strong> a workout to edit · <strong>long-press</strong> to drag</span>
       <button class="ws-hint-dismiss" onclick="wsDismissHint('daysGestures')" aria-label="Dismiss hint">×</button>
     </div>`;
 
   return `
     ${hintHtml}
     <div class="ws-section-title" id="wsActiveTitle">
-      <div class="ws-section-title-left"><span>Active</span><span class="ws-section-count">${active.length} day${active.length===1?'':'s'}</span></div>
-      <div class="ws-add-day-btn" onclick="wsCreateNewDay()" role="button"><span class="ws-add-day-btn-plus">+</span><span>Day</span></div>
+      <div class="ws-section-title-left"><span>Active</span><span class="ws-section-count">${active.length} workout${active.length===1?'':'s'}</span></div>
+      <div class="ws-add-day-btn" onclick="wsCreateNewDay()" role="button"><span class="ws-add-day-btn-plus">+</span><span>Workout</span></div>
     </div>
     <div class="ws-row" id="wsActiveRow" data-section="active">${activeRowHtml}</div>
     <div class="ws-scroll-bar-wrap" id="wsScrollBar"><div class="ws-scroll-bar-track"></div><div class="ws-scroll-bar-thumb" id="wsScrollBarThumb"></div></div>
     <div class="ws-section-title" id="wsBankedTitle">
-      <div class="ws-section-title-left"><span>Banked</span><span class="ws-section-count">${banked.length} day${banked.length===1?'':'s'}</span></div>
+      <div class="ws-section-title-left"><span>Banked</span><span class="ws-section-count">${banked.length} workout${banked.length===1?'':'s'}</span></div>
     </div>
     ${bankedRowHtml}
   `;
@@ -133,10 +133,10 @@ function wsDayCardHtml(d,i,isActive){
   const cls=isActive?'active-day':'banked-day';
   return `<div class="ws-day-card ${cls}" data-day-idx="${i}" data-section="${isActive?'active':'banked'}">
     <div>
-      <div class="ws-day-title">${d.titleHtml}</div>
+      <div class="ws-day-title">${wsSafeTitleHtml(d.titleHtml)}</div>
     </div>
     <div>
-      <div class="ws-day-label">${d.label}</div>
+      <div class="ws-day-label">${wsEscape(d.label)}</div>
       <div class="ws-day-meta">${wsDayCount(d)}</div>
     </div>
   </div>`;

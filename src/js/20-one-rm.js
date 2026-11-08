@@ -25,7 +25,7 @@ function wsEst1RM(name){
         if(e.kind!=='weighted') continue;
         if(wsMaxKey(e.name)!==key) continue;
         for(const st of (e.sets||[])){
-          if(st.completed===false) continue;
+          if(!wsIsWorkSet(st)) continue;          // v61: a warm-up is never an estimate
           const v=wsEpley(st.weightKg, st.reps);
           if(v!=null && (best==null||v>best)) best=v;
         }
@@ -39,7 +39,7 @@ function wsEst1RM(name){
         if(wsEffortKind(ex)!=='strength' || ex._bodyweight) continue;
         if(wsMaxKey(ex.name)!==key) continue;
         for(const st of (ex.sets||[])){
-          if(!st._logged) continue;
+          if(!st._logged || st.warmup) continue;
           const v=wsEpley(st.w, st.r);
           if(v!=null && (best==null||v>best)) best=v;
         }

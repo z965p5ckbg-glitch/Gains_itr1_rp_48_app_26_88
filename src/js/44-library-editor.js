@@ -176,7 +176,7 @@ function wsRenderLibEditor(){
 
   // Modal title varies by scope
   document.getElementById('wsLeTitle').textContent =
-    isInstance ? 'Edit Exercise · This Day Only'
+    isInstance ? 'Edit exercise · this workout only'
     : isFromDay ? 'New Exercise'
     : isNew ? 'New Exercise'
     : 'Edit Exercise';
@@ -186,13 +186,13 @@ function wsRenderLibEditor(){
   let scopeBanner='';
   if(isInstance && wsLibEditCtx.instanceDayIdx!=null){
     const targetDay=DAYS[wsLibEditCtx.instanceDayIdx];
-    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Day ${wsLibEditCtx.instanceDayIdx+1}`) : 'this day';
+    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Workout ${wsLibEditCtx.instanceDayIdx+1}`) : 'this workout';
     scopeBanner=`<div class="ws-le-scope-banner">
       Editing the copy of this exercise in <strong>${wsLibEscapeHtml(dayName)}</strong>. Changes here won't affect the Library entry or other days.
     </div>`;
   } else if(isFromDay && wsLibEditCtx.fromDayIdx!=null){
     const targetDay=DAYS[wsLibEditCtx.fromDayIdx];
-    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Day ${wsLibEditCtx.fromDayIdx+1}`) : 'this day';
+    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Workout ${wsLibEditCtx.fromDayIdx+1}`) : 'this workout';
     scopeBanner=`<div class="ws-le-scope-banner">
       New exercise will be added to the Library and to <strong>${wsLibEscapeHtml(dayName)}</strong>.
     </div>`;
@@ -204,7 +204,7 @@ function wsRenderLibEditor(){
     ? `<div class="ws-le-title-locked">${wsLibEscapeHtml(d.title||'(untitled)')}<span class="ws-le-locked-icon" title="Title is locked to the library group">🔒</span></div>
        <div class="ws-le-hint">Title is locked to the Library group. Edit it from the Library if needed.</div>`
     : `<input type="text" class="ws-le-title-input" id="wsLeTitleInput" placeholder="e.g. Bench Press" value="${wsLibEscapeHtml(d.title)}" maxlength="60" oninput="wsLeOnTitleInput(this.value)">
-       ${isUsed?`<div class="ws-le-hint">Renaming here won't affect days using this exercise — only future adds.</div>`:''}`;
+       ${isUsed?`<div class="ws-le-hint">Renaming here won't affect workouts that already use this exercise — only future adds.</div>`:''}`;
 
   let html = scopeBanner + `
     <div class="ws-de-fld">
@@ -236,14 +236,14 @@ function wsRenderLibEditor(){
     html+=`<div class="ws-de-fld">
       <div class="ws-le-days">
         <div class="ws-le-days-head">
-          <span class="ws-le-days-label">${exName} in your days</span>
-          <button class="ws-le-days-manage" onclick="wsLeOpenDayPick()">Manage days</button>
+          <span class="ws-le-days-label">${exName} in your workouts</span>
+          <button class="ws-le-days-manage" onclick="wsLeOpenDayPick()">Manage workouts</button>
         </div>
         ${usingDays.length===0
-          ? `<div class="ws-le-usedin-empty">Not in any day yet — tap “Manage days” to add it.</div>`
+          ? `<div class="ws-le-usedin-empty">Not in any workout yet — tap “Manage workouts” to add it.</div>`
           : `<div class="ws-le-usedin-list">${usingDays.map(({day,dayIdx})=>{
               const dn=wsLibEscapeHtml(wsLibDayDisplayName(day));
-              const lbl=wsLibEscapeHtml(day.label||('Day '+(dayIdx+1)));
+              const lbl=wsLibEscapeHtml(day.label||('Workout '+(dayIdx+1)));
               return `<span class="ws-le-usedin-chip">${dn}<em>${lbl}</em></span>`;
             }).join('')}</div>`
         }
@@ -281,8 +281,8 @@ function wsLeRenderDefaultsBlock(d){
   const scope=(wsLibEditCtx&&wsLibEditCtx.scope)||'library';
   const headerLabel = scope==='instance' ? 'Values' : 'Defaults';
   const headerSub = scope==='instance'
-    ? 'Live values for this day. Won\'t affect the Library entry.'
-    : 'Used only when adding this exercise to a day.';
+    ? 'Live values for this workout. Won\'t affect the Library entry.'
+    : 'Used only when adding this exercise to a workout.';
   let header=`<span class="ws-le-defaults-label">${headerLabel}<em>${headerSub}</em></span>`;
 
   if(kind==='weighted'){
@@ -385,10 +385,10 @@ function wsLeRenderAdvancedBlock(d){
   const activeMuscles=new Set(d.muscles||[]);
   const activePattern=d.pattern||'';
   const musclesHtml=WS_MUSCLE_OPTIONS.map(m=>{
-    return `<button class="ws-le-tag ${activeMuscles.has(m)?'active':''}" onclick="wsLeToggleMuscle('${m}')">${m}</button>`;
+    return `<button class="ws-le-tag ${activeMuscles.has(m)?'active':''}" onclick="wsLeToggleMuscle('${wsJs(m)}')">${wsEscape(m)}</button>`;
   }).join('');
   const patternHtml=WS_PATTERN_OPTIONS.map(p=>{
-    return `<button class="ws-le-tag ${activePattern===p?'active':''}" onclick="wsLeSetPattern('${p}')">${p}</button>`;
+    return `<button class="ws-le-tag ${activePattern===p?'active':''}" onclick="wsLeSetPattern('${wsJs(p)}')">${wsEscape(p)}</button>`;
   }).join('');
   // Prime mover: the single muscle doing most of the work. Chosen from the
   // exercise's tagged muscles (or 'none'). Crimson-accented to distinguish it
@@ -396,7 +396,7 @@ function wsLeRenderAdvancedBlock(d){
   const pm=d.prime_mover||'';
   const pmOptions=(d.muscles&&d.muscles.length)?d.muscles:[];
   const pmHtml = pmOptions.length
-    ? pmOptions.map(m=>`<button class="ws-le-tag pm ${pm===m?'active':''}" onclick="wsLeSetPrimeMover('${m}')">${m}</button>`).join('')
+    ? pmOptions.map(m=>`<button class="ws-le-tag pm ${pm===m?'active':''}" onclick="wsLeSetPrimeMover('${wsJs(m)}')">${wsEscape(m)}</button>`).join('')
       + `<button class="ws-le-tag pm ${pm===''?'active':''}" onclick="wsLeSetPrimeMover('')">none</button>`
     : `<div class="ws-le-tag-empty">Tag a muscle above first.</div>`;
   // Risk note: a short caution surfaced to the user. Warning-styled.
@@ -600,21 +600,21 @@ function wsLeRenderDayPick(){
   const inCount=Object.keys(membership).length;
   document.getElementById('wsLeDayPickSub').innerHTML = inCount
     ? `In <b style="color:var(--hiit)">${inCount} ${inCount===1?'day':'days'}</b>. Tap to add or remove.`
-    : `Tap a day to add <b style="color:var(--tx)">${wsLibEscapeHtml(d.title||'')}</b> to it.`;
+    : `Tap a workout to add <b style="color:var(--tx)">${wsLibEscapeHtml(d.title||'')}</b> to it.`;
   const list=document.getElementById('wsLeDayPickList');
   const rows=DAYS.map((day,idx)=>{
-    const name=wsLibDayDisplayName(day)||('Day '+(idx+1));
+    const name=wsLibDayDisplayName(day)||('Workout '+(idx+1));
     const count=Array.isArray(day.items)?day.items.length:((day.exercises||[]).length+(day.cardio||[]).length);
     const draft=day.published?'':'<span class="ws-daypick-draft">draft</span>';
     const isIn=(idx in membership);
     return `<button class="ws-daypick-row ${isIn?'added':''}" onclick="wsLeToggleDay(${idx})">
       <div class="ws-daypick-row-main"><span class="ws-daypick-name">${wsLibEscapeHtml(name)}</span>${draft}</div>
       ${isIn
-        ? `<span class="ws-daypick-added"><svg viewBox="0 0 14 14"><polyline points="2,7 6,11 12,3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>In day</span>`
+        ? `<span class="ws-daypick-added"><svg viewBox="0 0 14 14"><polyline points="2,7 6,11 12,3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Added</span>`
         : `<span class="ws-daypick-count">${count} ${count===1?'item':'items'}</span>`}
     </button>`;
   }).join('');
-  list.innerHTML=rows || '<div class="ws-le-tag-empty">No days yet. Create one in the Days tab first.</div>';
+  list.innerHTML=rows || '<div class="ws-le-tag-empty">No workouts yet. Create one in the Workouts tab first.</div>';
 }
 function wsLeToggleDay(dayIdx){
   if(!wsLibEditCtx) return;
@@ -622,7 +622,7 @@ function wsLeToggleDay(dayIdx){
   if(!day) return;
   const exId=wsLibEditCtx.draft.exId;
   const membership=wsLeMembershipSet();
-  const name=wsLibDayDisplayName(day)||('Day '+(dayIdx+1));
+  const name=wsLibDayDisplayName(day)||('Workout '+(dayIdx+1));
   if(dayIdx in membership){
     // remove THIS exercise from the day (all instances of it, so membership is binary+clean)
     wsDayRemoveByExId(day, exId);
@@ -701,7 +701,7 @@ function saveWsLibEdit(){
       wsDayItemsSync(day);
     }
     wsLogPush('lib_save_new_fromday',{exId:d.exId,title:d.title,dayIdx});
-    wsToast(`${d.title}${d.subtitle?' · '+d.subtitle:''} added to day`);
+    wsToast(`${d.title}${d.subtitle?' · '+d.subtitle:''} added to the workout`);
   } else if(wsLibEditCtx.isNew){
     EXERCISES.push(d);
     wsLogPush('lib_save_new',{exId:d.exId,title:d.title});
@@ -790,7 +790,7 @@ function wsLeSaveInstance(){
     if(Array.isArray(def.roundsCustom)) inst.roundsCustom=def.roundsCustom.slice();
   }
   wsLogPush('lib_save_instance',{dayIdx:wsLibEditCtx.instanceDayIdx,exId:inst.exId});
-  wsToast('Saved for this day');
+  wsToast('Saved for this workout');
 }
 
 function cancelWsLibEdit(){
@@ -983,21 +983,21 @@ function wsLdRender(){
     // Calm, informational. This is reversible.
     const n=st.affectedDays.length;
     if(n>0){
-      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive and be removed from ${n} day${n===1?'':'s'} below. Your historical data is kept, and you can restore it any time.</div>`;
+      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive and be removed from ${n} workout${n===1?'':'s'} below. Your historical data is kept, and you can restore it any time.</div>`;
       html+=`<div class="ws-ld-affected-label">Will be removed from</div>`;
       html+=`<div class="ws-ld-affected">${st.affectedDays.map(({day,dayIdx})=>{
-        const dn=wsLibEscapeHtml(wsLibDayDisplayName(day)||'(untitled day)');
-        const lbl=wsLibEscapeHtml(day.label||('Day '+(dayIdx+1)));
+        const dn=wsLibEscapeHtml(wsLibDayDisplayName(day)||'(untitled workout)');
+        const lbl=wsLibEscapeHtml(day.label||('Workout '+(dayIdx+1)));
         return `<div class="ws-ld-affected-row"><span class="ws-ld-affected-name">${dn}</span><span class="ws-ld-affected-label-txt">${lbl}</span></div>`;
       }).join('')}</div>`;
     } else {
-      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive. Not currently used in any day. Your historical data is kept, and you can restore it any time.</div>`;
+      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive. Not currently used in any workout. Your historical data is kept, and you can restore it any time.</div>`;
     }
   } else if(st.mode==='reset'){
     // Reset all: maximum-weight warning since this wipes the user's whole app state.
     html+=`<div class="ws-ld-danger">
       <div class="ws-ld-danger-head">Everything will be erased</div>
-      <div class="ws-ld-danger-body">Your <em>days, exercises, archive, logged sets, and preferences</em> will all be permanently deleted. The app will restart from defaults.</div>
+      <div class="ws-ld-danger-body">Your <em>workouts, exercises, archive, logged sessions, and preferences</em> will all be permanently deleted. The app will restart from defaults.</div>
     </div>`;
     html+=`<div class="ws-ld-notice" style="background:transparent;border:none;padding:0;font-size:13px;color:var(--tx3);text-align:center">There's no way to recover data after a reset.</div>`;
   } else {

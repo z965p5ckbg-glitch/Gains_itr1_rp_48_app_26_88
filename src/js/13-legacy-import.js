@@ -16,11 +16,22 @@
       `completed`. Importing the unticked ones would invent training that never
       happened. => ONLY completed===true survives.
 
-   Grouping is by CALENDAR DAY in Israel local time, because the user often
+   Grouping is by CALENDAR DAY in the phone's time zone, because the user often
    performed parts of several plan-days as one real session.
    ============================================================================ */
 
-const WS_LEGACY_BW_KG = 76;   // no historical bodyweight exists; stamped flat
+// No historical bodyweight exists in the old app. v58: use the bodyweight you
+// have entered in Gains, if any; otherwise leave it out (a gap, never a made-up
+// number). It used to be a fixed figure written into the code.
+function wsLegacyBwKg(){
+  try{
+    const p=settings&&settings.profile&&settings.profile.bodyweight;
+    if(Array.isArray(p)&&p.length){ const v=Number(p[p.length-1].value); if(v>0) return v; }
+    const b=settings&&settings.bodyLog;
+    if(Array.isArray(b)&&b.length){ const v=Number(b[b.length-1].kg||b[b.length-1].value); if(v>0) return v; }
+  }catch(_){}
+  return null;
+}
 
 // normalised legacy name -> canonical label + catalog exId (+ bodyweight flag)
 const WS_LEGACY_MAP = {
@@ -60,11 +71,11 @@ const WS_LEGACY_MAP = {
 
 function wsLegacyNorm(s){ return String(s==null?'':s).replace(/\s+/g,' ').trim().toLowerCase(); }
 
-// Calendar day in Israel local time. Intl handles DST; the slice() is a fallback.
+// Calendar day in the phone's own time zone (v58: it was a fixed zone, which
+// was wrong for anyone elsewhere). Clock changes are handled by Date itself.
 function wsLegacyDayKey(iso){
-  try{
-    return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(iso));
-  }catch(_){ return String(iso||'').slice(0,10); }
+  const k=wsLocalDayKey(iso);
+  return k||String(iso||'').slice(0,10);
 }
 
 // Pure: text -> {ok, msg, records, stats}. Touches no global state.
@@ -108,7 +119,7 @@ function wsImportLegacy(text){
       for(const st of done){
         const w=(typeof st.weight==='number'&&isFinite(st.weight))?st.weight:0;
         const r=(typeof st.reps==='number'&&isFinite(st.reps))?st.reps:0;
-        if(bw) entry.sets.push({reps:r,completed:true,offsetKg:w,bodyweightKg:WS_LEGACY_BW_KG});
+        if(bw){ const _bw=wsLegacyBwKg(); const _s={reps:r,completed:true,offsetKg:w}; if(_bw) _s.bodyweightKg=_bw; entry.sets.push(_s); }
         else   entry.sets.push({reps:r,completed:true,weightKg:w});
         kept++;
       }

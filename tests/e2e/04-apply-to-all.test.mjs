@@ -23,13 +23,15 @@ export default async function (t) {
     await wait(500);
     const sheetOpen = await page.evaluate(() => document.getElementById('overlay').classList.contains('open'));
     t.ok(sheetOpen, 'tapping a value opens the set editor');
-    for (let i = 0; i < 10; i++) { await page.click('[onclick="stepW(1)"]'); await wait(40); }  // +5 kg
+    // ten taps of + : v58 moves by the exercise's own weight step
+    const step = await page.evaluate(() => wsWStep(DAYS[curDay].items[0]));
+    for (let i = 0; i < 10; i++) { await page.click('[onclick="stepW(1)"]'); await wait(40); }
     await slide(phone, '#applyTrack', '#applyThumb');
     const after = await sets();
 
     t.ok(after[0].w === start[0].w && after[1].w === start[1].w,
       'performed sets 1 and 2 keep their real weight', { before: start.slice(0, 2), after: after.slice(0, 2) });
-    t.ok(after.slice(2).every(s => s.w === start[2].w + 5),
+    t.ok(after.slice(2).every(s => s.w === start[2].w + 10 * step),
       'unperformed sets 3+ take the new weight', after);
     t.ok(after.filter(s => s.done).length === 2, 'applying a weight does not tick anything', after);
 
@@ -41,7 +43,7 @@ export default async function (t) {
     // The change must survive a reload (v46 and earlier never persisted it).
     await page.reload({ waitUntil: 'load' }); await wait(1200);
     const reloaded = await sets();
-    t.ok(reloaded[2].w === start[2].w + 5, 'applied weight persists across reload', reloaded[2]);
+    t.ok(reloaded[2].w === start[2].w + 10 * step, 'applied weight persists across reload', reloaded[2]);
     t.ok(phone.errors.length === 0, 'no errors', phone.errors);
   } finally {
     await phone.close(); await site.close();

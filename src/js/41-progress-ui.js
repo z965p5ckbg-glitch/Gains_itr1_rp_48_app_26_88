@@ -55,7 +55,7 @@ function wsProgRender(){
     if(prCount>0) cards.push({t:'New bests',n:prCount+' this stretch',s:'strict all-time breaks',k:null,prs:true});
     if(stall[0]) cards.push({t:'Needs attention',n:stall[0].name,s:'Stalled · '+stall[0].stalledW+'w',k:stall[0].key,warn:true});
     if(cards.length) hi=`<div class="wsprog-sect">Highlights</div><div class="wshi-row">`+cards.map(c=>
-      `<div class="wshi-card${c.warn?' warn':''}${c.prs?' gold':''}" onclick="${c.k?`wsProgOpenDetail('${encodeURIComponent(c.k)}')`:(c.prs?`routeTo('prs')`:'')}">
+      `<div class="wshi-card${c.warn?' warn':''}${c.prs?' gold':''}" onclick="${c.k?`wsProgOpenDetail('${wsJs(encodeURIComponent(c.k))}')`:(c.prs?`routeTo('prs')`:'')}">
         <div class="wshi-t">${c.t}</div><div class="wshi-n">${hiEscape(c.n)}</div><div class="wshi-s">${hiEscape(c.s)}</div></div>`).join('')+`</div>`;
   }
 
@@ -197,7 +197,7 @@ function wsProgDaysHtml(){
     let sets=0, vol=0;
     for(const e of (r.entries||[])){
       if(e.kind==='weighted'||e.kind==='bodyweight'){
-        for(const st of (e.sets||[])){ if(st.completed===false) continue; sets++;
+        for(const st of (e.sets||[])){ if(!wsIsWorkSet(st)) continue; sets++;
           const w=(typeof st.weightKg==='number')?st.weightKg:(typeof st.offsetKg==='number'?st.offsetKg:0);
           vol+=(st.reps||0)*w; }
       }
@@ -217,27 +217,45 @@ function wsProgDaysHtml(){
       ${diff?`<div class="wsday-diff">${diff}</div>`:''}</div>
     </div>`;
   }).reverse().join('');
-  return `<div class="wsprog-sect">Days · ${hist.length}</div><div class="wspd-list">${rows}</div>`;
+  return `<div class="wsprog-sect">Sessions · ${hist.length}</div><div class="wspd-list">${rows}</div>`;
 }
 
 function wsProgMuscleHtml(){
   const rows=wsProgMuscleWeekly(wsProgFrame);
-  if(!rows.length) return '';
+  if(!rows.length){
+    // v61: no complete week yet — say when there will be, rather than a number
+    // built from a few days
+    const any=(Array.isArray(HISTORY)?HISTORY:[]).some(r=>(r.entries||[]).some(e=>(e.kind==='weighted'||e.kind==='bodyweight')&&(e.sets||[]).some(wsIsWorkSet)));
+    if(!any) return '';
+    const msg=rows.weeks
+      ? `No strength sets in the last ${rows.weeks} complete week${rows.weeks===1?'':'s'}. This week counts once it's over.`
+      : 'Weekly sets per muscle appear once your first full week (Monday to Sunday) is done.';
+    return `<div class="wsprog-sect">Sets per muscle</div><div class="wspm-card"><div class="wspm-legend wspm-note">${msg}</div></div>`;
+  }
   const scale=Math.max(24, Math.ceil((rows[0].perWk+2)/4)*4);
   const zoneL=(10/scale)*100, zoneW=((20-10)/scale)*100;
   const bars=rows.map(r=>{
     const w=Math.min(100,(r.perWk/scale)*100);
     const cls=r.perWk<10?'lo':(r.perWk<=20?'ok':'hi');
-    return `<div class="wspm-row" onclick="wsProgMuscleTap('${r.m.replace(/'/g,"\\'")}')">
+    return `<div class="wspm-row" data-m="${wsEscape(r.m)}" onclick="wsProgMuscleTap(this.dataset.m)">
       <div class="wspm-m">${hiEscape(r.m)}</div>
       <div class="wspm-track"><div class="wspm-zone" style="left:${zoneL.toFixed(1)}%;width:${zoneW.toFixed(1)}%"></div><div class="wspm-mv" style="left:${((6/scale)*100).toFixed(1)}%"></div><div class="wspm-bar ${cls}" style="width:${w.toFixed(1)}%"></div></div>
-      <div class="wspm-v">${r.perWk}</div>
+      <div class="wspm-v">${wsHalfText(r.perWk)}</div>
     </div>`;
   }).join('');
-  return `<div class="wsprog-sect">Muscle volume <span class="wsprog-sect-sub">· working sets / week (logged)</span></div>
+  const wk=rows.weeks;
+  return `<div class="wsprog-sect">Sets per muscle <span class="wsprog-sect-sub">· estimated, a week, over ${wk} complete week${wk===1?'':'s'}</span></div>
     <div class="wspm-card">${bars}
-      <div class="wspm-legend"><span class="wspm-dot ok"></span>10–20 sets/wk — the evidence-based growth zone</div>
+      <div class="wspm-legend"><span class="wspm-dot ok"></span>Common range 10–20 a week</div>
+      <div class="wspm-legend wspm-note">The main muscle counts a whole set, helpers half. Warm-ups don't count.${rows.unmatched?' '+rows.unmatched+' exercise'+(rows.unmatched===1?' has':'s have')+' no muscle detail, so every muscle listed counts half.':''}</div>
     </div>`;
+}
+// 7.5 → "7½" for set counts that include half credit
+function wsHalfText(v){
+  v=Math.round(v*10)/10;
+  if(Number.isInteger(v)) return String(v);
+  if(Number.isInteger(v*2)) return (Math.floor(v)||'')+'½';
+  return v.toFixed(1);
 }
 function wsProgSetFrame(fr){ if(fr===wsProgFrame) return; wsProgFrame=fr; wsProgRender(); }
 
@@ -253,7 +271,7 @@ function wsProgCardHtml(x){
       ? '<div class="wsprog-card-best">best '+x.bestLabel+'</div>' : '';
   const gapD=window.__wsProgRefT?Math.round((window.__wsProgRefT-x.lastT)/86400000):0;
   const fade=(x.count>=4&&gapD>=21)?`<div class="wsprog-fadenote">${Math.round(gapD/7)} weeks since last — the groove fades before the strength does.</div>`:'';
-  return `<div class="wsprog-card" data-pname="${hiEscape(x.name.toLowerCase())}" onclick="wsProgOpenDetail('${encodeURIComponent(x.key)}')">
+  return `<div class="wsprog-card" data-pname="${hiEscape(x.name.toLowerCase())}" onclick="wsProgOpenDetail('${wsJs(encodeURIComponent(x.key))}')">
     <div class="wsprog-card-top">
       <div class="wsprog-card-id">
         <div class="wsprog-card-name">${hiEscape(x.name)}</div>
@@ -390,7 +408,7 @@ function wsProgRenderDetail(root,x){
       <div class="hi-hdr-main">
         <div class="wspd-back" onclick="wsProgBack()"><svg viewBox="0 0 12 20"><polyline points="9 2 3 10 9 18"/></svg>Progress</div>
         <div style="display:flex;align-items:center;gap:14px">
-          <div class="wspd-pin${pinned?' on':''}" onclick="wsProgPinToggle('${encodeURIComponent(x.key)}')" aria-label="Pin">★</div>
+          <div class="wspd-pin${pinned?' on':''}" onclick="wsProgPinToggle('${wsJs(encodeURIComponent(x.key))}')" aria-label="Pin">★</div>
           <div class="hi-hdr-gear" onclick="openSettings()" aria-label="Settings"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="3.2"/><path d="M11 2.8v2.4M11 16.8v2.4M2.8 11h2.4M16.8 11h2.4M5.2 5.2l1.7 1.7M15.1 15.1l1.7 1.7M16.8 5.2l-1.7 1.7M6.9 15.1l-1.7 1.7"/></svg></div>
         </div>
       </div>

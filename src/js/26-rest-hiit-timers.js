@@ -146,7 +146,7 @@ function renderPostSession(){
   return `<div class="post-session">
     <div class="post-title">✓ Session logged</div>
     ${strip}
-    <button class="post-btn" onclick="resetDay()">Reset day — train again</button>
+    <button class="post-btn" onclick="resetDay()">Reset workout — train again</button>
   </div>`;
 }
 
@@ -161,15 +161,26 @@ function toggleExSound(ei){
 
 function startRest(ei){
   if(restIntervals[ei]) clearInterval(restIntervals[ei]);
-  restIntervals[ei]=setInterval(()=>{
+  // v57: the countdown follows the wall clock (ex._restEnd). iOS freezes a
+  // home-screen app while the phone is locked, so counting interval ticks fell
+  // behind by however long the screen was off.
+  {
+    const ex0=(DAYS[curDay].items||[])[ei];
+    if(ex0 && ex0.rs==='running' && typeof ex0._restEnd!=='number') ex0._restEnd=Date.now()+Math.max(0,ex0.rl||0)*1000;
+  }
+  const tick=()=>{
     const d=DAYS[curDay];
     const ex=(d.items||[])[ei];if(!ex||ex.rs!=='running') return;
-    if(ex.rl>0){
-      ex.rl=Math.max(0,ex.rl-1);
-      updateRestUI(ei);
-      if(ex.rl===0){ex.rs='ready';(fireRimCue('rest'),playRestDone(ex));updateRestUI(ei);maybeReleaseWakeLock();}
+    if(typeof ex._restEnd==='number') ex.rl=Math.max(0,Math.ceil((ex._restEnd-Date.now())/1000));
+    else ex.rl=Math.max(0,ex.rl-1);
+    updateRestUI(ei); wsRestRefresh(ei);
+    if(ex.rl===0){
+      ex.rs='ready'; delete ex._restEnd;
+      (fireRimCue('rest'),playRestDone(ex)); maybeReleaseWakeLock();
+      if(ex._restRow!=null) renderAll(false); else updateRestUI(ei);
     }
-  },1000);
+  };
+  restIntervals[ei]=setInterval(tick,1000);
 }
 
 function updateRestUI(ei){

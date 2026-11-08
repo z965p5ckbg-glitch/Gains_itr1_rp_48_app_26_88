@@ -84,7 +84,7 @@ function wsFindComparable(rec){
   }
   if(!best || best.overlap<WS_CMP_MIN_OVERLAP) return null;
   return {match:best.rec, overlap:best.overlap, sharedKeys:best.sharedKeys,
-          basis: best.sameLabel?'same day':'similar session', sigA:a, sigB:best.sig};
+          basis: best.sameLabel?'same workout':'similar session', sigA:a, sigB:best.sig};
 }
 
 function wsCompareSessions(rec){

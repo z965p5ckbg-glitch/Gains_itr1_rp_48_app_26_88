@@ -35,7 +35,7 @@ function wsBackupStats(){
 function wsBackupDownload(){
   let json;
   try{ json=JSON.stringify(wsBuildBackup()); }catch(e){ wsToastMsg('Could not build the backup'); return; }
-  const name='gains-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  const name='gains-backup-'+wsLocalDayKey()+'.json';
   try{
     if(('standalone' in navigator) && navigator.share && typeof File!=='undefined'){
       const file=new File([json],name,{type:'application/json'});
@@ -65,7 +65,7 @@ function wsBackupShare(){
   const json=JSON.stringify(wsBuildBackup());
   try{
     if(navigator.share){
-      const d=new Date().toISOString().slice(0,10);
+      const d=wsLocalDayKey();
       const file=(typeof File!=='undefined')?new File([json],'gains-backup-'+d+'.json',{type:'application/json'}):null;
       if(file && navigator.canShare && navigator.canShare({files:[file]})){
         navigator.share({files:[file],title:'Gains backup'}).then(()=>wsMarkBackedUp()).catch(()=>{});

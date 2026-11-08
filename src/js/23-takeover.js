@@ -8,7 +8,7 @@ function wsRenderTakeover(ei){
   const st=wsHiitState(ex,ei);
   const skips=st.isActivePhase?`<div class="ws-skip l wsTv-skip" onclick="event.stopPropagation();wsHiitSkip(${ei},-1)">‹</div><div class="ws-skip r wsTv-skip" onclick="event.stopPropagation();wsHiitSkip(${ei},1)">›</div>`:'';
   v.innerHTML=`<div class="wsTv-in">
-    <div class="wsTv-top"><div class="wsTv-name" onclick="wsCalTap()">${ex.name||wsCircuitName(ex)}</div></div>
+    <div class="wsTv-top"><div class="wsTv-name" onclick="wsCalTap()">${wsEscape(ex.name||wsCircuitName(ex))}</div></div>
     <div class="phase-strip-label wsTv-label"><span>Circuit</span><span class="phase-strip-rounds">${st.stripDesc}</span></div>
     <div class="ws-strip-vp" style="height:${st.vpH}px"><div class="ws-strip-col${st.slide?' wsAnim':''}" style="${st.colStyle}">${st.colHtml}</div></div>
     <div class="wsTv-flex"></div>

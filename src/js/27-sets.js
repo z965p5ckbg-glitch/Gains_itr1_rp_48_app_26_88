@@ -21,7 +21,14 @@ function addSet(ei){
 function removeSet(ei){
   const ex=DAYS[curDay].items[ei];if(ex.sets.length<=1) return;
   const removed=ex.sets.pop();if(!ex.deletedSets) ex.deletedSets=[];
-  ex.deletedSets.push(removed);renderAll(false);playKnock();
+  ex.deletedSets.push(removed);
+  if(ex._restRow!=null && ex._restRow>=ex.sets.length) wsRestStop(ei,true);
+  renderAll(false);playKnock();
+  wsPersistSave();   // v59: removing is saved like adding
+  // v59: a ticked set can be brought back
+  if(removed && removed._logged){
+    try{ wsToastUndo('Removed set '+(ex.sets.length+1)+' (it was done)', ()=>{ const r=ex.deletedSets.pop(); if(r) ex.sets.push(r); renderAll(false); wsPersistSave(); }); }catch(_){}
+  }
 }
 
 function cellTap(ei,si){
@@ -34,14 +41,22 @@ function cellTap(ei,si){
     return;
   }
   const ex=DAYS[curDay].items[ei];const set=ex.sets[si];
-  if(set._logged){set._logged=false;}
+  if(set._logged){
+    set._logged=false; delete set._doneAt;
+    // un-ticking the set the rest belongs to cancels that rest
+    if(ex._restRow===si) wsRestStop(ei);
+  }
   else {
     if(!set.r||set.r===0){let reps=8;for(let i=0;i<ex.sets.length;i++){if(ex.sets[i]._logged&&ex.sets[i].r>0) reps=ex.sets[i].r;}set.r=reps;}
-    set._logged=true;playSaveSet(ex);
-    const card=document.querySelector(`.ex-card[data-ei="${ei}"]`);
-    const checks=card?card.querySelectorAll('.set-check'):null;
-    if(checks&&checks[si]){checks[si].classList.add('bounce');setTimeout(()=>checks[si].classList.remove('bounce'),300);}
-    ex.rl=ex.rest;ex.rs='idle';
+    set._logged=true;set._doneAt=Date.now();playSaveSet(ex);
+    const d=DAYS[curDay];
+    if(!d._startedAt) d._startedAt=Date.now();
+    // v57: what you just did carries to this exercise's next set, if that set
+    // still holds the same planned numbers and you have not touched it.
+    wsCarryForward(ex,si);
+    // v57: rest starts by itself, inline under this set. One rest at a time:
+    // any other exercise's rest stops (supersets move between exercises).
+    wsRestBegin(ei,si);
   }
   renderAll(false);
   wsPersistSave();

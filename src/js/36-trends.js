@@ -99,8 +99,7 @@ function wsTrendBuckets(exKey, weeks){
       if(e.kind!=='weighted' && e.kind!=='bodyweight') continue;
       if(exKey!=='ALL' && wsTrendExKey(e)!==exKey) continue;
       for(const s of (e.sets||[])){
-        if(s.completed===false) continue;
-        if(s.warmup) continue;                       // warm-ups are not working sets
+        if(!wsIsWorkSet(s)) continue;               // warm-ups are not working sets                       // warm-ups are not working sets
         row.sets++;
         const load=(typeof s.weightKg==='number') ? s.weightKg
                  : ((s.bodyweightKg||0)+(s.offsetKg||0));
@@ -259,8 +258,8 @@ function wsRenderTrends(){
   const last=done[done.length-1]||rows[rows.length-1];
   const list=wsTrendExList();
   const opts=['<option value="ALL">All exercises</option>']
-    .concat(list.map(e=>'<option value="'+e.key.replace(/"/g,'&quot;')+'"'
-      +(e.key===wsTrendEx?' selected':'')+'>'+e.name+'</option>')).join('');
+    .concat(list.map(e=>'<option value="'+wsEscape(e.key)+'"'
+      +(e.key===wsTrendEx?' selected':'')+'>'+wsEscape(e.name)+'</option>')).join('');   // v59: names are text
 
   const ratedWeeks=done.filter(r=>r.effort!=null).length;
   const estWeeks=done.filter(r=>r.effortEstimated).length;

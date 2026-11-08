@@ -274,7 +274,7 @@ function wsLensTrayHtml(){
   const chip=(l,v)=>{
     const c=wsLensCount(l,v);
     const on=wsLensSel[l]===v;
-    return `<button class="ws-lens-chip${on?' on':''}${c===0?' empty':''}" onclick="wsLensPick('${l}','${wsLibEscapeHtml(v)}')">${wsLibEscapeHtml(v)}<span class="n">${c}</span></button>`;
+    return `<button class="ws-lens-chip${on?' on':''}${c===0?' empty':''}" onclick="wsLensPick('${l}','${wsJs(v)}')">${wsLibEscapeHtml(v)}<span class="n">${c}</span></button>`;
   };
   let inner='';
   if(wsLensOpen==='muscle'){
@@ -421,8 +421,8 @@ function wsLibRenderArchivedRow(e){
       <div class="ws-lib-subtitle">${subtitle}</div>
     </div>
     <div class="ws-lib-archived-actions">
-      <button class="ws-lib-arch-btn ws-lib-arch-restore" onclick="wsLibRestoreEntry('${exId}')">Restore</button>
-      <button class="ws-lib-arch-btn ws-lib-arch-delete" onclick="wsLibHardDeleteAttempt('${exId}')" aria-label="Delete permanently">
+      <button class="ws-lib-arch-btn ws-lib-arch-restore" onclick="wsLibRestoreEntry('${wsJs(e.exId)}')">Restore</button>
+      <button class="ws-lib-arch-btn ws-lib-arch-delete" onclick="wsLibHardDeleteAttempt('${wsJs(e.exId)}')" aria-label="Delete permanently">
         <svg viewBox="0 0 18 18" width="14" height="14"><path d="M3 5h12M6 5V3h6v2M5 5l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
@@ -433,11 +433,11 @@ function wsLibRenderArchivedRow(e){
 function wsLibRenderPlainRow(e){
   const usage=wsCountUsage(e.exId);
   const metaHtml=usage>0
-    ? `<span class="used">in ${usage} day${usage===1?'':'s'}</span>`
+    ? `<span class="used">in ${usage} workout${usage===1?'':'s'}</span>`
     : `<span class="unused">unused</span>`;
   const fav=wsFavorites.has(e.exId);
-  return `<div class="ws-lib-row" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsLibOpenEditor('${wsLibEscapeHtml(e.exId)}')">
-    <button class="ws-lib-star ${fav?'on':''}" onclick="wsLibToggleFav('${wsLibEscapeHtml(e.exId)}',event)" aria-label="${fav?'Unfavorite':'Favorite'}">
+  return `<div class="ws-lib-row" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsLibOpenEditor('${wsJs(e.exId)}')">
+    <button class="ws-lib-star ${fav?'on':''}" onclick="wsLibToggleFav('${wsJs(e.exId)}',event)" aria-label="${fav?'Unfavorite':'Favorite'}">
       <svg viewBox="0 0 20 20"><path d="M10 1.8l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z" stroke="currentColor" stroke-width="1.6" fill="${fav?'currentColor':'none'}" stroke-linejoin="round"/></svg>
     </button>
     <div class="ws-lib-text">
@@ -480,7 +480,7 @@ function wsLibRenderGroup(grp,isExpanded,totalUsage){
   const variantsHtml=grp.entries.map(e=>wsLibRenderPlainRow(e)).join('');
 
   return `
-    <div class="ws-lib-group-header ${isExpanded?'expanded':''}" data-group-key="${wsLibEscapeHtml(key)}" onclick="wsLibToggleGroup('${wsLibEscapeHtml(key)}')">
+    <div class="ws-lib-group-header ${isExpanded?'expanded':''}" data-group-key="${wsLibEscapeHtml(key)}" onclick="wsLibToggleGroup('${wsJs(key)}')">
       <div class="ws-lib-chev"><svg viewBox="0 0 10 10"><polyline points="3,2 7,5 3,8"/></svg></div>
       <div class="ws-lib-group-info">
         <div class="ws-lib-group-title">${wsLibEscapeHtml(grp.header)}</div>

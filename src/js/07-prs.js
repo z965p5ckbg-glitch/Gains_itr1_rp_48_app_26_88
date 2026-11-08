@@ -41,16 +41,16 @@ function wsPRRender(){
   let body='';
   if(wsPRSort==='recent'){
     body=`<div class="wsprog-sect">Records · ${events.length}</div><div class="wspr-list">`+
-      events.slice(0,60).map(e=>`<div class="wspr-row" onclick="wsPRGo('${encodeURIComponent(e.key)}')">
-        <div class="wspr-v">${e.label}</div>
+      events.slice(0,60).map(e=>`<div class="wspr-row" onclick="wsPRGo('${wsJs(encodeURIComponent(e.key))}')">
+        <div class="wspr-v">${wsEscape(e.label)}</div>
         <div class="wspr-m"><div class="wspr-n">${hiEscape(e.name)}</div>
         <div class="wspr-d">${wsProgFmtDate(e.t)}</div></div>
       </div>`).join('')+`</div>`;
     if(events.length>60) body+=`<div class="wsprog-more">Showing the 60 most recent of ${events.length}</div>`;
   } else {
     body=`<div class="wsprog-sect">Current bests · ${bests.length}</div><div class="wspr-list">`+
-      bests.map(b=>`<div class="wspr-row" onclick="wsPRGo('${encodeURIComponent(b.key)}')">
-        <div class="wspr-v">${b.label}</div>
+      bests.map(b=>`<div class="wspr-row" onclick="wsPRGo('${wsJs(encodeURIComponent(b.key))}')">
+        <div class="wspr-v">${wsEscape(b.label)}</div>
         <div class="wspr-m"><div class="wspr-n">${hiEscape(b.name)}</div>
         <div class="wspr-d">${b.prs} record${b.prs===1?'':'s'} set</div></div>
       </div>`).join('')+`</div>`;

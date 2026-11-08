@@ -25,7 +25,11 @@ function wsToastMsg(m){
   try{
     let t=document.getElementById('wsToast');
     if(!t){ t=document.createElement('div'); t.id='wsToast'; t.className='ws-toast'; document.body.appendChild(t); }
-    t.textContent=m; t.classList.add('on');
+    // v59: the toast element sits inside the plan editor's panel, which is
+    // hidden on every other screen, so messages (including "Not saving —
+    // export a backup now") were invisible there. Show it at page level.
+    if(t.parentElement!==document.body) document.body.appendChild(t);
+    t.textContent=m; t.classList.remove('has-undo'); t.classList.add('on');
     clearTimeout(window.__wsToastT);
     window.__wsToastT=setTimeout(()=>t.classList.remove('on'),2200);
   }catch(_){}

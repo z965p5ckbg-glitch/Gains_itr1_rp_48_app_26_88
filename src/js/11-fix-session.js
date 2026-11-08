@@ -28,7 +28,7 @@ function wsAddExSearch(sessionId, q){
   }).slice(0,6);
   if(!hits.length){ box.innerHTML='<div class="ws-data-note">Nothing matched. You can still add it by name below.</div>'; return; }
   box.innerHTML=hits.map(e=>
-    '<div class="ws-addex-hit" onclick="wsAddExChoose(\''+sessionId+'\',\''+e.exId+'\')">'
+    '<div class="ws-addex-hit" onclick="wsAddExChoose(\''+wsJs(sessionId)+'\',\''+wsJs(e.exId)+'\')">'
     +'<span class="ws-addex-hn">'+hiEscape(e.title)+'</span>'
     +'<span class="ws-addex-hm">'+hiEscape((e.muscles||[]).slice(0,2).join(' · '))+'</span></div>').join('');
 }
@@ -129,7 +129,7 @@ function wsAddExSectionHtml(sessionId){
   return '<div class="ws-data-sep">Add an exercise you forgot</div>'
     +'<div class="ws-data-note">Did something at the rack that never made it into the log? Add it here — it counts toward your records, trends and comparisons exactly as if you had logged it at the time.</div>'
     +'<input id="wsAddExSearchInput" class="ws-addex-search" type="text" placeholder="Search the library…" '
-      +'oninput="wsAddExSearch(\''+sessionId+'\',this.value)">'
+      +'oninput="wsAddExSearch(\''+wsJs(sessionId)+'\',this.value)">'
     +'<div id="wsAddExResults"></div>'
     +'<div id="wsAddExForm"></div>';
 }
@@ -150,7 +150,7 @@ function wsFixSession(id){
     }
     return '<div class="ws-fix-row"><div class="ws-fix-m"><div class="ws-fix-n">'+hiEscape(e.name||'(unnamed)')+
       '</div><div class="ws-fix-s">'+hiEscape(sub)+'</div></div>'+
-      '<div class="ws-fix-x" onclick="wsFixRemoveEntry(\'' + id + '\',' + i + ')">Remove</div></div>';
+      '<div class="ws-fix-x" onclick="wsFixRemoveEntry(\'' + wsJs(id) + '\',' + i + ')">Remove</div></div>';
   }).join('');
   el.innerHTML='<div class="ws-data-scrim" onclick="wsCloseFix()"></div>'+
     '<div class="ws-data-sheet">'+
@@ -160,10 +160,10 @@ function wsFixSession(id){
       (rows||'<div class="ws-data-note">No exercises in this session.</div>')+
       '<div class="ws-data-sep">Session effort</div>'+(function(){var _se=wsSessionEffort(rec);return wsEffortStripHtml(id,_se?_se.value:null,_se?_se.source:null);})()+wsAddExSectionHtml(id)+'<div class="ws-data-sep">Date</div>'+
       '<div class="ws-data-note">Logged on the wrong day? Set the real date — records and trends re-sort immediately.</div>'+
-      '<input type="date" id="wsFixDate" class="ws-fix-date" value="'+((rec.date||'').slice(0,10))+'">'+
-      '<div class="ws-data-btn" onclick="wsFixSetDate(\''+id+'\')">Save date</div>'+
+      '<input type="date" id="wsFixDate" class="ws-fix-date" value="'+wsEscape(String(rec.date||'').slice(0,10))+'">'+
+      '<div class="ws-data-btn" onclick="wsFixSetDate(\''+wsJs(id)+'\')">Save date</div>'+
       '<div class="ws-data-sep">Whole session</div>'+
-      '<div class="ws-data-btn danger" onclick="wsFixDeleteSession(\'' + id + '\')">Delete this session</div>'+
+      '<div class="ws-data-btn danger" onclick="wsFixDeleteSession(\'' + wsJs(id) + '\')">Delete this session</div>'+
       '<div class="ws-data-btn close" onclick="wsCloseFix()">Done</div>'+
     '</div>';
   requestAnimationFrame(()=>el.classList.add('on'));

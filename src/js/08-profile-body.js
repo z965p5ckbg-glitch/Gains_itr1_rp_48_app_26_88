@@ -20,7 +20,7 @@ function wsBodyLog(){
 function wsLogWeight(kg, dateStr){
   const v=parseFloat(kg);
   if(!isFinite(v)||v<=0||v>400) return {ok:false,msg:'Enter a weight between 1 and 400 kg'};
-  const d=(dateStr&&/^\d{4}-\d{2}-\d{2}$/.test(dateStr))?dateStr:(new Date()).toISOString().slice(0,10);
+  const d=(dateStr&&/^\d{4}-\d{2}-\d{2}$/.test(dateStr))?dateStr:wsLocalDayKey();
   const log=wsBodyLog();
   const i=log.findIndex(e=>e&&e.d===d);
   if(i>=0) log[i].kg=Math.round(v*10)/10; else log.push({d, kg:Math.round(v*10)/10});

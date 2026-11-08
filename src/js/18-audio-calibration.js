@@ -267,7 +267,7 @@ function renderTabs(){
   const tabsHtml=DAYS
     .map((d,i)=>({d,i}))
     .filter(({d})=>d.published!==false)
-    .map(({d,i})=>`<div class="d-tab${i===curDay?' active':''}" onclick="switchDay(${i})">${d.label}</div>`)
+    .map(({d,i})=>`<div class="d-tab${i===curDay?' active':''}" onclick="switchDay(${i})">${wsEscape(d.label)}</div>`)
     .join('');
   el.innerHTML=tabsHtml+'<div class="d-tab add">+</div>';
   requestAnimationFrame(()=>{const fade=document.getElementById('tabsFade');if(fade) fade.classList.toggle('show',el.scrollWidth>el.clientWidth);});
@@ -275,7 +275,7 @@ function renderTabs(){
 
 function renderHeader(){
   const d=DAYS[curDay];
-  document.getElementById('hdrTitle').innerHTML=d.titleHtml;
+  document.getElementById('hdrTitle').innerHTML=wsSafeTitleHtml(d.titleHtml);
   const lbl=document.getElementById('hdrLbl');
   lbl.textContent=d.label+' · '+todayStr();
   lbl.onclick=wsRenameDay;
@@ -285,7 +285,7 @@ function renderHeader(){
 function wsRenameDay(){
   const d=DAYS[curDay]; if(!d) return;
   const cur=d.label||'';
-  const next=prompt('Name this day', cur);
+  const next=prompt('Name this workout', cur);
   if(next===null) return;
   const clean=String(next).trim().slice(0,22);
   if(!clean) return;

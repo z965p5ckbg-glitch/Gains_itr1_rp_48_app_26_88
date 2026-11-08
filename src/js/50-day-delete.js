@@ -6,7 +6,7 @@ function openWsDeleteModal(dayIdx){
   const d=DAYS[dayIdx];
   if(!d) return;
   wsDeleteCtx={dayIdx};
-  document.getElementById('wsDelName').innerHTML=d.titleHtml;
+  document.getElementById('wsDelName').innerHTML=wsSafeTitleHtml(d.titleHtml);
   document.getElementById('wsDelSub').textContent=`This permanently removes ${d.label} and any exercises in it.`;
   // Reset slide
   const fill=document.getElementById('wsDelFill');
@@ -117,7 +117,7 @@ function wsExecuteDelete(){
   // Defensive failsafe again — shouldn't reach here for last active, but double-check
   const d=DAYS[idx];
   if(d&&d.published!==false&&wsCountActive()<=1){
-    wsToast('Cannot delete the last active day');
+    wsToast('You need at least one active workout');
     closeWsDeleteModal();
     return;
   }

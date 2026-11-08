@@ -115,7 +115,9 @@ function wsDayRemoveInstance(day,inst){
   if(!Array.isArray(day.items)) return false;
   const i=day.items.indexOf(inst);
   if(i<0) return false;
+  const groups=wsSsGroupMap(day.items);      // v61: keep supersets as they were
   day.items.splice(i,1);
+  wsSsKeepGroups(day.items,groups);
   // Rebuild the derived exercises[]/cardio[] views from items[].
   wsDayItemsSync(day);
   return true;
@@ -127,7 +129,9 @@ function wsDayRemoveInstance(day,inst){
 function wsDayRemoveByIid(day,iid){
   if(!day || !iid || !Array.isArray(day.items)) return false;
   const before=day.items.length;
+  const groups=wsSsGroupMap(day.items);      // v61: keep supersets as they were
   day.items=day.items.filter(i=>i._iid!==iid);
+  wsSsKeepGroups(day.items,groups);
   const removed=day.items.length<before;
   if(removed) wsDayItemsSync(day);
   return removed;
@@ -151,7 +155,7 @@ function wsDayRemoveByExId(day,exId){
 
 function makeDays(){
   return [
-    {label:'Day 1',titleHtml:'Push +<br><em>Pull</em>',published:true,exercises:[
+    {label:'Workout 1',titleHtml:'Push +<br><em>Pull</em>',published:true,exercises:[
       {name:'Bench Press',exId:'bench-press-barbell',cue:'',sets:[{w:65,r:8},{w:65,r:8},{w:65,r:8},{w:65,r:8}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:false},
       {name:'Single-Leg Squat (balance pad)',exId:'smith-single-leg-split-squat',cue:'',sets:[{w:5,r:10},{w:5,r:10},{w:5,r:10},{w:5,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Cable Triceps Extension (standing)',exId:'cable-rope-overhead-triceps-extension',cue:'',sets:[{w:20,r:10},{w:20,r:10},{w:20,r:10},{w:20,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
@@ -160,7 +164,7 @@ function makeDays(){
     ],cardio:[
       {kind:'intervals',name:'Finisher HIIT',icon:'kettlebell',cue:'',simpleMode:false,roundsCustom:[{name:'Kettlebell Swing 30kg',work:40,rest:20},{name:'Push-Ups',work:30,rest:20},{name:'Mountain Climbers',work:30,rest:20},{name:'Battle Ropes',work:30,rest:30}],workSec:40,restSec:20,totalRounds:2,roundRest:60,amrap:false,capMin:0,rounds:0,logged:false,phase:'idle',phaseIdx:0,phaseLeft:40,sound:true}
     ],logged:false},
-    {label:'Day 2',titleHtml:'Upper<br><em>DB</em>',published:true,exercises:[
+    {label:'Workout 2',titleHtml:'Upper<br><em>DB</em>',published:true,exercises:[
       {name:'DB Shoulder Press (seated)',exId:'dumbbell-shoulder-press',cue:'',sets:[{w:20,r:6},{w:20,r:6},{w:20,r:6},{w:20,r:6}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:false},
       {name:'DB Bicep Curl (seated)',exId:'machine-bicep-curl',cue:'',sets:[{w:12,r:10},{w:12,r:10},{w:12,r:10},{w:12,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Lateral Raise (DB, standing)',exId:'side-lateral-raise',cue:'',sets:[{w:10,r:7},{w:10,r:7},{w:10,r:7},{w:10,r:7}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
@@ -170,20 +174,20 @@ function makeDays(){
     ],cardio:[
       {kind:'distance',name:'Interval Rowing',exId:'rowing-stationary',icon:'row',cue:'',duration:300,actualDuration:null,intensity:'Hard',distance:1.15,logged:false,timerMode:'limit',rl:300,rs:'idle',rv:true,sound:true}
     ],logged:false},
-    {label:'Day 3',titleHtml:'Legs +<br><em>Posterior</em>',published:true,exercises:[
+    {label:'Workout 3',titleHtml:'Legs +<br><em>Posterior</em>',published:true,exercises:[
       {name:'Romanian Deadlift',exId:'romanian-deadlift',cue:'',sets:[{w:60,r:10},{w:60,r:10},{w:60,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:false},
       {name:'Hack Squat',exId:'hack-squat',cue:'',sets:[{w:30,r:8},{w:30,r:8},{w:30,r:8}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Calf Raise (hack machine)',exId:'barbell-seated-calf-raise',cue:'',sets:[{w:30,r:15},{w:30,r:15},{w:30,r:15}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Glute Bridge (machine)',exId:'barbell-glute-bridge',cue:'',sets:[{w:30,r:10},{w:30,r:10},{w:30,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Roman Chair Back Extension',exId:'hyperextensions-back-extensions',cue:'',sets:[{w:0,r:10},{w:0,r:10},{w:0,r:10},{w:0,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:true}
     ],logged:false},
-    {label:'Day 4',titleHtml:'Home<br><em>Circuit</em>',published:true,exercises:[
+    {label:'Workout 4',titleHtml:'Home<br><em>Circuit</em>',published:true,exercises:[
       {name:'Pull-Up',exId:'pull-up',cue:'',sets:[{w:0,r:12},{w:0,r:12},{w:0,r:12}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:true},
       {name:'Push-Up',exId:'decline-push-up',cue:'',sets:[{w:0,r:20},{w:0,r:20},{w:0,r:20}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:true},
       {name:'Ab Roller',exId:'ab-roller',cue:'',sets:[{w:0,r:12},{w:0,r:12},{w:0,r:12}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:true},
       {name:'DB Squat (on shoulders)',exId:'dumbbell-squat',cue:'',sets:[{w:15,r:10},{w:15,r:10},{w:15,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false}
     ],logged:false},
-    {label:'Day 5',titleHtml:'Mobility +<br><em>Intervals</em>',published:true,exercises:[],cardio:[
+    {label:'Workout 5',titleHtml:'Mobility +<br><em>Intervals</em>',published:true,exercises:[],cardio:[
       {kind:'time',name:'Jump Rope',exId:'rope-jumping',icon:'jump',cue:'',duration:300,actualDuration:null,intensity:'Mod',distance:null,logged:false,timerMode:'limit',rl:300,rs:'idle',rv:true,sound:true},
       {kind:'intervals',name:'Conditioning Circuit',icon:'kettlebell',cue:'',simpleMode:false,roundsCustom:[{name:'Jump in Place',work:30,rest:15},{name:'Butt Kicks',work:30,rest:15},{name:'Alternating Lunges',work:30,rest:15},{name:'Mountain Climbers',work:30,rest:15},{name:'Plank Jacks',work:30,rest:15},{name:'Plank Elbow Touches',work:30,rest:15}],workSec:30,restSec:15,totalRounds:3,roundRest:60,amrap:false,capMin:0,rounds:0,logged:false,phase:'idle',phaseIdx:0,phaseLeft:30,sound:true},
       {kind:'distance',name:'Cool-Down Walk',exId:'walking-treadmill',icon:'walk',cue:'',duration:600,actualDuration:null,intensity:'Low',distance:1.0,logged:false,timerMode:'limit',rl:600,rs:'idle',rv:true,sound:true}

@@ -72,7 +72,7 @@ function wsApplyLegacyMerge(text){
     if(typeof wsRender==='function') wsRender();
     return {ok:true, added:p.toAdd.length, skipped:p.dupes.length,
             kept:p.existingCount, total:HISTORY.length, collisions:p.collisions,
-            msg:'Merged '+p.toAdd.length+' imported day'+(p.toAdd.length===1?'':'s')
+            msg:'Merged '+p.toAdd.length+' imported session'+(p.toAdd.length===1?'':'s')
                 +' with '+p.existingCount+' already here.'};
   }catch(e){ return {ok:false,msg:'Merge failed: '+(e&&e.message||'unknown')}; }
 }
@@ -85,7 +85,7 @@ function wsApplyLegacyImport(text){
     if(typeof settings==='object'&&settings){
       settings._planHistoryInjected=true;                  // never re-seed demo over real data
       if(!Array.isArray(settings.bodyLog)) settings.bodyLog=[];
-      if(settings.profile) settings.profile.bodyweight=[{t:Date.now(),value:WS_LEGACY_BW_KG}];
+      // v58: no longer writes a made-up bodyweight into your profile
     }
     // Declared 1RMs are a user assertion, not something to infer from history.
     // Clearing stops demo PRs standing over real training.

@@ -65,7 +65,7 @@ function renderAdvancedRoundsList(){
           <svg viewBox="0 0 16 16"><path d="M3 5h10M6 5V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2M5 5l1 9a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1l1-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
-      <input class="adv-round-name" type="text" placeholder="Round name (e.g. KB Swings)" value="${(r.name||'').replace(/"/g,'&quot;')}" oninput="updateAdvRound(${i},'name',this.value)" />
+      <input class="adv-round-name" type="text" placeholder="Round name (e.g. KB Swings)" value="${wsEscape(r.name||'')}" oninput="updateAdvRound(${i},'name',this.value)" />
       <div class="adv-round-times">
         <div class="adv-r-time">
           <span class="adv-r-time-lbl">Work</span>

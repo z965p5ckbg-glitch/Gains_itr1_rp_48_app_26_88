@@ -40,6 +40,18 @@ function wsAdaptBand(reps){
   return null;
 }
 
+// v61: one rule for crediting a set to muscles, used by "Sets per muscle" and
+// the adaptation mix alike. Main muscles 1, helpers ½; with no catalog match,
+// every listed muscle counts ½ (flagged as unmatched) rather than guessing
+// which one did the work.
+function wsMuscleCredit(e){
+  const cat=wsAdaptCatalog(e&&e.exId);
+  if(cat&&Array.isArray(cat.primary)&&cat.primary.length){
+    return {prim:cat.primary, sec:Array.isArray(cat.secondary)?cat.secondary:[], matched:true};
+  }
+  const flat=Array.isArray(e&&e.muscles)?e.muscles:[];
+  return {prim:[], sec:flat, matched:!flat.length};
+}
 function wsAdaptCatalog(exId){
   try{
     if(!exId || typeof EXERCISES==='undefined') return null;
@@ -52,7 +64,7 @@ function wsAdaptBuckets(weeks){
   weeks=weeks||WS_TREND_WEEKS;
   const rows=wsTrendBuckets('ALL',weeks);
   if(!rows.length) return null;
-  const from=rows[0].t, to=rows[rows.length-1].t+7*86400000;
+  const from=rows[0].t, to=wsAddDays(rows[rows.length-1].t,7);   // v58: calendar week, safe across clock changes
   const hist=Array.isArray(HISTORY)?HISTORY:[];
   const muscles=Object.create(null);
   const bands={heavy:0,mod:0,light:0};
@@ -69,16 +81,9 @@ function wsAdaptBuckets(weeks){
     for(const e of (rec.entries||[])){
       if(e.kind==='cardio'||e.kind==='hiit'){ conditioning++; continue; }
       if(e.kind!=='weighted'&&e.kind!=='bodyweight') continue;
-      const cat=wsAdaptCatalog(e.exId);
-      let prim=[], sec=[];
-      if(cat&&Array.isArray(cat.primary)&&cat.primary.length){
-        prim=cat.primary; sec=Array.isArray(cat.secondary)?cat.secondary:[];
-      } else {
-        // no catalog match: treat every listed muscle as secondary rather than
-        // pretending we know which one is the prime mover
-        sec=Array.isArray(e.muscles)?e.muscles:[];
-        if(sec.length) unmatched++;
-      }
+      const mc=wsMuscleCredit(e);
+      const prim=mc.prim, sec=mc.sec;
+      if(!mc.matched) unmatched++;
       for(const s of (e.sets||[])){
         if(s.completed===false||s.warmup) continue;
         const reps=(typeof s.reps==='number')?s.reps:0;

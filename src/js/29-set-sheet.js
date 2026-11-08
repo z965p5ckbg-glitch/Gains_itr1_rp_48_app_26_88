@@ -47,11 +47,12 @@ function openEdit(ei,si){
   if(wt) wt.classList.toggle('on', !!set.warmup);
   wsApplyLabels();
   resetApplyTrack();
+  wsEditSlidersInit();     // v58: sliders and the weight step for this exercise
   document.getElementById('overlay').classList.add('open');
 }
-function fmtW(w){return w%1===0?String(w):w.toFixed(1);}
-function stepW(d){playKnock();editW=Math.max(0,Math.min(999,parseFloat((editW+d*0.5).toFixed(1))));const el=document.getElementById('wVal');el.textContent=fmtW(editW);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');wsApplyLabels();resetApplyTrack();}
-function stepR(d){playKnock();editR=Math.max(0,Math.min(100,editR+d));const el=document.getElementById('rVal');el.textContent=editR;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
+function fmtW(w){return String(Math.round((Number(w)||0)*100)/100);}   // v59: quarter kilos show exactly
+function stepW(d){playKnock();const _st=(DAYS[curDay]&&DAYS[curDay].items[curEx])?wsWStep(DAYS[curDay].items[curEx]):0.5;editW=Math.max(0,Math.min(999,Math.round((editW+d*_st)*100)/100));const _wr=document.getElementById('wRange');if(_wr) _wr.value=editW;const el=document.getElementById('wVal');el.textContent=fmtW(editW);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');wsApplyLabels();resetApplyTrack();}
+function stepR(d){playKnock();editR=Math.max(0,Math.min(100,editR+d));const _rr=document.getElementById('rRange');if(_rr) _rr.value=editR;const el=document.getElementById('rVal');el.textContent=editR;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
 function resetApplyTrack(){const t=document.getElementById('applyTrack');const thumb=document.getElementById('applyThumb');if(t) t.classList.remove('applied');if(thumb){thumb.style.transition='transform .3s';thumb.style.transform='translateX(0)';}}
 function saveSet(){
   const btn=document.getElementById('saveSetBtn');
@@ -59,12 +60,14 @@ function saveSet(){
   // v47: editing a value is NOT a claim that you performed the set. Ticking is
   // a separate, deliberate act (tap the circle). Previously every edit silently
   // marked the set as done, with no way to opt out.
+  if(set.w!==editW||set.r!==editR) wsMarkTouched(set);
   set.w=editW;set.r=editR;
   const _wt=document.getElementById('shWarmTog');
   if(_wt){ if(_wt.classList.contains('on')) set.warmup=true; else delete set.warmup; }
   playSaveSet(ex);
   btn.classList.add('saved');btn.textContent='SAVED';
-  ex.rl=ex.rest;ex.rs='idle';
+  // v57: editing a value no longer resets the rest timer (it used to stop a
+  // running rest whenever you corrected a number mid-rest).
   wsPersistSave();
   renderAll(false);
   setTimeout(()=>{btn.textContent='SAVE SET';btn.classList.remove('saved');closeSheet();renderAll(false);},650);
@@ -123,26 +126,40 @@ function bindSlide(){
   const maxX=()=>track.offsetWidth-thumb.offsetWidth-18;
   const doLog=()=>{
     if(DAYS[curDay].logged) return;
+    // v59: build the record and save it BEFORE calling the day logged. If the
+    // record can't be built or the save fails, the day stays open with every
+    // tick in place, and nothing claims a session was logged.
+    let _rec=null;
+    try{ _rec=captureSessionRecord(curDay); }
+    catch(e){ if(console&&console.warn) console.warn('Session capture failed:',e&&e.message); _rec=null; }
+    if(!_rec || (HISTORY||[]).some(r=>r&&r.id===_rec.id)){ wsLogFailed('Could not build the session record'); return; }
+    HISTORY.push(_rec);
     DAYS[curDay].logged=true;
     DAYS[curDay]._loggedAt=Date.now(); // for the completed-day TTL (see wsMaybeResetStaleDay)
-    // Capture the immutable session record into HISTORY before clearing timers.
-    try{
-      const rec=captureSessionRecord(curDay);
-      if(rec){ HISTORY.push(rec); }
-    }catch(e){ if(console&&console.warn) console.warn('Session capture failed:',e&&e.message); }
+    wsPersistFlush();
+    if(typeof _wsStorageFailed!=='undefined' && _wsStorageFailed){
+      // the write failed: undo the in-memory change too, so screen and storage agree
+      const i=HISTORY.indexOf(_rec); if(i>=0) HISTORY.splice(i,1);
+      DAYS[curDay].logged=false; delete DAYS[curDay]._loggedAt;
+      wsLogFailed('Could not save — storage is full or blocked'); return;
+    }
     Object.keys(restIntervals).forEach(k=>clearInterval(restIntervals[k]));
     Object.keys(hiitIntervals).forEach(k=>clearInterval(hiitIntervals[k]));
     Object.keys(activityIntervals).forEach(k=>clearInterval(activityIntervals[k]));
     restIntervals={};hiitIntervals={};activityIntervals={};
     playSessionLog();
-    // Immediate flush, not the debounced save: a logged session is the most
-    // valuable write in the app and must not sit in a timer window where a
-    // crash or instant tab-kill could drop it.
-    wsPersistFlush();
+    // (the record was already flushed above, before anything said "logged")
     track.classList.add('logged');thumb.style.transform=`translateX(${maxX()}px)`;
     document.getElementById('slideLbl').textContent='SESSION LOGGED';
-    setTimeout(()=>renderAll(false),700);
+    // v57: logging opens the summary of what was saved; Done closes it.
+    const _day=curDay;
+    setTimeout(()=>{ renderAll(false); if(_rec) wsFinishOpen(_rec.id,_day); },500);
   };
+  // v59: failure path — spring the slider back and say what happened
+  function wsLogFailed(msg){
+    try{ thumb.style.transition='transform .3s'; thumb.style.transform='translateX(0)'; curX=0; }catch(_){}
+    try{ wsToastMsg(msg+'. Your sets are still here — back up from Settings.'); }catch(_){}
+  }
   const start=x=>{dragging=true;startX=x-curX;thumb.style.transition='none';};
   const move=x=>{if(!dragging) return;curX=Math.max(0,Math.min(maxX(),x-startX));thumb.style.transform=`translateX(${curX}px)`;if(curX>=maxX()-8){dragging=false;doLog();}};
   const end=()=>{if(!dragging) return;dragging=false;if(curX<maxX()-8){thumb.style.transition='transform .3s';thumb.style.transform='translateX(0)';curX=0;}};

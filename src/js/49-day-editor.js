@@ -30,7 +30,7 @@ function openWsDayEdit(dayIdx,isNew){
   document.getElementById('wsDeTitle1').value=m?m[1]:d.titleHtml.replace(/<[^>]+>/g,'').trim();
   document.getElementById('wsDeTitle2').value=m?m[2]:'';
   document.getElementById('wsDeLabel').value=d.label;
-  document.getElementById('wsDeTitle').textContent=isNew?'New Day':'Edit Day';
+  document.getElementById('wsDeTitle').textContent=isNew?'New workout':'Edit workout';
   wsDeRenderStatusToggle();
   wsDeRenderExList();
   document.getElementById('wsDayEditModal').classList.add('open');
@@ -58,6 +58,7 @@ function wsDeRenderExList(){
     return null;
   }).filter(Boolean);
   let html='';
+  const ssG=wsSsGroups(d.items||[]);
   if(all.length===0){
     html+=`<div class="ws-de-exempty">No exercises yet</div>`;
   } else {
@@ -90,13 +91,21 @@ function wsDeRenderExList(){
       } else if(kind==='intervals'||kind==='cardio_intervals'){
         meta=`${ex.totalRounds||0}×`;
       }
-      html+=`<div class="ws-de-exrow" data-row-idx="${idx}" data-list="${list}" data-orig-idx="${origIdx}">
+      // v61: supersets in the editor. A1/A2 on grouped rows; the link button
+      // pairs this exercise with the one below (drag to choose which).
+      const ii=(d.items||[]).indexOf(ex), g=ii>=0?ssG[ii]:null;
+      const nextIt=ii>=0?(d.items||[])[ii+1]:null;
+      const canLink=kind==='weighted' && (wsIsWeighted(nextIt) || !!ex.ss);
+      const linked=!!(g && g.pos<g.size);
+      const linkBtn=canLink?`<button class="ws-de-link${linked?' on':''}" onclick="wsDeToggleLink(${idx},event)" aria-pressed="${linked}" aria-label="${linked?'Unlink from the exercise below':'Superset with the exercise below'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>${linked?'':'<line x1="4" y1="4" x2="7" y2="7"/><line x1="17" y1="17" x2="20" y2="20"/>'}</svg></button>`:'';
+      html+=`<div class="ws-de-exrow${g?' ws-de-ss-row ws-de-ss-'+(g.pos===1?'first':(g.pos===g.size?'last':'mid')):''}" data-row-idx="${idx}" data-list="${list}" data-orig-idx="${origIdx}">
         <div class="ws-de-exrow-grip" aria-hidden="true"><span></span><span></span><span></span></div>
         <div class="ws-de-exrow-text">
           <div class="ws-de-exrow-title">${wsLibEscapeHtml(title||'(unnamed)')}</div>
-          <div class="ws-de-exrow-sub">${wsLibEscapeHtml(subtitle)}</div>
+          <div class="ws-de-exrow-sub">${g?`<span class="ws-de-ss">${g.letter}${g.pos}</span>${subtitle?' · ':''}`:''}${wsLibEscapeHtml(subtitle)}</div>
         </div>
         <div class="ws-de-exrow-meta">${wsLibEscapeHtml(meta)}</div>
+        ${linkBtn}
         <button class="ws-de-exrow-wrench" onclick="wsDeOpenInstanceEditor(${idx},event)" aria-label="Edit exercise">
           <svg viewBox="0 0 16 16"><path d="M11 1.6 a 3.4 3.4 0 0 0 -2.42 5.78 l -6.78 6.78 a 1.4 1.4 0 0 0 0 1.98 a 1.4 1.4 0 0 0 1.98 0 l 6.78 -6.78 a 3.4 3.4 0 0 0 4.84 -3.78 l -2.12 2.12 a 1.4 1.4 0 0 1 -1.98 -1.98 z"/></svg>
         </button>
@@ -167,7 +176,7 @@ function wsDeRemoveExercise(rowIdx,evt){
   const ex=arr[origIdx];
   const name=ex.name||'(unnamed)';
   // Native confirm — removing from a day is recoverable (re-add via picker).
-  if(!confirm(`Remove "${name}" from this day?`)) return;
+  if(!confirm(`Remove "${name}" from this workout?`)) return;
   // Remove from items[] AND the legacy arrays in one shot, by reference.
   wsDayRemoveInstance(d, ex);
   wsLogPush('day_remove_exercise',{dayIdx:wsDayEditCtx.dayIdx,list,name});
@@ -178,6 +187,20 @@ function wsDeRemoveExercise(rowIdx,evt){
   wsToast(`${name} removed`);
 }
 
+function wsDeToggleLink(rowIdx,evt){
+  if(evt) evt.stopPropagation();
+  if(!wsDayEditCtx) return;
+  const d=DAYS[wsDayEditCtx.dayIdx]; if(!d) return;
+  const rowEl=document.querySelector(`.ws-de-exrow[data-row-idx="${rowIdx}"]`); if(!rowEl) return;
+  const arr=rowEl.dataset.list==='exercises'?d.exercises:d.cardio;
+  const ex=arr&&arr[parseInt(rowEl.dataset.origIdx,10)]; if(!ex) return;
+  const i=(d.items||[]).indexOf(ex); if(i<0) return;
+  if(ex.ss) delete ex.ss; else if(wsIsWeighted(d.items[i+1])) ex.ss=true;
+  wsLogPush('day_toggle_superset',{dayIdx:wsDayEditCtx.dayIdx});
+  wsDeRenderExList();
+  try{ renderAll(false); }catch(_){}
+  wsPersistSave();
+}
 function wsDeBindRowDrag(){
   const rows=document.querySelectorAll('#wsDeExListInner .ws-de-exrow');
   rows.forEach(row=>{
@@ -186,7 +209,7 @@ function wsDeBindRowDrag(){
 }
 
 function wsDePointerDown(e){
-  if(e.target.closest('.ws-de-exrow-remove')) return;
+  if(e.target.closest('.ws-de-exrow-remove,.ws-de-link')) return;
   if(_wsDeDragState) return;
 
   const row=e.currentTarget;
@@ -384,7 +407,9 @@ function wsDeCommitOrderFromDom(){
   if(changed){
     // Items list is now authoritative; derive the legacy arrays from it so
     // existing readers (still using d.exercises / d.cardio) see consistent state.
+    const groups=wsSsGroupMap(oldItems);   // v61: dragging never pairs strangers
     d.items=newItems;
+    wsSsKeepGroups(d.items,groups);
     wsDayItemsSync(d);
     wsLogPush('day_reorder_exercises',{dayIdx:wsDayEditCtx.dayIdx});
     wsPersistSave();
@@ -397,7 +422,7 @@ function wsDeSetStatus(makeActive){
   if(!wsDayEditCtx) return;
   // Failsafe: can't bank if this is the last active day
   if(!makeActive&&wsDayEditCtx.originalPublished&&wsCountActive()<=1&&!wsDayEditCtx.isNew){
-    wsToast('You need at least one active day');
+    wsToast('You need at least one active workout');
     return;
   }
   wsDayEditCtx.pendingPublished=makeActive;
@@ -410,9 +435,9 @@ function wsDeRenderStatusToggle(){
   document.getElementById('wsDeStatusBanked').classList.toggle('active',!isAct);
   const hint=document.getElementById('wsDeStatusHint');
   if(isAct){
-    hint.textContent='Active days appear in your day tabs as part of your rotation.';
+    hint.textContent='Active workouts appear as tabs on Today, as part of your rotation.';
   } else {
-    hint.textContent='Banked days are saved for later. Drag from the Workshop into Active to use them.';
+    hint.textContent='Banked workouts are kept for later. Drag one into Active to use it.';
   }
 }
 
@@ -446,11 +471,32 @@ function saveWsDayEdit(){
   ensureCurDayPublished();
   wsRender();
   wsPersistSave();
-  wsToast('Day saved');
+  wsToast('Workout saved');
 }
 
+// v59: safe for text AND attribute values, and for anything that isn't a
+// string (numbers, missing values). Data from a backup or import file is
+// untrusted: it must always be shown as text, never run.
 function wsEscape(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// v61: a value placed inside a quoted JavaScript string in an HTML attribute,
+// e.g. onclick="open('${wsJs(id)}')". HTML escaping alone is not enough there:
+// the browser decodes &#39; back to ' before the script runs, so an id from a
+// backup file could close the string and run code. This escapes for the
+// script first, then for the attribute.
+function wsJs(s){
+  return wsEscape(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/\u2028|\u2029/g,' '));
+}
+// v60: a workout's two-line title is stored as a little HTML ("Push +<br><em>
+// Pull</em>"). It can arrive from a backup file, so it is never trusted: only
+// <br> and <em> survive, every other tag is dropped, and the text is escaped.
+function wsSafeTitleHtml(s){
+  const ENT={amp:'&',lt:'<',gt:'>',quot:'"','#39':"'",'#x27':"'",nbsp:'\u00a0'};
+  const dec=t=>String(t).replace(/<[^>]*>?/g,'').replace(/&(amp|lt|gt|quot|#39|#x27|nbsp);/g,(m,e)=>ENT[e]);
+  return String(s==null?'':s).split(/(<br\s*\/?>|<em>|<\/em>)/i).map(p=>
+    /^<br\s*\/?>$/i.test(p)?'<br>':(/^<em>$/i.test(p)?'<em>':(/^<\/em>$/i.test(p)?'</em>':wsEscape(dec(p))))
+  ).join('');
 }
 
 // ──────────── Create new day ────────────
@@ -458,7 +504,7 @@ function wsEscape(s){
 function wsCreateNewDay(){
   wsLogPush('create_new_day');
   // Build a fresh day, append to DAYS, open editor
-  const newDay={label:`Day ${DAYS.length+1}`,titleHtml:'New<br><em>Day</em>',published:true,exercises:[],logged:false};
+  const newDay={label:`Workout ${DAYS.length+1}`,titleHtml:'New<br><em>Workout</em>',published:true,exercises:[],logged:false};
   DAYS.push(newDay);
   wsRender();
   openWsDayEdit(DAYS.length-1,true);
