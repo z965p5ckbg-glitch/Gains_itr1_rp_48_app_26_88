@@ -146,7 +146,7 @@ function renderPostSession(){
   return `<div class="post-session">
     <div class="post-title">✓ Session logged</div>
     ${strip}
-    <button class="post-btn" onclick="resetDay()">Reset day — train again</button>
+    <button class="post-btn" onclick="resetDay()">Reset workout — train again</button>
   </div>`;
 }
 

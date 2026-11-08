@@ -117,7 +117,7 @@ function wsExecuteDelete(){
   // Defensive failsafe again — shouldn't reach here for last active, but double-check
   const d=DAYS[idx];
   if(d&&d.published!==false&&wsCountActive()<=1){
-    wsToast('Cannot delete the last active day');
+    wsToast('You need at least one active workout');
     closeWsDeleteModal();
     return;
   }

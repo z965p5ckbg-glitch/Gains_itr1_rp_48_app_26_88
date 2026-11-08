@@ -1,0 +1,44 @@
+/* ─── v61 ──────────────────────────────────────────────────────────────────── */
+
+/* Legibility across the whole app: nothing that carries meaning is smaller
+   than 13px, on any screen (20-text-size walks every screen and checks). */
+.ni,
+.ws-rpe-pill, .ws-rm-mini,
+.ps-stat-l, .cf-l, .cardio-foot, .rword, .phase-seg.more,
+.hi-mode-opt, .hi-week-sep span, .wk-n,
+.wsprog-trend .wsprog-tarrow, .wsprog-frame-badge,
+.wstrend-t, .wstrend-d, .wstrend-cap, .wstrend-s, .wstrend-v small, .wstrend-nodata, .wsgrid-cap,
+.wsad-h, .wsad-s, .wsad-m, .wsad-n, .wsad-n2, .wsad-lg, .wsad-lg em,
+.sh-fl, .apply-lbl-above, .sh-tgl-sub, .settings-row-sub,
+.ws-hint-text, .ws-hint-text strong, .ws-day-label, .ws-day-meta,
+.ws-de-title, .ws-de-exrow-meta, .ws-pk-title { font-size: 13px }
+
+/* Progress: how sets per muscle are counted, under the bars */
+.wspm-note { display: block; font-family: 'DM Sans', sans-serif; letter-spacing: 0; line-height: 1.4; color: var(--tx3); border-top: none; margin-top: 4px; padding-top: 0 }
+
+/* Backup reminder in the session summary */
+.fkb { margin-top: 22px; padding: 14px; border-radius: 14px; background: var(--s2); border: 1px solid var(--b2) }
+.fkb-t { font-size: 15px; line-height: 1.4; color: var(--tx) }
+.fkb-row { margin-top: 12px; display: flex; gap: 8px }
+.fkb-go { flex: 1; min-height: 46px; border: 1px solid var(--tx3); border-radius: 12px; background: var(--s3); color: var(--tx); font-weight: 700; font-size: 15px }
+.fkb-later { min-height: 46px; padding: 0 18px; border: 1px solid var(--b3); border-radius: 12px; background: none; color: var(--tx2); font-size: 15px }
+.settings-row-sub.stale { color: var(--acc) }
+
+/* App version: check for updates */
+.settings-row-ver { flex-wrap: wrap; row-gap: 8px }
+.ws-upd-btn { min-height: 44px; padding: 0 14px; border: 1px solid var(--b3); border-radius: 12px; background: none; color: var(--tx); font-size: 14px; flex-shrink: 0 }
+.ws-upd-btn[disabled] { color: var(--tx4) }
+.ws-upd-restart { display: block; margin-top: 8px; min-height: 44px; padding: 0 14px; border: none; border-radius: 12px; background: var(--tx); color: var(--bg); font-weight: 700; font-size: 14px }
+
+/* Supersets in the workout editor: A1/A2, a bracket, and a link to the row below */
+.ws-de-ss { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--tx) }
+.ws-de-ss-row .ws-de-exrow-sub { display: block }
+.ws-de-ss-row { border-left: 3px solid var(--tx2) }
+.ws-de-ss-first, .ws-de-ss-mid { border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; margin-bottom: -4px }
+.ws-de-ss-mid, .ws-de-ss-last { border-top-left-radius: 2px; border-top-right-radius: 2px }
+.ws-de-link { flex-shrink: 0; width: 44px; height: 44px; margin: -6px 0; border: none; border-radius: 10px; background: none; display: flex; align-items: center; justify-content: center; padding: 0 }
+.ws-de-link svg { width: 20px; height: 20px; fill: none; stroke: var(--tx4); stroke-width: 2; stroke-linecap: round }
+.ws-de-link.on svg { stroke: var(--tx) }
+.ws-de-link:active { background: var(--s3) }
+/* long exercise names wrap to two lines in the editor instead of "SMITH SINGL…" */
+.ws-de-exrow-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical }

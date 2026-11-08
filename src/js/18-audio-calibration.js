@@ -285,7 +285,7 @@ function renderHeader(){
 function wsRenameDay(){
   const d=DAYS[curDay]; if(!d) return;
   const cur=d.label||'';
-  const next=prompt('Name this day', cur);
+  const next=prompt('Name this workout', cur);
   if(next===null) return;
   const clean=String(next).trim().slice(0,22);
   if(!clean) return;

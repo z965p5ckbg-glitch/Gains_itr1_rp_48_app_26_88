@@ -23,7 +23,7 @@ function wsPickerSearch(q){
   const scored=EXERCISES.map(e=>({e,sc:wsScoreEntry(e,t)})).filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,30);
   window.__wsPickResults=scored.map(x=>x.e);
   const free=`<div class="ws-pick-row free" onclick="wsPickerFree()">Use “${wsEsc(t)}” as typed</div>`;
-  res.innerHTML=free+(scored.length?scored.map(x=>`<div class="ws-pick-row" onclick="wsPickerChoose('${wsEsc(x.e.exId)}')">
+  res.innerHTML=free+(scored.length?scored.map(x=>`<div class="ws-pick-row" onclick="wsPickerChoose('${wsJs(x.e.exId)}')">
       <div class="ws-pick-t">${wsEsc(x.e.title)}</div>
       <div class="ws-pick-m">${wsEsc(((x.e.primary||[])[0])||'')}${x.e.equipment?' · '+wsEsc(x.e.equipment):''}</div></div>`).join('')
     :'<div class="ws-pick-hint">No library match — use it as typed above</div>');

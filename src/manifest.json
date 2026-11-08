@@ -24,7 +24,8 @@
     "22-v57.css",
     "23-v58.css",
     "24-v59.css",
-    "25-v60.css"
+    "25-v60.css",
+    "26-v61.css"
   ],
   "js": [
     "01-icons.js",
@@ -81,7 +82,8 @@
     "52-data-coach-profile.js",
     "53-sheet-swipe.js",
     "54-workout-v57.js",
-    "55-dates.js"
+    "55-dates.js",
+    "56-backup-update.js"
   ],
   "tokens": {
     "css": "@@GAINS_CSS@@",

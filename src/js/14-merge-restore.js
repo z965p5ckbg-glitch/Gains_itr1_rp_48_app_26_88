@@ -72,7 +72,7 @@ function wsApplyLegacyMerge(text){
     if(typeof wsRender==='function') wsRender();
     return {ok:true, added:p.toAdd.length, skipped:p.dupes.length,
             kept:p.existingCount, total:HISTORY.length, collisions:p.collisions,
-            msg:'Merged '+p.toAdd.length+' imported day'+(p.toAdd.length===1?'':'s')
+            msg:'Merged '+p.toAdd.length+' imported session'+(p.toAdd.length===1?'':'s')
                 +' with '+p.existingCount+' already here.'};
   }catch(e){ return {ok:false,msg:'Merge failed: '+(e&&e.message||'unknown')}; }
 }

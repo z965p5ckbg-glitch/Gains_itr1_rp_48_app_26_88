@@ -293,8 +293,8 @@ function hiListItemHtml(rec){
   }
   let expandBody='';
   if(expanded){ expandBody=hiExpandBodyHtml(rec); }
-  return `<div class="hi-item ${expanded?'expanded':''}" data-sid="${rec.id}">
-    <div class="hi-row" onclick="hiToggleExpand('${rec.id}')">
+  return `<div class="hi-item ${expanded?'expanded':''}" data-sid="${wsEscape(rec.id)}">
+    <div class="hi-row" onclick="hiToggleExpand('${wsJs(rec.id)}')">
       <div class="hi-pips">${pips}</div>
       <div class="hi-datename">
         <div class="hi-date">${hiAbsDate(rec.date)}</div>
@@ -333,11 +333,11 @@ function hiExpandBodyHtml(rec){
     <div class="hi-eb-stats">${stats}</div>
     ${exHtml}
     ${wsCompareCardHtml(rec)}
-    <button class="hi-eb-full" onclick="hiOpenDetail('${rec.id}','list')">
+    <button class="hi-eb-full" onclick="hiOpenDetail('${wsJs(rec.id)}','list')">
       <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5"/><line x1="7" y1="4.5" x2="7" y2="7.5"/></svg>
       Full detail &amp; per-set view →
     </button>
-    <button class="hi-eb-fix" onclick="wsFixSession('${rec.id}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9.2 2.6a2.6 2.6 0 0 0 3.3 3.3l-6 6-2.4.7.7-2.4z" stroke-linejoin="round"/></svg> Fix this session</button>
+    <button class="hi-eb-fix" onclick="wsFixSession('${wsJs(rec.id)}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9.2 2.6a2.6 2.6 0 0 0 3.3 3.3l-6 6-2.4.7.7-2.4z" stroke-linejoin="round"/></svg> Fix this session</button>
   </div>`;
 }
 
@@ -366,7 +366,7 @@ function hiExpandExRow(e){
     const dur=hiFmtMS(c.durationSec), dist=hiFmtDist(c.distanceM);
     metrics=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v dist">${dur||'—'}</span><span class="hi-eb-ex-metric-l">duration</span></div>`;
     if(dist) metrics+=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v">${dist}</span><span class="hi-eb-ex-metric-l">distance</span></div>`;
-    else if(c.intensityTag) metrics+=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v">${c.intensityTag}</span><span class="hi-eb-ex-metric-l">intensity</span></div>`;
+    else if(c.intensityTag) metrics+=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v">${hiEscape(c.intensityTag)}</span><span class="hi-eb-ex-metric-l">intensity</span></div>`;
   } else if(e.kind==='hiit'){
     const h=e.hiit||{};
     metrics=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v sage">${h.roundsDone||0}/${h.roundsPlanned||0}</span><span class="hi-eb-ex-metric-l">rounds</span></div>
@@ -462,7 +462,7 @@ function hiCalMonthHtml(monthDate){
       const dots=['s','c','h'].filter(m=>mset.has(m)).map(m=>`<span class="hi-cal-dot ${m}"></span>`).join('');
       // Tapping jumps straight to that day's session detail (first session if multiple)
       const sid=dayRecs[0].id;
-      cells+=`<div class="hi-cal-cell logged ${isToday?'today':''}" onclick="hiOpenDetail('${sid}','calendar')">
+      cells+=`<div class="hi-cal-cell logged ${isToday?'today':''}" onclick="hiOpenDetail('${wsJs(sid)}','calendar')">
         <span class="hi-cal-daynum">${day}</span><div class="hi-cal-dots">${dots}</div></div>`;
     } else if(future){
       cells+=`<div class="hi-cal-cell empty"></div>`;
@@ -638,7 +638,7 @@ function hiDetailCardioBody(e,ei){
   if(dur) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v">${dur}</div><div class="hi-cardio-l">Duration</div></div>`;
   if(dist) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v dist">${dist}</div><div class="hi-cardio-l">Distance</div></div>`;
   if(pc) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v">${pc}</div><div class="hi-cardio-l">min/km</div></div>`;
-  if(c.intensityTag) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v" style="font-size:18px">${c.intensityTag}</div><div class="hi-cardio-l">Intensity</div></div>`;
+  if(c.intensityTag) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v" style="font-size:18px">${hiEscape(c.intensityTag)}</div><div class="hi-cardio-l">Intensity</div></div>`;
   let extra='';
   if(hiScoreEnabled()){
     const r=hiEntryRpe(e);

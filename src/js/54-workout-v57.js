@@ -257,6 +257,22 @@ function wsSsApplyBlocks(d,blocks){
   blocks.forEach(b=>b.forEach((it,k)=>{ if(k<b.length-1) it.ss=true; else delete it.ss; out.push(it); }));
   d.items=out; wsDayItemsSync(d);
 }
+// v61: pairing is stored as "paired with the next one", so removing or moving
+// an exercise could silently pair two exercises that never were. Take the
+// groups before a change (wsSsGroupMap), then after it keep a link only between
+// neighbours that were in the same group (wsSsKeepGroups).
+function wsSsGroupMap(items){
+  const g=wsSsGroups(items||[]), m=new Map();
+  (items||[]).forEach((it,i)=>{ if(g[i]) m.set(it,g[i].letter); });
+  return m;
+}
+function wsSsKeepGroups(items,before){
+  (items||[]).forEach((a,i)=>{
+    const b=items[i+1];
+    const keep=wsIsWeighted(a)&&wsIsWeighted(b)&&before.get(a)&&before.get(a)===before.get(b);
+    if(keep) a.ss=true; else delete a.ss;
+  });
+}
 function wsSsSnapshot(d){ return (d.items||[]).map(it=>({it:it,ss:!!it.ss})); }
 function wsSsRestore(d,snap){
   d.items=snap.map(s=>{ if(s.ss) s.it.ss=true; else delete s.it.ss; return s.it; });
@@ -886,6 +902,7 @@ function wsFinishRender(){
     <div class="fkf-h"><span>HOW HARD WAS THE SESSION?</span><i></i><span class="fkf-opt">OPTIONAL</span></div>
     <div class="fkf-chips">${chips}</div>
     <div class="fkf-note">1 easy, 10 all-out. One rating for the whole session; skip it and it stays blank.</div>
+    ${wsBackupReminderHtml()}
   </div>
   <div class="fkf-foot">
     ${undoLeft>0?`<button class="fkf-undo" id="fkUndo" onclick="wsFinishUndo()">Undo · ${undoLeft}s</button>`:''}

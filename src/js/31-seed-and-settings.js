@@ -194,6 +194,7 @@ function openSettings(){
   if(togIS) togIS.classList.toggle('on',!!settings.showIntensityScore);
   const togRA=document.getElementById('togRestAuto');
   if(togRA) togRA.classList.toggle('on',wsRestAuto());
+  wsSettingsBackupSync();   // v61: how old the last backup is
   document.getElementById('settingsOverlay').classList.add('open');
 }
 function closeSettings(){wsLogPush('close_settings');document.getElementById('settingsOverlay').classList.remove('open');}

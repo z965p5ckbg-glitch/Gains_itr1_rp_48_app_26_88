@@ -384,28 +384,56 @@ function wsProgDayGrid(){
 // ── Weekly working sets per muscle (strength sets only — the literature's
 //     10–20 sets/muscle/week guidance is a resistance-training measure;
 //     conditioning rounds are not "working sets" and would pollute it). ──
+// v61 (review GAINS-014): an honest weekly average.
+//   • Weeks are complete calendar weeks (Mon–Sun) inside the period, the same
+//     weeks the trends use; this unfinished week is left out of both the sets
+//     and the count, as everywhere else on Progress.
+//   • The count starts at the week of your first strength session, so a new
+//     user isn't divided by weeks before they began; but a week off inside
+//     the period counts as a week (one training week in 8 is not 8 weeks of
+//     high volume). It used to divide by first-to-last session, which made one
+//     week of training read as a full weekly average.
+//   • Main muscles 1 set, helpers ½ (wsMuscleCredit); warm-ups never count.
+// Returns the usual array of {m,total,perWk}, with .weeks (the divisor) and
+// .unmatched (exercises credited without catalog detail) attached.
 function wsProgMuscleWeekly(frame){
   frame=frame||wsProgFrame;
-  const cutoff=wsProgCutoff(frame);
   const hist=Array.isArray(HISTORY)?HISTORY:[];
-  const tot={}; let firstT=null,lastT=null;
+  const thisWeek=wsTrendWeekStart(Date.now());
+  const isStrength=e=>(e.kind==='weighted'||e.kind==='bodyweight')&&(e.sets||[]).some(wsIsWorkSet);
+  let firstT=Infinity;
   for(const rec of hist){
     const t=new Date(rec.date).getTime();
-    if(isNaN(t)||t<cutoff) continue;
-    let counted=false;
+    if(!isNaN(t) && t<firstT && (rec.entries||[]).some(isStrength)) firstT=t;
+  }
+  const out=[]; out.weeks=0; out.unmatched=0;
+  if(!isFinite(firstT)) return out;
+  let from=thisWeek;
+  for(let i=0;i<wsTrendWeeksFor(frame);i++) from=wsTrendWeekStart(wsAddDays(from,-7));
+  const firstWk=wsTrendWeekStart(firstT);
+  if(firstWk>from) from=firstWk;
+  let weeks=0;
+  for(let w=from; w<thisWeek && weeks<600; w=wsTrendWeekStart(wsAddDays(w,7))) weeks++;
+  if(!weeks) return out;
+  const tot={}; const unmatched=new Set();
+  for(const rec of hist){
+    const t=new Date(rec.date).getTime();
+    if(isNaN(t)||t<from||t>=thisWeek) continue;
     for(const e of (rec.entries||[])){
       if(e.kind!=='weighted'&&e.kind!=='bodyweight') continue;
       let sets=0; for(const st of (e.sets||[])) if(wsIsWorkSet(st)) sets++;
       if(!sets) continue;
-      counted=true;
-      const ms=(e.muscles&&e.muscles.length)?e.muscles:['Other'];
-      for(const m of ms) tot[m]=(tot[m]||0)+sets;
+      const mc=wsMuscleCredit(e);
+      if(!mc.matched) unmatched.add(wsProgKey(e));
+      if(!mc.prim.length && !mc.sec.length){ tot['Other']=(tot['Other']||0)+sets; continue; }
+      for(const m of mc.prim) tot[m]=(tot[m]||0)+sets;
+      for(const m of mc.sec)  tot[m]=(tot[m]||0)+sets*0.5;
     }
-    if(counted){ if(firstT==null||t<firstT)firstT=t; if(lastT==null||t>lastT)lastT=t; }
   }
-  const weeks=Math.max(1,(lastT!=null?(lastT-firstT):0)/(7*86400000));
-  return Object.keys(tot).map(m=>({m,total:tot[m],perWk:Math.round((tot[m]/weeks)*10)/10}))
-    .sort((a,b)=>b.perWk-a.perWk);
+  Object.keys(tot).map(m=>({m, total:Math.round(tot[m]*10)/10, perWk:Math.round((tot[m]/weeks)*10)/10}))
+    .sort((a,b)=>b.perWk-a.perWk).forEach(r=>out.push(r));
+  out.weeks=weeks; out.unmatched=unmatched.size;
+  return out;
 }
 
 // ── At-a-glance summary across ALL exercises in the frame ──

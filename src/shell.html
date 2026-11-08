@@ -162,7 +162,7 @@
     <div class="settings-section">
       <div class="settings-section-title">Workshop</div>
       <div class="settings-card">
-        <div class="settings-row tappable settings-row-featured" onclick="openWorkshop()"><div class="settings-row-info"><div class="settings-row-title">Open Workshop</div><div class="settings-row-sub">Manage days and exercises · build your plan</div></div><span class="chevron settings-row-featured-chev">›</span></div>
+        <div class="settings-row tappable settings-row-featured" onclick="openWorkshop()"><div class="settings-row-info"><div class="settings-row-title">Open Workshop</div><div class="settings-row-sub">Manage workouts and exercises · build your plan</div></div><span class="chevron settings-row-featured-chev">›</span></div>
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Advanced Exercise Tags</div><div class="settings-row-sub">Tag exercises by muscle &amp; movement pattern · enables grouping in the Library</div></div><div class="tog" id="togAdvTags" onclick="toggleAdvancedTags(this)"></div></div>
       </div>
     </div>
@@ -171,8 +171,9 @@
       <div class="settings-card">
         <div class="settings-row" onclick="wsOpenProfile()"><div class="settings-row-info"><div class="settings-row-title">About me &amp; bodyweight</div><div class="settings-row-sub">Unlocks relative strength and gives the coach real context</div></div><div class="settings-chev">&rsaquo;</div></div>
         <div class="settings-row" onclick="wsOpenCoach()"><div class="settings-row-info"><div class="settings-row-title">Ask my coach</div><div class="settings-row-sub">Copy a training brief into any AI &mdash; no account, no key</div></div><div class="settings-chev">&rsaquo;</div></div>
-        <div class="settings-row" onclick="wsOpenData()"><div class="settings-row-info"><div class="settings-row-title">Your data — backup &amp; restore</div><div class="settings-row-sub">Save a copy outside the app, or start a fresh log</div></div><div class="settings-chev">›</div></div>
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub">Gains v@@GAINS_VERSION@@ &middot; offline build</div></div></div>
+        <div class="settings-row" onclick="wsOpenData()"><div class="settings-row-info"><div class="settings-row-title">Your data — backup &amp; restore</div><div class="settings-row-sub" id="dataRowSub">Save a copy outside the app, or start a fresh log</div></div><div class="settings-chev">›</div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Remind me to back up</div><div class="settings-row-sub">After a session, once a week, if there's something new</div></div><div class="tog on" id="togBackupRemind" role="switch" aria-label="Remind me to back up" onclick="wsSetBackupRemind(!wsBackupRemindOn())"></div></div>
+        <div class="settings-row settings-row-ver"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub" id="appVerSub">Gains v@@GAINS_VERSION@@ &middot; offline build</div></div><button class="ws-upd-btn" id="appVerBtn" onclick="wsCheckUpdate()">Check for updates</button></div>
       </div>
     </div>
     <div class="settings-section">
@@ -185,7 +186,7 @@
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Sticky global rest timer</div><div class="settings-row-sub">One pinned timer instead of per-exercise</div></div><div class="tog" onclick="this.classList.toggle('on')"></div></div>
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Visual cue on alert</div><div class="settings-row-sub">Pulsing rim around the app — useful with loud music</div></div><div class="tog on" id="togRim" onclick="toggleSetting('rim',this)"></div></div>
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Keep my edits on updates</div><div class="settings-row-sub">Weights, reps and circuit tweaks carry over when app data updates</div></div><div class="tog on" id="togKeepEdits" onclick="toggleSetting('keepEdits',this)"></div></div>
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Shimmer on day switch</div><div class="settings-row-sub">Subtle light sweep over interactive elements</div></div><div class="tog on" id="togShimmer" onclick="toggleSetting('shimmer',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Shimmer when switching workouts</div><div class="settings-row-sub">Subtle light sweep over interactive elements</div></div><div class="tog on" id="togShimmer" onclick="toggleSetting('shimmer',this)"></div></div>
         <div class="settings-row settings-row-stacked">
           <div class="settings-row-info">
             <div class="settings-row-title">Keep screen on</div>
@@ -248,7 +249,7 @@
       </div>
     </div>
     <div class="ws-tabs">
-      <div class="ws-tab active" id="wsTabDays" onclick="wsSwitchTab('days')"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="13" rx="2"/><line x1="2" y1="7" x2="16" y2="7"/></svg><span>Days</span></div>
+      <div class="ws-tab active" id="wsTabDays" onclick="wsSwitchTab('days')"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="13" rx="2"/><line x1="2" y1="7" x2="16" y2="7"/></svg><span>Workouts</span></div>
       <div class="ws-tab" id="wsTabLib" onclick="wsSwitchTab('library')"><svg viewBox="0 0 18 18"><path d="M3 4h12v10H3z"/><line x1="6" y1="4" x2="6" y2="14"/><line x1="9" y1="7" x2="13" y2="7"/><line x1="9" y1="10" x2="13" y2="10"/></svg><span>Library</span></div>
     </div>
   </div>
@@ -266,9 +267,9 @@
 <div id="wsDeleteModal">
   <div class="ws-del-sheet">
     <div class="ws-del-handle"></div>
-    <div class="ws-del-title">Delete day?</div>
-    <div class="ws-del-name" id="wsDelName">Day</div>
-    <div class="ws-del-sub" id="wsDelSub">This permanently removes the day and any exercises in it.</div>
+    <div class="ws-del-title">Delete workout?</div>
+    <div class="ws-del-name" id="wsDelName">Workout</div>
+    <div class="ws-del-sub" id="wsDelSub">This permanently removes the workout and its exercises.</div>
     <div class="ws-del-slide-wrap" id="wsDelSlide">
       <div class="ws-del-slide-fill" id="wsDelFill"></div>
       <div class="ws-del-slide-thumb" id="wsDelThumb">
@@ -284,7 +285,7 @@
 <div id="wsDayEditModal">
   <div class="ws-de-sheet">
     <div class="ws-de-handle"></div>
-    <div class="ws-de-title" id="wsDeTitle">Edit Day</div>
+    <div class="ws-de-title" id="wsDeTitle">Edit workout</div>
     <div class="ws-de-body">
       <div class="ws-de-fld">
         <span class="ws-de-fl">Title — line 1</span>
@@ -304,7 +305,7 @@
           <div class="ws-de-status-opt is-active" id="wsDeStatusActive" onclick="wsDeSetStatus(true)">Active</div>
           <div class="ws-de-status-opt is-banked" id="wsDeStatusBanked" onclick="wsDeSetStatus(false)">Banked</div>
         </div>
-        <div class="ws-de-status-hint" id="wsDeStatusHint">Active days appear in your day tabs. Banked days are saved here for later.</div>
+        <div class="ws-de-status-hint" id="wsDeStatusHint">Active workouts appear as tabs on Today. Banked workouts are kept here for later.</div>
       </div>
       <div class="ws-de-fld">
         <span class="ws-de-fl">Exercises</span>
@@ -360,10 +361,10 @@
   <div id="wsLeDayPick" class="ws-confirm-scrim" onclick="wsLeDayPickBackdrop(event)">
     <div class="ws-confirm-sheet ws-daypick-sheet" onclick="event.stopPropagation()">
       <div class="ws-confirm-head">
-        <div class="ws-confirm-title">Add to which day?</div>
+        <div class="ws-confirm-title">Add to which workout?</div>
         <button class="ws-confirm-x" onclick="wsLeCloseDayPick()" aria-label="Cancel">×</button>
       </div>
-      <div class="ws-confirm-sub" id="wsLeDayPickSub">Pick a day to add this exercise to.</div>
+      <div class="ws-confirm-sub" id="wsLeDayPickSub">Pick a workout to add this exercise to.</div>
       <div class="ws-daypick-list" id="wsLeDayPickList"></div>
       <button class="ws-daypick-done" onclick="wsLeDayPickDone()">Done</button>
     </div>
@@ -425,7 +426,7 @@
     </div>
     <div class="ws-pk-footer">
       <button class="ws-pk-cancel" onclick="closeWsPicker()">Cancel</button>
-      <button class="ws-pk-add empty" id="wsPkAddBtn" onclick="wsPkCommit()" disabled>Add to day</button>
+      <button class="ws-pk-add empty" id="wsPkAddBtn" onclick="wsPkCommit()" disabled>Add to workout</button>
     </div>
   </div>
 </div>

@@ -48,7 +48,7 @@ function wsEffortStripHtml(sessionId, current, source){
   let chips='';
   for(let n=1;n<=10;n++){
     const on = (current!=null && Math.round(current)===n) ? ' on' : '';
-    chips += '<button class="wsse-n'+on+'" onclick="wsPickSessionEffort(\''+sessionId+'\','+n+')">'+n+'</button>';
+    chips += '<button class="wsse-n'+on+'" onclick="wsPickSessionEffort(\''+wsJs(sessionId)+'\','+n+')">'+n+'</button>';
   }
   const note = current==null
     ? 'Rate the whole session — 1 easy, 10 all-out'

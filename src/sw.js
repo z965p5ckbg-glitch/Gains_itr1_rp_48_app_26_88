@@ -31,11 +31,16 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;   // never touch API calls
+  // v61: "Check for updates" must see the server's copy, not this cache
+  if (url.searchParams.has('gains-check')) return;
 
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then(hit => {
       // Background refresh: update the cache for next launch, never this one.
-      const net = fetch(req).then(res => {
+      // v61: cache:'no-cache' revalidates with the server. A plain fetch could
+      // be answered by the browser's own HTTP cache (GitHub Pages allows ten
+      // minutes), and that older copy then overwrote a just-installed build.
+      const net = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
         // Only cache a genuine same-origin 200. This guard matters if the site
         // sits behind an auth gate (e.g. Cloudflare Access): an expired session
         // returns a redirect to a login page, and caching THAT as the app shell

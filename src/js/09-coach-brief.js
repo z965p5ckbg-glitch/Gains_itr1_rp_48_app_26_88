@@ -98,7 +98,7 @@ function wsCoachBrief(customAsk){
   try{
     const mw=wsProgMuscleWeekly(frame);
     if(mw && mw.length){
-      L.push('## Weekly sets by muscle (growth zone 10-20)');
+      L.push('## Weekly sets by muscle (estimate over '+mw.weeks+' complete week'+(mw.weeks===1?'':'s')+'; main muscle 1 set, helpers 0.5; warm-ups excluded; common range 10-20)');
       mw.slice(0,14).forEach(m=>{
         const z = m.perWk<6 ? 'below maintenance' : (m.perWk<10 ? 'maintenance' : (m.perWk<=20 ? 'in zone' : 'above zone'));
         L.push('- '+m.m+': '+m.perWk+'/wk — '+z);

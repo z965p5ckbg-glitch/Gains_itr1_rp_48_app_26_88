@@ -43,7 +43,7 @@ function renderCardioCard(ex,ei,shimmer){
       </div>
       <div class="cf${ex.logged?' logged':''}" onclick="openCardioEdit(${ei},'intensity')">
         <div class="cf-l">Intensity</div>
-        <div class="cf-v">${ex.intensity}</div>
+        <div class="cf-v">${wsEscape(ex.intensity)}</div>
         <div class="cf-u">${ex.intensity==='Low'?'easy':ex.intensity==='Mod'?'moderate':'hard'}</div>
       </div>
       <div class="cf${ex.distance?' logged':' empty'}" onclick="openCardioEdit(${ei},'distance')">
@@ -112,8 +112,8 @@ function renderCardioCard(ex,ei,shimmer){
     );
     fieldsHtml=`<div class="ws-circ-spec${hasPending?' pending':''}">
       <div class="ws-circ-spec-l">
-        ${ex.name?'':`<div class="ws-circ-spec-name">Auto · ${wsCircuitName(ex)}</div>`}
-        <div class="ws-circ-spec-sub">${isSimple?`${totalR} rounds · ${ex.workSec}s on / ${ex.restSec}s off`:(ex.amrap&&ex.capMin>0?`${(ex.roundsCustom||[]).length} stations · AMRAP ${ex.capMin} min`:`${(ex.roundsCustom||[]).length} stations · ${totalR} ${totalR===1?'round':'rounds'} · break ${ex.roundRest||0}s`)}</div>
+        ${ex.name?'':`<div class="ws-circ-spec-name">Auto · ${wsEscape(wsCircuitName(ex))}</div>`}
+        <div class="ws-circ-spec-sub">${isSimple?`${totalR} rounds · ${Number(ex.workSec)||0}s on / ${Number(ex.restSec)||0}s off`:(ex.amrap&&ex.capMin>0?`${(ex.roundsCustom||[]).length} stations · AMRAP ${Number(ex.capMin)||0} min`:`${(ex.roundsCustom||[]).length} stations · ${totalR} ${totalR===1?'round':'rounds'} · break ${ex.roundRest||0}s`)}</div>
       </div>
       <div class="ws-wrench" onclick="wsOpenCircuitEditor(${ei})"><svg viewBox="0 0 16 16"><path d="M11.5 1.7a3.6 3.6 0 0 0-4.3 4.7L2 11.6a1.6 1.6 0 1 0 2.3 2.3l5.2-5.2a3.6 3.6 0 0 0 4.7-4.3L12 6.6 9.4 4 11.5 1.7z"/></svg></div>
     </div>${hasPending?'<div class="pending-indicator">Edits will apply on next start</div>':''}`;
@@ -577,8 +577,8 @@ function wsHiitState(ex,ei){
   if(isActivePhase&&cur){
     stripDesc=isPaused?`Paused · round ${curRound+1}${isAm?'':` of ${totalRounds}`}`
              :(isAm?`Round ${curRound+1} · AMRAP`:`Round ${curRound+1} of ${totalRounds}`);
-  } else if(isAm){ stripDesc=`${(ex.roundsCustom||[]).length} stations · ${ex.capMin} min cap`; }
-  else if(isSimple){ stripDesc=`${totalRounds} ${totalRounds===1?'round':'rounds'} · ${ex.workSec}s on / ${ex.restSec}s off`; }
+  } else if(isAm){ stripDesc=`${(ex.roundsCustom||[]).length} stations · ${Number(ex.capMin)||0} min cap`; }
+  else if(isSimple){ stripDesc=`${totalRounds} ${totalRounds===1?'round':'rounds'} · ${Number(ex.workSec)||0}s on / ${Number(ex.restSec)||0}s off`; }
   else { stripDesc=`${(ex.roundsCustom||[]).length} stations · ${totalRounds} ${totalRounds===1?'round':'rounds'}`; }
 
   const rb=!!(cur&&cur.roundRest)&&(isWork||isRest);
@@ -586,7 +586,7 @@ function wsHiitState(ex,ei){
   const totalSec=segs.reduce((a,x)=>a+(x.duration||0),0)+(ex.setupSec||0);
   if(isIdle){
     bigCls='idle';
-    counter=stripDesc+(ex.setupSec>0?` · ${ex.setupSec}s setup`:'');
+    counter=stripDesc+(ex.setupSec>0?` · ${Number(ex.setupSec)||0}s setup`:'');
     name=`<svg class="ws-play" viewBox="0 0 12 14"><path d="M1.6 1.4C1.6.5 2.6-.1 3.4.4l8 5.3c.8.5.8 1.7 0 2.2l-8 5.3c-.8.5-1.8-.1-1.8-1V1.4z"/></svg>START`;
     time=fmtMS(totalSec);
     sub='Tap to begin';
@@ -619,12 +619,12 @@ function wsHiitState(ex,ei){
 
   const nx=curIdx+1<segs.length?segs[curIdx+1]:null;
   let nl,nv,nc,nd;
-  if(isIdle){ nl='First up'; nv=segs[0]?.label||'—'; nc='w'; nd=segs[0]?fmtMS(segs[0].duration):''; }
+  if(isIdle){ nl='First up'; nv=wsEscape(segs[0]?.label||'—'); nc='w'; nd=segs[0]?fmtMS(segs[0].duration):''; }
   else if(isDone||!nx){ nl='Next up'; nv='Finish'; nc=''; nd=''; }
   else {
     nl=rb?`Next · round ${nx.roundIdx+1}`:'Next up';
     if(nx.roundRest){ nv='Round break'; nc='rb'; }
-    else if(nx.type==='work'){ nv=nx.label; nc='w'; }
+    else if(nx.type==='work'){ nv=wsEscape(nx.label); nc='w'; }   // v61: step names are text
     else { nv='Rest'; nc='r'; }
     nd=fmtMS(nx.duration);
   }

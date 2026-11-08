@@ -7,6 +7,33 @@ the project's original notes and isn't repeated here.
 > **v45–v54 were built but never deployed.** The phone ran v44 until v55, so
 > v55 is the first time any of the v45–v54 work reaches it.
 
+## v61: honest numbers, readable everywhere, workouts and sessions, safer data
+**Progress measures what it says**
+- Sets per muscle is a true weekly average: it divides by the complete calendar weeks in the period (Monday to Sunday), leaves this unfinished week out, and starts counting at your first strength session. It used to divide by the time between your first and last session, so one week of training read as a full weekly average.
+- The main muscle counts a whole set and helpers half (bench: chest 1, triceps and front delts ½), the same rule the adaptation mix already used. Warm-ups never count.
+- The panel says what the number is: "estimated, a week, over 8 complete weeks", and how sets are counted. With no complete week yet it says when there will be.
+- Warm-ups no longer feed the estimated max.
+
+**Readable on every screen**
+- Nothing that carries meaning is smaller than 13px anywhere in the app: tab bar, History, Progress, PRs, Settings, the plan editor, the library and the picker included. A test walks every screen and measures.
+
+**Workouts and sessions**
+- The plan is made of workouts; what you logged is a session. "Day" now means only a calendar day. The plan screen, editor, library, picker, delete dialog and messages all changed. New installs name their workouts "Workout 1, 2…"; your own names are never touched (tap the name at the top of Today to rename one).
+
+**Backups and updates**
+- After you log a session, the summary reminds you to back up when you never have, or when it has been a week and there is something new. "Later" puts it off for three days; Settings has a switch to turn it off.
+- Settings shows how old your last backup is, highlighted when it's over a week.
+- "Check for updates" in Settings says whether you're up to date or a newer version is ready, with a Restart button.
+- The offline copy now always checks the server when it refreshes. Before, the browser's own cache could hand back an older copy and overwrite a build that had just arrived.
+
+**Supersets in the workout editor**
+- A link button pairs an exercise with the one below it; paired rows show A1, A2 and a bracket. Drag to choose the order.
+- Removing or moving an exercise can no longer pair two exercises that weren't paired (pairing was stored as "with the next one", so a removal could link a stranger).
+- Long exercise names wrap to two lines in the editor.
+
+**Security**
+- A full pass over every place data becomes HTML. Ids from a backup (session ids, exercise ids) sat inside tap handlers, where HTML escaping isn't enough: the browser turns `&#39;` back into a quote before the handler runs. A crafted backup could run code from History, Progress, PRs, the library and the picker. All of them now go through `wsJs`. Interval station names, cardio intensity tags, custom exercise muscles and the full-screen timer name are escaped too. A new test (`21-hostile-data`) restores hostile data and taps through every screen.
+
 ## v60: the workout screen, third pass
 **One next thing at a time**
 - Only the set that is up next has an orange ring. Every other exercise still shows its next set with the steppers, but in neutral, so the page no longer shows five orange rows at once.

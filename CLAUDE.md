@@ -18,7 +18,7 @@ changing anything a user sees. Recent history is in `docs/CHANGELOG.md`.
    screen). The legacy code guards this with `try{}` and `_wsPending*` holders.
    Follow that pattern rather than reordering files.
 3. **Order is meaningful.** `src/manifest.json` lists CSS in cascade order and JS
-   in load order. New CSS goes in a new file at the end (`25-v60.css` is the
+   in load order. New CSS goes in a new file at the end (`26-v61.css` is the
    current one) or beside the rule it changes, never in the middle of the order.
 4. **Run `npm test` before every commit.** Add a browser test for every bug you
    fix, and check that it fails on the old code before you trust it. For anything
@@ -75,7 +75,10 @@ The full reasoning is in `docs/DECISIONS.md`. The short version:
   feature seems to need one, raise it first.
 - **Escape everything that came from data.** Names, labels, cues and anything
   read from a backup or import file go through `wsEscape` before entering
-  HTML (`17-review-fixes` injects markup and checks nothing runs).
+  HTML (`17-review-fixes` injects markup and checks nothing runs). A value
+  inside a quoted script string in an attribute (`onclick="f('…')"`) needs
+  `wsJs`, not `wsEscape`: the browser decodes the attribute first
+  (`21-hostile-data` restores hostile ids and taps through every screen).
 - **No credentials in the app.** The AI coach is "copy a brief into your own AI".
   An API key in the browser was considered and rejected (see DECISIONS).
 - Whoever can push to `main` controls the code that reads the user's data.
@@ -102,6 +105,11 @@ check on the phone. Say which kind of check a claim rests on.
   owner decides. Its modeled seed is built on the owner's real routine, so it
   stays out of this public repo. From now on the laptop works in a clone of
   this repo, on branches, through pull requests.
+- **Restore brings back History, settings, maxes and calibration, but not the
+  workouts or custom exercises**, even though the backup file contains them
+  (`wsRestoreBackup` in `14-merge-restore.js`). On a new phone the plan would
+  have to be rebuilt. Fix together with the migration/restore protocol
+  (review GAINS-003): validate, preview what will change, then replace.
 - Dynamic Type needs a refactor (fixed px everywhere) and device testing.
 - Ad-hoc logging (something not in the plan) and "save this as a day" are agreed
   in principle, with no automatic clustering.

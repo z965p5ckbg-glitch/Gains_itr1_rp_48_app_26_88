@@ -127,6 +127,10 @@ and recovery the app doesn't know.
 **Estimated 1RM** uses Epley on top sets. Declared 1RMs are something you tell
 the app, never inferred from history.
 
+- **v61: weekly averages divide by complete calendar weeks** in the period,
+  from the week of the first strength session; this week is excluded from
+  both sides. Sets credit main muscles 1 and helpers ½ (`wsMuscleCredit`).
+
 ## 5. Screens must agree
 
 - The period chosen at the top of Progress frames every number below it:
@@ -183,6 +187,19 @@ the app, never inferred from history.
 - **v60: an unticked set shows a grey tick.** The empty ring (v58) lost the
   cue that the circle is the thing to tap. Grey, not orange: orange is
   reserved for the one next set.
+- **v61: Workouts and Sessions.** A workout is the plan you repeat; a session
+  is what you did on a date. "Day" means a calendar day only. User-named
+  labels are never rewritten.
+- **v61: 13px floor across the app**, measured on every screen by
+  `20-text-size`. Dynamic Type is still the real answer and still needs the
+  fixed-pixel refactor.
+- **v61: backup reminders live in the session summary**, the one calm moment.
+  Due when never backed up (3+ sessions) or 7+ days with something new;
+  "Later" is three days; a Settings switch turns them off.
+- **v61: supersets in the editor are adjacency.** The editor orders by drag,
+  so pairing there is "link to the row below". On Today, "Superset with…"
+  picks any exercise and moves it. Either way, a removal or a move keeps a
+  link only between neighbours that were already in the same group.
 - **No Liquid Glass.** Translucency costs legibility and battery and needs live
   blur. A gym app is read sweaty, at arm's length, sometimes upside down on a
   bench. Opaque, high contrast and big numerals win. The principles (clarity,
@@ -231,6 +248,10 @@ the app, never inferred from history.
   the key is budget-capped at the provider.
 - The real attack surface is **who can change the served file**, which means the
   GitHub account. Protect it with a passkey or authenticator 2FA.
+- **v61: values inside tap handlers go through `wsJs`.** In
+  `onclick="f('${x}')"` the browser decodes the attribute before the script
+  runs, so `wsEscape` alone lets a quote back in. `wsJs` escapes for the script
+  string first, then for the attribute. `21-hostile-data` guards it.
 - **v60: stored HTML is sanitised on render.** The only HTML kept in data is a
   workout's two-line title; `wsSafeTitleHtml` lets through `<br>` and `<em>`
   and escapes everything else, at every place it is shown.

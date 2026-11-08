@@ -33,7 +33,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23090807'/%3E%3Crect x='30' y='84' width='120' height='12' rx='6' fill='%23f07830'/%3E%3Crect x='36' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3Crect x='122' y='66' width='22' height='48' rx='8' fill='%23f07830'/%3E%3C/svg%3E">
 <meta name="screen-orientation" content="portrait">
 <meta name="x5-orientation" content="portrait">
-<title>Gains — v60</title>
+<title>Gains — v61</title>
 <!-- Fonts are embedded below as base64 woff2. No external font request is made:
      it removes a supply-chain dependency, stops every launch pinging a third party,
      lets the app render correctly with zero signal, and is what allows the strict
@@ -2841,6 +2841,50 @@ input,textarea{-webkit-touch-callout:default}
 .ws-toast{width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box}
 .ws-toast.has-undo{display:flex;align-items:center;gap:12px;text-align:left;padding:6px 6px 6px 16px}
 .ws-toast.has-undo .ws-toast-undo{margin-left:0;min-height:44px;padding:0 14px;flex-shrink:0}
+/* ─── v61 ──────────────────────────────────────────────────────────────────── */
+
+/* Legibility across the whole app: nothing that carries meaning is smaller
+   than 13px, on any screen (20-text-size walks every screen and checks). */
+.ni,
+.ws-rpe-pill, .ws-rm-mini,
+.ps-stat-l, .cf-l, .cardio-foot, .rword, .phase-seg.more,
+.hi-mode-opt, .hi-week-sep span, .wk-n,
+.wsprog-trend .wsprog-tarrow, .wsprog-frame-badge,
+.wstrend-t, .wstrend-d, .wstrend-cap, .wstrend-s, .wstrend-v small, .wstrend-nodata, .wsgrid-cap,
+.wsad-h, .wsad-s, .wsad-m, .wsad-n, .wsad-n2, .wsad-lg, .wsad-lg em,
+.sh-fl, .apply-lbl-above, .sh-tgl-sub, .settings-row-sub,
+.ws-hint-text, .ws-hint-text strong, .ws-day-label, .ws-day-meta,
+.ws-de-title, .ws-de-exrow-meta, .ws-pk-title { font-size: 13px }
+
+/* Progress: how sets per muscle are counted, under the bars */
+.wspm-note { display: block; font-family: 'DM Sans', sans-serif; letter-spacing: 0; line-height: 1.4; color: var(--tx3); border-top: none; margin-top: 4px; padding-top: 0 }
+
+/* Backup reminder in the session summary */
+.fkb { margin-top: 22px; padding: 14px; border-radius: 14px; background: var(--s2); border: 1px solid var(--b2) }
+.fkb-t { font-size: 15px; line-height: 1.4; color: var(--tx) }
+.fkb-row { margin-top: 12px; display: flex; gap: 8px }
+.fkb-go { flex: 1; min-height: 46px; border: 1px solid var(--tx3); border-radius: 12px; background: var(--s3); color: var(--tx); font-weight: 700; font-size: 15px }
+.fkb-later { min-height: 46px; padding: 0 18px; border: 1px solid var(--b3); border-radius: 12px; background: none; color: var(--tx2); font-size: 15px }
+.settings-row-sub.stale { color: var(--acc) }
+
+/* App version: check for updates */
+.settings-row-ver { flex-wrap: wrap; row-gap: 8px }
+.ws-upd-btn { min-height: 44px; padding: 0 14px; border: 1px solid var(--b3); border-radius: 12px; background: none; color: var(--tx); font-size: 14px; flex-shrink: 0 }
+.ws-upd-btn[disabled] { color: var(--tx4) }
+.ws-upd-restart { display: block; margin-top: 8px; min-height: 44px; padding: 0 14px; border: none; border-radius: 12px; background: var(--tx); color: var(--bg); font-weight: 700; font-size: 14px }
+
+/* Supersets in the workout editor: A1/A2, a bracket, and a link to the row below */
+.ws-de-ss { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--tx) }
+.ws-de-ss-row .ws-de-exrow-sub { display: block }
+.ws-de-ss-row { border-left: 3px solid var(--tx2) }
+.ws-de-ss-first, .ws-de-ss-mid { border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; margin-bottom: -4px }
+.ws-de-ss-mid, .ws-de-ss-last { border-top-left-radius: 2px; border-top-right-radius: 2px }
+.ws-de-link { flex-shrink: 0; width: 44px; height: 44px; margin: -6px 0; border: none; border-radius: 10px; background: none; display: flex; align-items: center; justify-content: center; padding: 0 }
+.ws-de-link svg { width: 20px; height: 20px; fill: none; stroke: var(--tx4); stroke-width: 2; stroke-linecap: round }
+.ws-de-link.on svg { stroke: var(--tx) }
+.ws-de-link:active { background: var(--s3) }
+/* long exercise names wrap to two lines in the editor instead of "SMITH SINGL…" */
+.ws-de-exrow-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical }
 </style>
 </head>
 <body>
@@ -2965,7 +3009,7 @@ input,textarea{-webkit-touch-callout:default}
     <div class="settings-section">
       <div class="settings-section-title">Workshop</div>
       <div class="settings-card">
-        <div class="settings-row tappable settings-row-featured" onclick="openWorkshop()"><div class="settings-row-info"><div class="settings-row-title">Open Workshop</div><div class="settings-row-sub">Manage days and exercises · build your plan</div></div><span class="chevron settings-row-featured-chev">›</span></div>
+        <div class="settings-row tappable settings-row-featured" onclick="openWorkshop()"><div class="settings-row-info"><div class="settings-row-title">Open Workshop</div><div class="settings-row-sub">Manage workouts and exercises · build your plan</div></div><span class="chevron settings-row-featured-chev">›</span></div>
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Advanced Exercise Tags</div><div class="settings-row-sub">Tag exercises by muscle &amp; movement pattern · enables grouping in the Library</div></div><div class="tog" id="togAdvTags" onclick="toggleAdvancedTags(this)"></div></div>
       </div>
     </div>
@@ -2974,8 +3018,9 @@ input,textarea{-webkit-touch-callout:default}
       <div class="settings-card">
         <div class="settings-row" onclick="wsOpenProfile()"><div class="settings-row-info"><div class="settings-row-title">About me &amp; bodyweight</div><div class="settings-row-sub">Unlocks relative strength and gives the coach real context</div></div><div class="settings-chev">&rsaquo;</div></div>
         <div class="settings-row" onclick="wsOpenCoach()"><div class="settings-row-info"><div class="settings-row-title">Ask my coach</div><div class="settings-row-sub">Copy a training brief into any AI &mdash; no account, no key</div></div><div class="settings-chev">&rsaquo;</div></div>
-        <div class="settings-row" onclick="wsOpenData()"><div class="settings-row-info"><div class="settings-row-title">Your data — backup &amp; restore</div><div class="settings-row-sub">Save a copy outside the app, or start a fresh log</div></div><div class="settings-chev">›</div></div>
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub">Gains v60 &middot; offline build</div></div></div>
+        <div class="settings-row" onclick="wsOpenData()"><div class="settings-row-info"><div class="settings-row-title">Your data — backup &amp; restore</div><div class="settings-row-sub" id="dataRowSub">Save a copy outside the app, or start a fresh log</div></div><div class="settings-chev">›</div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Remind me to back up</div><div class="settings-row-sub">After a session, once a week, if there's something new</div></div><div class="tog on" id="togBackupRemind" role="switch" aria-label="Remind me to back up" onclick="wsSetBackupRemind(!wsBackupRemindOn())"></div></div>
+        <div class="settings-row settings-row-ver"><div class="settings-row-info"><div class="settings-row-title">App version</div><div class="settings-row-sub" id="appVerSub">Gains v61 &middot; offline build</div></div><button class="ws-upd-btn" id="appVerBtn" onclick="wsCheckUpdate()">Check for updates</button></div>
       </div>
     </div>
     <div class="settings-section">
@@ -2988,7 +3033,7 @@ input,textarea{-webkit-touch-callout:default}
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Sticky global rest timer</div><div class="settings-row-sub">One pinned timer instead of per-exercise</div></div><div class="tog" onclick="this.classList.toggle('on')"></div></div>
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Visual cue on alert</div><div class="settings-row-sub">Pulsing rim around the app — useful with loud music</div></div><div class="tog on" id="togRim" onclick="toggleSetting('rim',this)"></div></div>
         <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Keep my edits on updates</div><div class="settings-row-sub">Weights, reps and circuit tweaks carry over when app data updates</div></div><div class="tog on" id="togKeepEdits" onclick="toggleSetting('keepEdits',this)"></div></div>
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Shimmer on day switch</div><div class="settings-row-sub">Subtle light sweep over interactive elements</div></div><div class="tog on" id="togShimmer" onclick="toggleSetting('shimmer',this)"></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Shimmer when switching workouts</div><div class="settings-row-sub">Subtle light sweep over interactive elements</div></div><div class="tog on" id="togShimmer" onclick="toggleSetting('shimmer',this)"></div></div>
         <div class="settings-row settings-row-stacked">
           <div class="settings-row-info">
             <div class="settings-row-title">Keep screen on</div>
@@ -3034,7 +3079,7 @@ input,textarea{-webkit-touch-callout:default}
         <span class="collapse-btn" id="aboutChevron">+</span>
       </div>
       <div class="settings-card collapsible-body" id="aboutSectionBody">
-        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Version</div><div class="settings-row-sub">Gains v60</div></div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Version</div><div class="settings-row-sub">Gains v61</div></div></div>
       </div>
     </div>
     <div class="sh-actions"><button class="sh-cancel" onclick="closeSettings()" style="flex:1">Done</button></div>
@@ -3051,7 +3096,7 @@ input,textarea{-webkit-touch-callout:default}
       </div>
     </div>
     <div class="ws-tabs">
-      <div class="ws-tab active" id="wsTabDays" onclick="wsSwitchTab('days')"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="13" rx="2"/><line x1="2" y1="7" x2="16" y2="7"/></svg><span>Days</span></div>
+      <div class="ws-tab active" id="wsTabDays" onclick="wsSwitchTab('days')"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="13" rx="2"/><line x1="2" y1="7" x2="16" y2="7"/></svg><span>Workouts</span></div>
       <div class="ws-tab" id="wsTabLib" onclick="wsSwitchTab('library')"><svg viewBox="0 0 18 18"><path d="M3 4h12v10H3z"/><line x1="6" y1="4" x2="6" y2="14"/><line x1="9" y1="7" x2="13" y2="7"/><line x1="9" y1="10" x2="13" y2="10"/></svg><span>Library</span></div>
     </div>
   </div>
@@ -3069,9 +3114,9 @@ input,textarea{-webkit-touch-callout:default}
 <div id="wsDeleteModal">
   <div class="ws-del-sheet">
     <div class="ws-del-handle"></div>
-    <div class="ws-del-title">Delete day?</div>
-    <div class="ws-del-name" id="wsDelName">Day</div>
-    <div class="ws-del-sub" id="wsDelSub">This permanently removes the day and any exercises in it.</div>
+    <div class="ws-del-title">Delete workout?</div>
+    <div class="ws-del-name" id="wsDelName">Workout</div>
+    <div class="ws-del-sub" id="wsDelSub">This permanently removes the workout and its exercises.</div>
     <div class="ws-del-slide-wrap" id="wsDelSlide">
       <div class="ws-del-slide-fill" id="wsDelFill"></div>
       <div class="ws-del-slide-thumb" id="wsDelThumb">
@@ -3087,7 +3132,7 @@ input,textarea{-webkit-touch-callout:default}
 <div id="wsDayEditModal">
   <div class="ws-de-sheet">
     <div class="ws-de-handle"></div>
-    <div class="ws-de-title" id="wsDeTitle">Edit Day</div>
+    <div class="ws-de-title" id="wsDeTitle">Edit workout</div>
     <div class="ws-de-body">
       <div class="ws-de-fld">
         <span class="ws-de-fl">Title — line 1</span>
@@ -3107,7 +3152,7 @@ input,textarea{-webkit-touch-callout:default}
           <div class="ws-de-status-opt is-active" id="wsDeStatusActive" onclick="wsDeSetStatus(true)">Active</div>
           <div class="ws-de-status-opt is-banked" id="wsDeStatusBanked" onclick="wsDeSetStatus(false)">Banked</div>
         </div>
-        <div class="ws-de-status-hint" id="wsDeStatusHint">Active days appear in your day tabs. Banked days are saved here for later.</div>
+        <div class="ws-de-status-hint" id="wsDeStatusHint">Active workouts appear as tabs on Today. Banked workouts are kept here for later.</div>
       </div>
       <div class="ws-de-fld">
         <span class="ws-de-fl">Exercises</span>
@@ -3163,10 +3208,10 @@ input,textarea{-webkit-touch-callout:default}
   <div id="wsLeDayPick" class="ws-confirm-scrim" onclick="wsLeDayPickBackdrop(event)">
     <div class="ws-confirm-sheet ws-daypick-sheet" onclick="event.stopPropagation()">
       <div class="ws-confirm-head">
-        <div class="ws-confirm-title">Add to which day?</div>
+        <div class="ws-confirm-title">Add to which workout?</div>
         <button class="ws-confirm-x" onclick="wsLeCloseDayPick()" aria-label="Cancel">×</button>
       </div>
-      <div class="ws-confirm-sub" id="wsLeDayPickSub">Pick a day to add this exercise to.</div>
+      <div class="ws-confirm-sub" id="wsLeDayPickSub">Pick a workout to add this exercise to.</div>
       <div class="ws-daypick-list" id="wsLeDayPickList"></div>
       <button class="ws-daypick-done" onclick="wsLeDayPickDone()">Done</button>
     </div>
@@ -3228,14 +3273,14 @@ input,textarea{-webkit-touch-callout:default}
     </div>
     <div class="ws-pk-footer">
       <button class="ws-pk-cancel" onclick="closeWsPicker()">Cancel</button>
-      <button class="ws-pk-add empty" id="wsPkAddBtn" onclick="wsPkCommit()" disabled>Add to day</button>
+      <button class="ws-pk-add empty" id="wsPkAddBtn" onclick="wsPkCommit()" disabled>Add to workout</button>
     </div>
   </div>
 </div>
 
 
 <script>// Stamped by build.mjs from package.json — the single source of the version.
-const GAINS_VERSION='60';
+const GAINS_VERSION='61';
 
 const ICONS={
   rowing:{name:'Row',svg:'<path d="M3 13.5c1.2-1 2.4-1 3.6 0s2.4 1 3.6 0 2.4-1 3.6 0 2.4 1 3.6 0 2.4-1 3.6 0M5 9 L9 11 L11 9 L13 11 L15 9 L17 11 L19 9 L20 5 L17 6 L15 9"/>'},
@@ -4125,7 +4170,9 @@ function wsDayRemoveInstance(day,inst){
   if(!Array.isArray(day.items)) return false;
   const i=day.items.indexOf(inst);
   if(i<0) return false;
+  const groups=wsSsGroupMap(day.items);      // v61: keep supersets as they were
   day.items.splice(i,1);
+  wsSsKeepGroups(day.items,groups);
   // Rebuild the derived exercises[]/cardio[] views from items[].
   wsDayItemsSync(day);
   return true;
@@ -4137,7 +4184,9 @@ function wsDayRemoveInstance(day,inst){
 function wsDayRemoveByIid(day,iid){
   if(!day || !iid || !Array.isArray(day.items)) return false;
   const before=day.items.length;
+  const groups=wsSsGroupMap(day.items);      // v61: keep supersets as they were
   day.items=day.items.filter(i=>i._iid!==iid);
+  wsSsKeepGroups(day.items,groups);
   const removed=day.items.length<before;
   if(removed) wsDayItemsSync(day);
   return removed;
@@ -4161,7 +4210,7 @@ function wsDayRemoveByExId(day,exId){
 
 function makeDays(){
   return [
-    {label:'Day 1',titleHtml:'Push +<br><em>Pull</em>',published:true,exercises:[
+    {label:'Workout 1',titleHtml:'Push +<br><em>Pull</em>',published:true,exercises:[
       {name:'Bench Press',exId:'bench-press-barbell',cue:'',sets:[{w:65,r:8},{w:65,r:8},{w:65,r:8},{w:65,r:8}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:false},
       {name:'Single-Leg Squat (balance pad)',exId:'smith-single-leg-split-squat',cue:'',sets:[{w:5,r:10},{w:5,r:10},{w:5,r:10},{w:5,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Cable Triceps Extension (standing)',exId:'cable-rope-overhead-triceps-extension',cue:'',sets:[{w:20,r:10},{w:20,r:10},{w:20,r:10},{w:20,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
@@ -4170,7 +4219,7 @@ function makeDays(){
     ],cardio:[
       {kind:'intervals',name:'Finisher HIIT',icon:'kettlebell',cue:'',simpleMode:false,roundsCustom:[{name:'Kettlebell Swing 30kg',work:40,rest:20},{name:'Push-Ups',work:30,rest:20},{name:'Mountain Climbers',work:30,rest:20},{name:'Battle Ropes',work:30,rest:30}],workSec:40,restSec:20,totalRounds:2,roundRest:60,amrap:false,capMin:0,rounds:0,logged:false,phase:'idle',phaseIdx:0,phaseLeft:40,sound:true}
     ],logged:false},
-    {label:'Day 2',titleHtml:'Upper<br><em>DB</em>',published:true,exercises:[
+    {label:'Workout 2',titleHtml:'Upper<br><em>DB</em>',published:true,exercises:[
       {name:'DB Shoulder Press (seated)',exId:'dumbbell-shoulder-press',cue:'',sets:[{w:20,r:6},{w:20,r:6},{w:20,r:6},{w:20,r:6}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:false},
       {name:'DB Bicep Curl (seated)',exId:'machine-bicep-curl',cue:'',sets:[{w:12,r:10},{w:12,r:10},{w:12,r:10},{w:12,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Lateral Raise (DB, standing)',exId:'side-lateral-raise',cue:'',sets:[{w:10,r:7},{w:10,r:7},{w:10,r:7},{w:10,r:7}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
@@ -4180,20 +4229,20 @@ function makeDays(){
     ],cardio:[
       {kind:'distance',name:'Interval Rowing',exId:'rowing-stationary',icon:'row',cue:'',duration:300,actualDuration:null,intensity:'Hard',distance:1.15,logged:false,timerMode:'limit',rl:300,rs:'idle',rv:true,sound:true}
     ],logged:false},
-    {label:'Day 3',titleHtml:'Legs +<br><em>Posterior</em>',published:true,exercises:[
+    {label:'Workout 3',titleHtml:'Legs +<br><em>Posterior</em>',published:true,exercises:[
       {name:'Romanian Deadlift',exId:'romanian-deadlift',cue:'',sets:[{w:60,r:10},{w:60,r:10},{w:60,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:false},
       {name:'Hack Squat',exId:'hack-squat',cue:'',sets:[{w:30,r:8},{w:30,r:8},{w:30,r:8}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Calf Raise (hack machine)',exId:'barbell-seated-calf-raise',cue:'',sets:[{w:30,r:15},{w:30,r:15},{w:30,r:15}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Glute Bridge (machine)',exId:'barbell-glute-bridge',cue:'',sets:[{w:30,r:10},{w:30,r:10},{w:30,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false},
       {name:'Roman Chair Back Extension',exId:'hyperextensions-back-extensions',cue:'',sets:[{w:0,r:10},{w:0,r:10},{w:0,r:10},{w:0,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:true}
     ],logged:false},
-    {label:'Day 4',titleHtml:'Home<br><em>Circuit</em>',published:true,exercises:[
+    {label:'Workout 4',titleHtml:'Home<br><em>Circuit</em>',published:true,exercises:[
       {name:'Pull-Up',exId:'pull-up',cue:'',sets:[{w:0,r:12},{w:0,r:12},{w:0,r:12}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:true,sound:true,_bodyweight:true},
       {name:'Push-Up',exId:'decline-push-up',cue:'',sets:[{w:0,r:20},{w:0,r:20},{w:0,r:20}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:true},
       {name:'Ab Roller',exId:'ab-roller',cue:'',sets:[{w:0,r:12},{w:0,r:12},{w:0,r:12}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:true},
       {name:'DB Squat (on shoulders)',exId:'dumbbell-squat',cue:'',sets:[{w:15,r:10},{w:15,r:10},{w:15,r:10}],deletedSets:[],rest:90,rl:90,rs:'idle',rv:false,sound:true,_bodyweight:false}
     ],logged:false},
-    {label:'Day 5',titleHtml:'Mobility +<br><em>Intervals</em>',published:true,exercises:[],cardio:[
+    {label:'Workout 5',titleHtml:'Mobility +<br><em>Intervals</em>',published:true,exercises:[],cardio:[
       {kind:'time',name:'Jump Rope',exId:'rope-jumping',icon:'jump',cue:'',duration:300,actualDuration:null,intensity:'Mod',distance:null,logged:false,timerMode:'limit',rl:300,rs:'idle',rv:true,sound:true},
       {kind:'intervals',name:'Conditioning Circuit',icon:'kettlebell',cue:'',simpleMode:false,roundsCustom:[{name:'Jump in Place',work:30,rest:15},{name:'Butt Kicks',work:30,rest:15},{name:'Alternating Lunges',work:30,rest:15},{name:'Mountain Climbers',work:30,rest:15},{name:'Plank Jacks',work:30,rest:15},{name:'Plank Elbow Touches',work:30,rest:15}],workSec:30,restSec:15,totalRounds:3,roundRest:60,amrap:false,capMin:0,rounds:0,logged:false,phase:'idle',phaseIdx:0,phaseLeft:30,sound:true},
       {kind:'distance',name:'Cool-Down Walk',exId:'walking-treadmill',icon:'walk',cue:'',duration:600,actualDuration:null,intensity:'Low',distance:1.0,logged:false,timerMode:'limit',rl:600,rs:'idle',rv:true,sound:true}
@@ -4618,16 +4667,16 @@ function wsPRRender(){
   let body='';
   if(wsPRSort==='recent'){
     body=`<div class="wsprog-sect">Records · ${events.length}</div><div class="wspr-list">`+
-      events.slice(0,60).map(e=>`<div class="wspr-row" onclick="wsPRGo('${encodeURIComponent(e.key)}')">
-        <div class="wspr-v">${e.label}</div>
+      events.slice(0,60).map(e=>`<div class="wspr-row" onclick="wsPRGo('${wsJs(encodeURIComponent(e.key))}')">
+        <div class="wspr-v">${wsEscape(e.label)}</div>
         <div class="wspr-m"><div class="wspr-n">${hiEscape(e.name)}</div>
         <div class="wspr-d">${wsProgFmtDate(e.t)}</div></div>
       </div>`).join('')+`</div>`;
     if(events.length>60) body+=`<div class="wsprog-more">Showing the 60 most recent of ${events.length}</div>`;
   } else {
     body=`<div class="wsprog-sect">Current bests · ${bests.length}</div><div class="wspr-list">`+
-      bests.map(b=>`<div class="wspr-row" onclick="wsPRGo('${encodeURIComponent(b.key)}')">
-        <div class="wspr-v">${b.label}</div>
+      bests.map(b=>`<div class="wspr-row" onclick="wsPRGo('${wsJs(encodeURIComponent(b.key))}')">
+        <div class="wspr-v">${wsEscape(b.label)}</div>
         <div class="wspr-m"><div class="wspr-n">${hiEscape(b.name)}</div>
         <div class="wspr-d">${b.prs} record${b.prs===1?'':'s'} set</div></div>
       </div>`).join('')+`</div>`;
@@ -4822,7 +4871,7 @@ function wsCoachBrief(customAsk){
   try{
     const mw=wsProgMuscleWeekly(frame);
     if(mw && mw.length){
-      L.push('## Weekly sets by muscle (growth zone 10-20)');
+      L.push('## Weekly sets by muscle (estimate over '+mw.weeks+' complete week'+(mw.weeks===1?'':'s')+'; main muscle 1 set, helpers 0.5; warm-ups excluded; common range 10-20)');
       mw.slice(0,14).forEach(m=>{
         const z = m.perWk<6 ? 'below maintenance' : (m.perWk<10 ? 'maintenance' : (m.perWk<=20 ? 'in zone' : 'above zone'));
         L.push('- '+m.m+': '+m.perWk+'/wk — '+z);
@@ -4910,7 +4959,7 @@ function wsAddExSearch(sessionId, q){
   }).slice(0,6);
   if(!hits.length){ box.innerHTML='<div class="ws-data-note">Nothing matched. You can still add it by name below.</div>'; return; }
   box.innerHTML=hits.map(e=>
-    '<div class="ws-addex-hit" onclick="wsAddExChoose(\''+sessionId+'\',\''+e.exId+'\')">'
+    '<div class="ws-addex-hit" onclick="wsAddExChoose(\''+wsJs(sessionId)+'\',\''+wsJs(e.exId)+'\')">'
     +'<span class="ws-addex-hn">'+hiEscape(e.title)+'</span>'
     +'<span class="ws-addex-hm">'+hiEscape((e.muscles||[]).slice(0,2).join(' · '))+'</span></div>').join('');
 }
@@ -5011,7 +5060,7 @@ function wsAddExSectionHtml(sessionId){
   return '<div class="ws-data-sep">Add an exercise you forgot</div>'
     +'<div class="ws-data-note">Did something at the rack that never made it into the log? Add it here — it counts toward your records, trends and comparisons exactly as if you had logged it at the time.</div>'
     +'<input id="wsAddExSearchInput" class="ws-addex-search" type="text" placeholder="Search the library…" '
-      +'oninput="wsAddExSearch(\''+sessionId+'\',this.value)">'
+      +'oninput="wsAddExSearch(\''+wsJs(sessionId)+'\',this.value)">'
     +'<div id="wsAddExResults"></div>'
     +'<div id="wsAddExForm"></div>';
 }
@@ -5032,7 +5081,7 @@ function wsFixSession(id){
     }
     return '<div class="ws-fix-row"><div class="ws-fix-m"><div class="ws-fix-n">'+hiEscape(e.name||'(unnamed)')+
       '</div><div class="ws-fix-s">'+hiEscape(sub)+'</div></div>'+
-      '<div class="ws-fix-x" onclick="wsFixRemoveEntry(\'' + id + '\',' + i + ')">Remove</div></div>';
+      '<div class="ws-fix-x" onclick="wsFixRemoveEntry(\'' + wsJs(id) + '\',' + i + ')">Remove</div></div>';
   }).join('');
   el.innerHTML='<div class="ws-data-scrim" onclick="wsCloseFix()"></div>'+
     '<div class="ws-data-sheet">'+
@@ -5042,10 +5091,10 @@ function wsFixSession(id){
       (rows||'<div class="ws-data-note">No exercises in this session.</div>')+
       '<div class="ws-data-sep">Session effort</div>'+(function(){var _se=wsSessionEffort(rec);return wsEffortStripHtml(id,_se?_se.value:null,_se?_se.source:null);})()+wsAddExSectionHtml(id)+'<div class="ws-data-sep">Date</div>'+
       '<div class="ws-data-note">Logged on the wrong day? Set the real date — records and trends re-sort immediately.</div>'+
-      '<input type="date" id="wsFixDate" class="ws-fix-date" value="'+((rec.date||'').slice(0,10))+'">'+
-      '<div class="ws-data-btn" onclick="wsFixSetDate(\''+id+'\')">Save date</div>'+
+      '<input type="date" id="wsFixDate" class="ws-fix-date" value="'+wsEscape(String(rec.date||'').slice(0,10))+'">'+
+      '<div class="ws-data-btn" onclick="wsFixSetDate(\''+wsJs(id)+'\')">Save date</div>'+
       '<div class="ws-data-sep">Whole session</div>'+
-      '<div class="ws-data-btn danger" onclick="wsFixDeleteSession(\'' + id + '\')">Delete this session</div>'+
+      '<div class="ws-data-btn danger" onclick="wsFixDeleteSession(\'' + wsJs(id) + '\')">Delete this session</div>'+
       '<div class="ws-data-btn close" onclick="wsCloseFix()">Done</div>'+
     '</div>';
   requestAnimationFrame(()=>el.classList.add('on'));
@@ -5427,7 +5476,7 @@ function wsApplyLegacyMerge(text){
     if(typeof wsRender==='function') wsRender();
     return {ok:true, added:p.toAdd.length, skipped:p.dupes.length,
             kept:p.existingCount, total:HISTORY.length, collisions:p.collisions,
-            msg:'Merged '+p.toAdd.length+' imported day'+(p.toAdd.length===1?'':'s')
+            msg:'Merged '+p.toAdd.length+' imported session'+(p.toAdd.length===1?'':'s')
                 +' with '+p.existingCount+' already here.'};
   }catch(e){ return {ok:false,msg:'Merge failed: '+(e&&e.message||'unknown')}; }
 }
@@ -6105,7 +6154,7 @@ function renderHeader(){
 function wsRenameDay(){
   const d=DAYS[curDay]; if(!d) return;
   const cur=d.label||'';
-  const next=prompt('Name this day', cur);
+  const next=prompt('Name this workout', cur);
   if(next===null) return;
   const clean=String(next).trim().slice(0,22);
   if(!clean) return;
@@ -6373,7 +6422,7 @@ function wsEst1RM(name){
         if(e.kind!=='weighted') continue;
         if(wsMaxKey(e.name)!==key) continue;
         for(const st of (e.sets||[])){
-          if(st.completed===false) continue;
+          if(!wsIsWorkSet(st)) continue;          // v61: a warm-up is never an estimate
           const v=wsEpley(st.weightKg, st.reps);
           if(v!=null && (best==null||v>best)) best=v;
         }
@@ -6387,7 +6436,7 @@ function wsEst1RM(name){
         if(wsEffortKind(ex)!=='strength' || ex._bodyweight) continue;
         if(wsMaxKey(ex.name)!==key) continue;
         for(const st of (ex.sets||[])){
-          if(!st._logged) continue;
+          if(!st._logged || st.warmup) continue;
           const v=wsEpley(st.w, st.r);
           if(v!=null && (best==null||v>best)) best=v;
         }
@@ -6673,7 +6722,7 @@ function renderCardioCard(ex,ei,shimmer){
       </div>
       <div class="cf${ex.logged?' logged':''}" onclick="openCardioEdit(${ei},'intensity')">
         <div class="cf-l">Intensity</div>
-        <div class="cf-v">${ex.intensity}</div>
+        <div class="cf-v">${wsEscape(ex.intensity)}</div>
         <div class="cf-u">${ex.intensity==='Low'?'easy':ex.intensity==='Mod'?'moderate':'hard'}</div>
       </div>
       <div class="cf${ex.distance?' logged':' empty'}" onclick="openCardioEdit(${ei},'distance')">
@@ -6742,8 +6791,8 @@ function renderCardioCard(ex,ei,shimmer){
     );
     fieldsHtml=`<div class="ws-circ-spec${hasPending?' pending':''}">
       <div class="ws-circ-spec-l">
-        ${ex.name?'':`<div class="ws-circ-spec-name">Auto · ${wsCircuitName(ex)}</div>`}
-        <div class="ws-circ-spec-sub">${isSimple?`${totalR} rounds · ${ex.workSec}s on / ${ex.restSec}s off`:(ex.amrap&&ex.capMin>0?`${(ex.roundsCustom||[]).length} stations · AMRAP ${ex.capMin} min`:`${(ex.roundsCustom||[]).length} stations · ${totalR} ${totalR===1?'round':'rounds'} · break ${ex.roundRest||0}s`)}</div>
+        ${ex.name?'':`<div class="ws-circ-spec-name">Auto · ${wsEscape(wsCircuitName(ex))}</div>`}
+        <div class="ws-circ-spec-sub">${isSimple?`${totalR} rounds · ${Number(ex.workSec)||0}s on / ${Number(ex.restSec)||0}s off`:(ex.amrap&&ex.capMin>0?`${(ex.roundsCustom||[]).length} stations · AMRAP ${Number(ex.capMin)||0} min`:`${(ex.roundsCustom||[]).length} stations · ${totalR} ${totalR===1?'round':'rounds'} · break ${ex.roundRest||0}s`)}</div>
       </div>
       <div class="ws-wrench" onclick="wsOpenCircuitEditor(${ei})"><svg viewBox="0 0 16 16"><path d="M11.5 1.7a3.6 3.6 0 0 0-4.3 4.7L2 11.6a1.6 1.6 0 1 0 2.3 2.3l5.2-5.2a3.6 3.6 0 0 0 4.7-4.3L12 6.6 9.4 4 11.5 1.7z"/></svg></div>
     </div>${hasPending?'<div class="pending-indicator">Edits will apply on next start</div>':''}`;
@@ -7207,8 +7256,8 @@ function wsHiitState(ex,ei){
   if(isActivePhase&&cur){
     stripDesc=isPaused?`Paused · round ${curRound+1}${isAm?'':` of ${totalRounds}`}`
              :(isAm?`Round ${curRound+1} · AMRAP`:`Round ${curRound+1} of ${totalRounds}`);
-  } else if(isAm){ stripDesc=`${(ex.roundsCustom||[]).length} stations · ${ex.capMin} min cap`; }
-  else if(isSimple){ stripDesc=`${totalRounds} ${totalRounds===1?'round':'rounds'} · ${ex.workSec}s on / ${ex.restSec}s off`; }
+  } else if(isAm){ stripDesc=`${(ex.roundsCustom||[]).length} stations · ${Number(ex.capMin)||0} min cap`; }
+  else if(isSimple){ stripDesc=`${totalRounds} ${totalRounds===1?'round':'rounds'} · ${Number(ex.workSec)||0}s on / ${Number(ex.restSec)||0}s off`; }
   else { stripDesc=`${(ex.roundsCustom||[]).length} stations · ${totalRounds} ${totalRounds===1?'round':'rounds'}`; }
 
   const rb=!!(cur&&cur.roundRest)&&(isWork||isRest);
@@ -7216,7 +7265,7 @@ function wsHiitState(ex,ei){
   const totalSec=segs.reduce((a,x)=>a+(x.duration||0),0)+(ex.setupSec||0);
   if(isIdle){
     bigCls='idle';
-    counter=stripDesc+(ex.setupSec>0?` · ${ex.setupSec}s setup`:'');
+    counter=stripDesc+(ex.setupSec>0?` · ${Number(ex.setupSec)||0}s setup`:'');
     name=`<svg class="ws-play" viewBox="0 0 12 14"><path d="M1.6 1.4C1.6.5 2.6-.1 3.4.4l8 5.3c.8.5.8 1.7 0 2.2l-8 5.3c-.8.5-1.8-.1-1.8-1V1.4z"/></svg>START`;
     time=fmtMS(totalSec);
     sub='Tap to begin';
@@ -7249,12 +7298,12 @@ function wsHiitState(ex,ei){
 
   const nx=curIdx+1<segs.length?segs[curIdx+1]:null;
   let nl,nv,nc,nd;
-  if(isIdle){ nl='First up'; nv=segs[0]?.label||'—'; nc='w'; nd=segs[0]?fmtMS(segs[0].duration):''; }
+  if(isIdle){ nl='First up'; nv=wsEscape(segs[0]?.label||'—'); nc='w'; nd=segs[0]?fmtMS(segs[0].duration):''; }
   else if(isDone||!nx){ nl='Next up'; nv='Finish'; nc=''; nd=''; }
   else {
     nl=rb?`Next · round ${nx.roundIdx+1}`:'Next up';
     if(nx.roundRest){ nv='Round break'; nc='rb'; }
-    else if(nx.type==='work'){ nv=nx.label; nc='w'; }
+    else if(nx.type==='work'){ nv=wsEscape(nx.label); nc='w'; }   // v61: step names are text
     else { nv='Rest'; nc='r'; }
     nd=fmtMS(nx.duration);
   }
@@ -7308,7 +7357,7 @@ function wsRenderTakeover(ei){
   const st=wsHiitState(ex,ei);
   const skips=st.isActivePhase?`<div class="ws-skip l wsTv-skip" onclick="event.stopPropagation();wsHiitSkip(${ei},-1)">‹</div><div class="ws-skip r wsTv-skip" onclick="event.stopPropagation();wsHiitSkip(${ei},1)">›</div>`:'';
   v.innerHTML=`<div class="wsTv-in">
-    <div class="wsTv-top"><div class="wsTv-name" onclick="wsCalTap()">${ex.name||wsCircuitName(ex)}</div></div>
+    <div class="wsTv-top"><div class="wsTv-name" onclick="wsCalTap()">${wsEscape(ex.name||wsCircuitName(ex))}</div></div>
     <div class="phase-strip-label wsTv-label"><span>Circuit</span><span class="phase-strip-rounds">${st.stripDesc}</span></div>
     <div class="ws-strip-vp" style="height:${st.vpH}px"><div class="ws-strip-col${st.slide?' wsAnim':''}" style="${st.colStyle}">${st.colHtml}</div></div>
     <div class="wsTv-flex"></div>
@@ -7473,7 +7522,7 @@ function wsRenderCircEd(ei){
     ${adv?`<div class="ws-ce-card">
       <div class="ws-ce-cardt">Start mode</div>
       <div class="ws-chips">
-        <div class="ws-chip${ex.startMode==='takeover'?'':' on'}" onclick="wsCEStartMode(${ei},'inline')">In the day</div>
+        <div class="ws-chip${ex.startMode==='takeover'?'':' on'}" onclick="wsCEStartMode(${ei},'inline')">In the workout</div>
         <div class="ws-chip${ex.startMode==='takeover'?' on':''}" onclick="wsCEStartMode(${ei},'takeover')">Full screen</div>
       </div></div>`:''}
     <div class="ws-ce-adv" onclick="wsCEAdvToggle(${ei})"><span class="chev${adv?' open':''}">▸</span> Advanced${adv?'':' · per-station rest, setup, start mode'}</div>
@@ -7552,7 +7601,7 @@ function wsPickerSearch(q){
   const scored=EXERCISES.map(e=>({e,sc:wsScoreEntry(e,t)})).filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,30);
   window.__wsPickResults=scored.map(x=>x.e);
   const free=`<div class="ws-pick-row free" onclick="wsPickerFree()">Use “${wsEsc(t)}” as typed</div>`;
-  res.innerHTML=free+(scored.length?scored.map(x=>`<div class="ws-pick-row" onclick="wsPickerChoose('${wsEsc(x.e.exId)}')">
+  res.innerHTML=free+(scored.length?scored.map(x=>`<div class="ws-pick-row" onclick="wsPickerChoose('${wsJs(x.e.exId)}')">
       <div class="ws-pick-t">${wsEsc(x.e.title)}</div>
       <div class="ws-pick-m">${wsEsc(((x.e.primary||[])[0])||'')}${x.e.equipment?' · '+wsEsc(x.e.equipment):''}</div></div>`).join('')
     :'<div class="ws-pick-hint">No library match — use it as typed above</div>');
@@ -7726,7 +7775,7 @@ function renderPostSession(){
   return `<div class="post-session">
     <div class="post-title">✓ Session logged</div>
     ${strip}
-    <button class="post-btn" onclick="resetDay()">Reset day — train again</button>
+    <button class="post-btn" onclick="resetDay()">Reset workout — train again</button>
   </div>`;
 }
 
@@ -8412,7 +8461,7 @@ function renderAdvancedRoundsList(){
           <svg viewBox="0 0 16 16"><path d="M3 5h10M6 5V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2M5 5l1 9a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1l1-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
-      <input class="adv-round-name" type="text" placeholder="Round name (e.g. KB Swings)" value="${(r.name||'').replace(/"/g,'&quot;')}" oninput="updateAdvRound(${i},'name',this.value)" />
+      <input class="adv-round-name" type="text" placeholder="Round name (e.g. KB Swings)" value="${wsEscape(r.name||'')}" oninput="updateAdvRound(${i},'name',this.value)" />
       <div class="adv-round-times">
         <div class="adv-r-time">
           <span class="adv-r-time-lbl">Work</span>
@@ -9584,6 +9633,7 @@ function openSettings(){
   if(togIS) togIS.classList.toggle('on',!!settings.showIntensityScore);
   const togRA=document.getElementById('togRestAuto');
   if(togRA) togRA.classList.toggle('on',wsRestAuto());
+  wsSettingsBackupSync();   // v61: how old the last backup is
   document.getElementById('settingsOverlay').classList.add('open');
 }
 function closeSettings(){wsLogPush('close_settings');document.getElementById('settingsOverlay').classList.remove('open');}
@@ -9983,8 +10033,8 @@ function hiListItemHtml(rec){
   }
   let expandBody='';
   if(expanded){ expandBody=hiExpandBodyHtml(rec); }
-  return `<div class="hi-item ${expanded?'expanded':''}" data-sid="${rec.id}">
-    <div class="hi-row" onclick="hiToggleExpand('${rec.id}')">
+  return `<div class="hi-item ${expanded?'expanded':''}" data-sid="${wsEscape(rec.id)}">
+    <div class="hi-row" onclick="hiToggleExpand('${wsJs(rec.id)}')">
       <div class="hi-pips">${pips}</div>
       <div class="hi-datename">
         <div class="hi-date">${hiAbsDate(rec.date)}</div>
@@ -10023,11 +10073,11 @@ function hiExpandBodyHtml(rec){
     <div class="hi-eb-stats">${stats}</div>
     ${exHtml}
     ${wsCompareCardHtml(rec)}
-    <button class="hi-eb-full" onclick="hiOpenDetail('${rec.id}','list')">
+    <button class="hi-eb-full" onclick="hiOpenDetail('${wsJs(rec.id)}','list')">
       <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5"/><line x1="7" y1="4.5" x2="7" y2="7.5"/></svg>
       Full detail &amp; per-set view →
     </button>
-    <button class="hi-eb-fix" onclick="wsFixSession('${rec.id}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9.2 2.6a2.6 2.6 0 0 0 3.3 3.3l-6 6-2.4.7.7-2.4z" stroke-linejoin="round"/></svg> Fix this session</button>
+    <button class="hi-eb-fix" onclick="wsFixSession('${wsJs(rec.id)}')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9.2 2.6a2.6 2.6 0 0 0 3.3 3.3l-6 6-2.4.7.7-2.4z" stroke-linejoin="round"/></svg> Fix this session</button>
   </div>`;
 }
 
@@ -10056,7 +10106,7 @@ function hiExpandExRow(e){
     const dur=hiFmtMS(c.durationSec), dist=hiFmtDist(c.distanceM);
     metrics=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v dist">${dur||'—'}</span><span class="hi-eb-ex-metric-l">duration</span></div>`;
     if(dist) metrics+=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v">${dist}</span><span class="hi-eb-ex-metric-l">distance</span></div>`;
-    else if(c.intensityTag) metrics+=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v">${c.intensityTag}</span><span class="hi-eb-ex-metric-l">intensity</span></div>`;
+    else if(c.intensityTag) metrics+=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v">${hiEscape(c.intensityTag)}</span><span class="hi-eb-ex-metric-l">intensity</span></div>`;
   } else if(e.kind==='hiit'){
     const h=e.hiit||{};
     metrics=`<div class="hi-eb-ex-metric"><span class="hi-eb-ex-metric-v sage">${h.roundsDone||0}/${h.roundsPlanned||0}</span><span class="hi-eb-ex-metric-l">rounds</span></div>
@@ -10152,7 +10202,7 @@ function hiCalMonthHtml(monthDate){
       const dots=['s','c','h'].filter(m=>mset.has(m)).map(m=>`<span class="hi-cal-dot ${m}"></span>`).join('');
       // Tapping jumps straight to that day's session detail (first session if multiple)
       const sid=dayRecs[0].id;
-      cells+=`<div class="hi-cal-cell logged ${isToday?'today':''}" onclick="hiOpenDetail('${sid}','calendar')">
+      cells+=`<div class="hi-cal-cell logged ${isToday?'today':''}" onclick="hiOpenDetail('${wsJs(sid)}','calendar')">
         <span class="hi-cal-daynum">${day}</span><div class="hi-cal-dots">${dots}</div></div>`;
     } else if(future){
       cells+=`<div class="hi-cal-cell empty"></div>`;
@@ -10328,7 +10378,7 @@ function hiDetailCardioBody(e,ei){
   if(dur) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v">${dur}</div><div class="hi-cardio-l">Duration</div></div>`;
   if(dist) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v dist">${dist}</div><div class="hi-cardio-l">Distance</div></div>`;
   if(pc) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v">${pc}</div><div class="hi-cardio-l">min/km</div></div>`;
-  if(c.intensityTag) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v" style="font-size:18px">${c.intensityTag}</div><div class="hi-cardio-l">Intensity</div></div>`;
+  if(c.intensityTag) cells+=`<div class="hi-cardio-cell"><div class="hi-cardio-v" style="font-size:18px">${hiEscape(c.intensityTag)}</div><div class="hi-cardio-l">Intensity</div></div>`;
   let extra='';
   if(hiScoreEnabled()){
     const r=hiEntryRpe(e);
@@ -10853,28 +10903,56 @@ function wsProgDayGrid(){
 // ── Weekly working sets per muscle (strength sets only — the literature's
 //     10–20 sets/muscle/week guidance is a resistance-training measure;
 //     conditioning rounds are not "working sets" and would pollute it). ──
+// v61 (review GAINS-014): an honest weekly average.
+//   • Weeks are complete calendar weeks (Mon–Sun) inside the period, the same
+//     weeks the trends use; this unfinished week is left out of both the sets
+//     and the count, as everywhere else on Progress.
+//   • The count starts at the week of your first strength session, so a new
+//     user isn't divided by weeks before they began; but a week off inside
+//     the period counts as a week (one training week in 8 is not 8 weeks of
+//     high volume). It used to divide by first-to-last session, which made one
+//     week of training read as a full weekly average.
+//   • Main muscles 1 set, helpers ½ (wsMuscleCredit); warm-ups never count.
+// Returns the usual array of {m,total,perWk}, with .weeks (the divisor) and
+// .unmatched (exercises credited without catalog detail) attached.
 function wsProgMuscleWeekly(frame){
   frame=frame||wsProgFrame;
-  const cutoff=wsProgCutoff(frame);
   const hist=Array.isArray(HISTORY)?HISTORY:[];
-  const tot={}; let firstT=null,lastT=null;
+  const thisWeek=wsTrendWeekStart(Date.now());
+  const isStrength=e=>(e.kind==='weighted'||e.kind==='bodyweight')&&(e.sets||[]).some(wsIsWorkSet);
+  let firstT=Infinity;
   for(const rec of hist){
     const t=new Date(rec.date).getTime();
-    if(isNaN(t)||t<cutoff) continue;
-    let counted=false;
+    if(!isNaN(t) && t<firstT && (rec.entries||[]).some(isStrength)) firstT=t;
+  }
+  const out=[]; out.weeks=0; out.unmatched=0;
+  if(!isFinite(firstT)) return out;
+  let from=thisWeek;
+  for(let i=0;i<wsTrendWeeksFor(frame);i++) from=wsTrendWeekStart(wsAddDays(from,-7));
+  const firstWk=wsTrendWeekStart(firstT);
+  if(firstWk>from) from=firstWk;
+  let weeks=0;
+  for(let w=from; w<thisWeek && weeks<600; w=wsTrendWeekStart(wsAddDays(w,7))) weeks++;
+  if(!weeks) return out;
+  const tot={}; const unmatched=new Set();
+  for(const rec of hist){
+    const t=new Date(rec.date).getTime();
+    if(isNaN(t)||t<from||t>=thisWeek) continue;
     for(const e of (rec.entries||[])){
       if(e.kind!=='weighted'&&e.kind!=='bodyweight') continue;
       let sets=0; for(const st of (e.sets||[])) if(wsIsWorkSet(st)) sets++;
       if(!sets) continue;
-      counted=true;
-      const ms=(e.muscles&&e.muscles.length)?e.muscles:['Other'];
-      for(const m of ms) tot[m]=(tot[m]||0)+sets;
+      const mc=wsMuscleCredit(e);
+      if(!mc.matched) unmatched.add(wsProgKey(e));
+      if(!mc.prim.length && !mc.sec.length){ tot['Other']=(tot['Other']||0)+sets; continue; }
+      for(const m of mc.prim) tot[m]=(tot[m]||0)+sets;
+      for(const m of mc.sec)  tot[m]=(tot[m]||0)+sets*0.5;
     }
-    if(counted){ if(firstT==null||t<firstT)firstT=t; if(lastT==null||t>lastT)lastT=t; }
   }
-  const weeks=Math.max(1,(lastT!=null?(lastT-firstT):0)/(7*86400000));
-  return Object.keys(tot).map(m=>({m,total:tot[m],perWk:Math.round((tot[m]/weeks)*10)/10}))
-    .sort((a,b)=>b.perWk-a.perWk);
+  Object.keys(tot).map(m=>({m, total:Math.round(tot[m]*10)/10, perWk:Math.round((tot[m]/weeks)*10)/10}))
+    .sort((a,b)=>b.perWk-a.perWk).forEach(r=>out.push(r));
+  out.weeks=weeks; out.unmatched=unmatched.size;
+  return out;
 }
 
 // ── At-a-glance summary across ALL exercises in the frame ──
@@ -11354,7 +11432,7 @@ function wsEffortStripHtml(sessionId, current, source){
   let chips='';
   for(let n=1;n<=10;n++){
     const on = (current!=null && Math.round(current)===n) ? ' on' : '';
-    chips += '<button class="wsse-n'+on+'" onclick="wsPickSessionEffort(\''+sessionId+'\','+n+')">'+n+'</button>';
+    chips += '<button class="wsse-n'+on+'" onclick="wsPickSessionEffort(\''+wsJs(sessionId)+'\','+n+')">'+n+'</button>';
   }
   const note = current==null
     ? 'Rate the whole session — 1 easy, 10 all-out'
@@ -11500,7 +11578,7 @@ function wsFindComparable(rec){
   }
   if(!best || best.overlap<WS_CMP_MIN_OVERLAP) return null;
   return {match:best.rec, overlap:best.overlap, sharedKeys:best.sharedKeys,
-          basis: best.sameLabel?'same day':'similar session', sigA:a, sigB:best.sig};
+          basis: best.sameLabel?'same workout':'similar session', sigA:a, sigB:best.sig};
 }
 
 function wsCompareSessions(rec){
@@ -11613,6 +11691,18 @@ function wsAdaptBand(reps){
   return null;
 }
 
+// v61: one rule for crediting a set to muscles, used by "Sets per muscle" and
+// the adaptation mix alike. Main muscles 1, helpers ½; with no catalog match,
+// every listed muscle counts ½ (flagged as unmatched) rather than guessing
+// which one did the work.
+function wsMuscleCredit(e){
+  const cat=wsAdaptCatalog(e&&e.exId);
+  if(cat&&Array.isArray(cat.primary)&&cat.primary.length){
+    return {prim:cat.primary, sec:Array.isArray(cat.secondary)?cat.secondary:[], matched:true};
+  }
+  const flat=Array.isArray(e&&e.muscles)?e.muscles:[];
+  return {prim:[], sec:flat, matched:!flat.length};
+}
 function wsAdaptCatalog(exId){
   try{
     if(!exId || typeof EXERCISES==='undefined') return null;
@@ -11642,16 +11732,9 @@ function wsAdaptBuckets(weeks){
     for(const e of (rec.entries||[])){
       if(e.kind==='cardio'||e.kind==='hiit'){ conditioning++; continue; }
       if(e.kind!=='weighted'&&e.kind!=='bodyweight') continue;
-      const cat=wsAdaptCatalog(e.exId);
-      let prim=[], sec=[];
-      if(cat&&Array.isArray(cat.primary)&&cat.primary.length){
-        prim=cat.primary; sec=Array.isArray(cat.secondary)?cat.secondary:[];
-      } else {
-        // no catalog match: treat every listed muscle as secondary rather than
-        // pretending we know which one is the prime mover
-        sec=Array.isArray(e.muscles)?e.muscles:[];
-        if(sec.length) unmatched++;
-      }
+      const mc=wsMuscleCredit(e);
+      const prim=mc.prim, sec=mc.sec;
+      if(!mc.matched) unmatched++;
       for(const s of (e.sets||[])){
         if(s.completed===false||s.warmup) continue;
         const reps=(typeof s.reps==='number')?s.reps:0;
@@ -11777,7 +11860,7 @@ function wsProgRender(){
     if(prCount>0) cards.push({t:'New bests',n:prCount+' this stretch',s:'strict all-time breaks',k:null,prs:true});
     if(stall[0]) cards.push({t:'Needs attention',n:stall[0].name,s:'Stalled · '+stall[0].stalledW+'w',k:stall[0].key,warn:true});
     if(cards.length) hi=`<div class="wsprog-sect">Highlights</div><div class="wshi-row">`+cards.map(c=>
-      `<div class="wshi-card${c.warn?' warn':''}${c.prs?' gold':''}" onclick="${c.k?`wsProgOpenDetail('${encodeURIComponent(c.k)}')`:(c.prs?`routeTo('prs')`:'')}">
+      `<div class="wshi-card${c.warn?' warn':''}${c.prs?' gold':''}" onclick="${c.k?`wsProgOpenDetail('${wsJs(encodeURIComponent(c.k))}')`:(c.prs?`routeTo('prs')`:'')}">
         <div class="wshi-t">${c.t}</div><div class="wshi-n">${hiEscape(c.n)}</div><div class="wshi-s">${hiEscape(c.s)}</div></div>`).join('')+`</div>`;
   }
 
@@ -11939,27 +12022,45 @@ function wsProgDaysHtml(){
       ${diff?`<div class="wsday-diff">${diff}</div>`:''}</div>
     </div>`;
   }).reverse().join('');
-  return `<div class="wsprog-sect">Days · ${hist.length}</div><div class="wspd-list">${rows}</div>`;
+  return `<div class="wsprog-sect">Sessions · ${hist.length}</div><div class="wspd-list">${rows}</div>`;
 }
 
 function wsProgMuscleHtml(){
   const rows=wsProgMuscleWeekly(wsProgFrame);
-  if(!rows.length) return '';
+  if(!rows.length){
+    // v61: no complete week yet — say when there will be, rather than a number
+    // built from a few days
+    const any=(Array.isArray(HISTORY)?HISTORY:[]).some(r=>(r.entries||[]).some(e=>(e.kind==='weighted'||e.kind==='bodyweight')&&(e.sets||[]).some(wsIsWorkSet)));
+    if(!any) return '';
+    const msg=rows.weeks
+      ? `No strength sets in the last ${rows.weeks} complete week${rows.weeks===1?'':'s'}. This week counts once it's over.`
+      : 'Weekly sets per muscle appear once your first full week (Monday to Sunday) is done.';
+    return `<div class="wsprog-sect">Sets per muscle</div><div class="wspm-card"><div class="wspm-legend wspm-note">${msg}</div></div>`;
+  }
   const scale=Math.max(24, Math.ceil((rows[0].perWk+2)/4)*4);
   const zoneL=(10/scale)*100, zoneW=((20-10)/scale)*100;
   const bars=rows.map(r=>{
     const w=Math.min(100,(r.perWk/scale)*100);
     const cls=r.perWk<10?'lo':(r.perWk<=20?'ok':'hi');
-    return `<div class="wspm-row" onclick="wsProgMuscleTap('${r.m.replace(/'/g,"\\'")}')">
+    return `<div class="wspm-row" data-m="${wsEscape(r.m)}" onclick="wsProgMuscleTap(this.dataset.m)">
       <div class="wspm-m">${hiEscape(r.m)}</div>
       <div class="wspm-track"><div class="wspm-zone" style="left:${zoneL.toFixed(1)}%;width:${zoneW.toFixed(1)}%"></div><div class="wspm-mv" style="left:${((6/scale)*100).toFixed(1)}%"></div><div class="wspm-bar ${cls}" style="width:${w.toFixed(1)}%"></div></div>
-      <div class="wspm-v">${r.perWk}</div>
+      <div class="wspm-v">${wsHalfText(r.perWk)}</div>
     </div>`;
   }).join('');
-  return `<div class="wsprog-sect">Muscle volume <span class="wsprog-sect-sub">· working sets / week (logged)</span></div>
+  const wk=rows.weeks;
+  return `<div class="wsprog-sect">Sets per muscle <span class="wsprog-sect-sub">· estimated, a week, over ${wk} complete week${wk===1?'':'s'}</span></div>
     <div class="wspm-card">${bars}
-      <div class="wspm-legend"><span class="wspm-dot ok"></span>10–20 sets/wk — the evidence-based growth zone</div>
+      <div class="wspm-legend"><span class="wspm-dot ok"></span>Common range 10–20 a week</div>
+      <div class="wspm-legend wspm-note">The main muscle counts a whole set, helpers half. Warm-ups don't count.${rows.unmatched?' '+rows.unmatched+' exercise'+(rows.unmatched===1?' has':'s have')+' no muscle detail, so every muscle listed counts half.':''}</div>
     </div>`;
+}
+// 7.5 → "7½" for set counts that include half credit
+function wsHalfText(v){
+  v=Math.round(v*10)/10;
+  if(Number.isInteger(v)) return String(v);
+  if(Number.isInteger(v*2)) return (Math.floor(v)||'')+'½';
+  return v.toFixed(1);
 }
 function wsProgSetFrame(fr){ if(fr===wsProgFrame) return; wsProgFrame=fr; wsProgRender(); }
 
@@ -11975,7 +12076,7 @@ function wsProgCardHtml(x){
       ? '<div class="wsprog-card-best">best '+x.bestLabel+'</div>' : '';
   const gapD=window.__wsProgRefT?Math.round((window.__wsProgRefT-x.lastT)/86400000):0;
   const fade=(x.count>=4&&gapD>=21)?`<div class="wsprog-fadenote">${Math.round(gapD/7)} weeks since last — the groove fades before the strength does.</div>`:'';
-  return `<div class="wsprog-card" data-pname="${hiEscape(x.name.toLowerCase())}" onclick="wsProgOpenDetail('${encodeURIComponent(x.key)}')">
+  return `<div class="wsprog-card" data-pname="${hiEscape(x.name.toLowerCase())}" onclick="wsProgOpenDetail('${wsJs(encodeURIComponent(x.key))}')">
     <div class="wsprog-card-top">
       <div class="wsprog-card-id">
         <div class="wsprog-card-name">${hiEscape(x.name)}</div>
@@ -12112,7 +12213,7 @@ function wsProgRenderDetail(root,x){
       <div class="hi-hdr-main">
         <div class="wspd-back" onclick="wsProgBack()"><svg viewBox="0 0 12 20"><polyline points="9 2 3 10 9 18"/></svg>Progress</div>
         <div style="display:flex;align-items:center;gap:14px">
-          <div class="wspd-pin${pinned?' on':''}" onclick="wsProgPinToggle('${encodeURIComponent(x.key)}')" aria-label="Pin">★</div>
+          <div class="wspd-pin${pinned?' on':''}" onclick="wsProgPinToggle('${wsJs(encodeURIComponent(x.key))}')" aria-label="Pin">★</div>
           <div class="hi-hdr-gear" onclick="openSettings()" aria-label="Settings"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="3.2"/><path d="M11 2.8v2.4M11 16.8v2.4M2.8 11h2.4M16.8 11h2.4M5.2 5.2l1.7 1.7M15.1 15.1l1.7 1.7M16.8 5.2l-1.7 1.7M6.9 15.1l-1.7 1.7"/></svg></div>
         </div>
       </div>
@@ -12341,7 +12442,7 @@ function wsRenderDays(){
 
   const activeRowHtml=active.map(({d,i})=>wsDayCardHtml(d,i,true)).join('');
   const bankedRowHtml=banked.length===0
-    ? `<div class="ws-row empty">Drag a day here to bank it for later</div>`
+    ? `<div class="ws-row empty">Drag a workout here to bank it for later</div>`
     : `<div class="ws-row" id="wsBankedRow" data-section="banked">${banked.map(({d,i})=>wsDayCardHtml(d,i,false)).join('')}</div>`;
 
   // Subtle one-time affordance hint. Auto-hidden once the user dismisses.
@@ -12349,20 +12450,20 @@ function wsRenderDays(){
   const hintHtml = dismissed ? '' : `
     <div class="ws-hint" id="wsDaysHint">
       <span class="ws-hint-icon">●</span>
-      <span class="ws-hint-text"><strong>Tap</strong> a day to edit · <strong>long-press</strong> to drag</span>
+      <span class="ws-hint-text"><strong>Tap</strong> a workout to edit · <strong>long-press</strong> to drag</span>
       <button class="ws-hint-dismiss" onclick="wsDismissHint('daysGestures')" aria-label="Dismiss hint">×</button>
     </div>`;
 
   return `
     ${hintHtml}
     <div class="ws-section-title" id="wsActiveTitle">
-      <div class="ws-section-title-left"><span>Active</span><span class="ws-section-count">${active.length} day${active.length===1?'':'s'}</span></div>
-      <div class="ws-add-day-btn" onclick="wsCreateNewDay()" role="button"><span class="ws-add-day-btn-plus">+</span><span>Day</span></div>
+      <div class="ws-section-title-left"><span>Active</span><span class="ws-section-count">${active.length} workout${active.length===1?'':'s'}</span></div>
+      <div class="ws-add-day-btn" onclick="wsCreateNewDay()" role="button"><span class="ws-add-day-btn-plus">+</span><span>Workout</span></div>
     </div>
     <div class="ws-row" id="wsActiveRow" data-section="active">${activeRowHtml}</div>
     <div class="ws-scroll-bar-wrap" id="wsScrollBar"><div class="ws-scroll-bar-track"></div><div class="ws-scroll-bar-thumb" id="wsScrollBarThumb"></div></div>
     <div class="ws-section-title" id="wsBankedTitle">
-      <div class="ws-section-title-left"><span>Banked</span><span class="ws-section-count">${banked.length} day${banked.length===1?'':'s'}</span></div>
+      <div class="ws-section-title-left"><span>Banked</span><span class="ws-section-count">${banked.length} workout${banked.length===1?'':'s'}</span></div>
     </div>
     ${bankedRowHtml}
   `;
@@ -12676,7 +12777,7 @@ function wsLensTrayHtml(){
   const chip=(l,v)=>{
     const c=wsLensCount(l,v);
     const on=wsLensSel[l]===v;
-    return `<button class="ws-lens-chip${on?' on':''}${c===0?' empty':''}" onclick="wsLensPick('${l}','${wsLibEscapeHtml(v)}')">${wsLibEscapeHtml(v)}<span class="n">${c}</span></button>`;
+    return `<button class="ws-lens-chip${on?' on':''}${c===0?' empty':''}" onclick="wsLensPick('${l}','${wsJs(v)}')">${wsLibEscapeHtml(v)}<span class="n">${c}</span></button>`;
   };
   let inner='';
   if(wsLensOpen==='muscle'){
@@ -12823,8 +12924,8 @@ function wsLibRenderArchivedRow(e){
       <div class="ws-lib-subtitle">${subtitle}</div>
     </div>
     <div class="ws-lib-archived-actions">
-      <button class="ws-lib-arch-btn ws-lib-arch-restore" onclick="wsLibRestoreEntry('${exId}')">Restore</button>
-      <button class="ws-lib-arch-btn ws-lib-arch-delete" onclick="wsLibHardDeleteAttempt('${exId}')" aria-label="Delete permanently">
+      <button class="ws-lib-arch-btn ws-lib-arch-restore" onclick="wsLibRestoreEntry('${wsJs(e.exId)}')">Restore</button>
+      <button class="ws-lib-arch-btn ws-lib-arch-delete" onclick="wsLibHardDeleteAttempt('${wsJs(e.exId)}')" aria-label="Delete permanently">
         <svg viewBox="0 0 18 18" width="14" height="14"><path d="M3 5h12M6 5V3h6v2M5 5l1 10h6l1-10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
@@ -12835,11 +12936,11 @@ function wsLibRenderArchivedRow(e){
 function wsLibRenderPlainRow(e){
   const usage=wsCountUsage(e.exId);
   const metaHtml=usage>0
-    ? `<span class="used">in ${usage} day${usage===1?'':'s'}</span>`
+    ? `<span class="used">in ${usage} workout${usage===1?'':'s'}</span>`
     : `<span class="unused">unused</span>`;
   const fav=wsFavorites.has(e.exId);
-  return `<div class="ws-lib-row" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsLibOpenEditor('${wsLibEscapeHtml(e.exId)}')">
-    <button class="ws-lib-star ${fav?'on':''}" onclick="wsLibToggleFav('${wsLibEscapeHtml(e.exId)}',event)" aria-label="${fav?'Unfavorite':'Favorite'}">
+  return `<div class="ws-lib-row" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsLibOpenEditor('${wsJs(e.exId)}')">
+    <button class="ws-lib-star ${fav?'on':''}" onclick="wsLibToggleFav('${wsJs(e.exId)}',event)" aria-label="${fav?'Unfavorite':'Favorite'}">
       <svg viewBox="0 0 20 20"><path d="M10 1.8l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z" stroke="currentColor" stroke-width="1.6" fill="${fav?'currentColor':'none'}" stroke-linejoin="round"/></svg>
     </button>
     <div class="ws-lib-text">
@@ -12882,7 +12983,7 @@ function wsLibRenderGroup(grp,isExpanded,totalUsage){
   const variantsHtml=grp.entries.map(e=>wsLibRenderPlainRow(e)).join('');
 
   return `
-    <div class="ws-lib-group-header ${isExpanded?'expanded':''}" data-group-key="${wsLibEscapeHtml(key)}" onclick="wsLibToggleGroup('${wsLibEscapeHtml(key)}')">
+    <div class="ws-lib-group-header ${isExpanded?'expanded':''}" data-group-key="${wsLibEscapeHtml(key)}" onclick="wsLibToggleGroup('${wsJs(key)}')">
       <div class="ws-lib-chev"><svg viewBox="0 0 10 10"><polyline points="3,2 7,5 3,8"/></svg></div>
       <div class="ws-lib-group-info">
         <div class="ws-lib-group-title">${wsLibEscapeHtml(grp.header)}</div>
@@ -13120,7 +13221,7 @@ function wsRenderLibEditor(){
 
   // Modal title varies by scope
   document.getElementById('wsLeTitle').textContent =
-    isInstance ? 'Edit Exercise · This Day Only'
+    isInstance ? 'Edit exercise · this workout only'
     : isFromDay ? 'New Exercise'
     : isNew ? 'New Exercise'
     : 'Edit Exercise';
@@ -13130,13 +13231,13 @@ function wsRenderLibEditor(){
   let scopeBanner='';
   if(isInstance && wsLibEditCtx.instanceDayIdx!=null){
     const targetDay=DAYS[wsLibEditCtx.instanceDayIdx];
-    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Day ${wsLibEditCtx.instanceDayIdx+1}`) : 'this day';
+    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Workout ${wsLibEditCtx.instanceDayIdx+1}`) : 'this workout';
     scopeBanner=`<div class="ws-le-scope-banner">
       Editing the copy of this exercise in <strong>${wsLibEscapeHtml(dayName)}</strong>. Changes here won't affect the Library entry or other days.
     </div>`;
   } else if(isFromDay && wsLibEditCtx.fromDayIdx!=null){
     const targetDay=DAYS[wsLibEditCtx.fromDayIdx];
-    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Day ${wsLibEditCtx.fromDayIdx+1}`) : 'this day';
+    const dayName=targetDay ? (wsLibDayDisplayName(targetDay)||targetDay.label||`Workout ${wsLibEditCtx.fromDayIdx+1}`) : 'this workout';
     scopeBanner=`<div class="ws-le-scope-banner">
       New exercise will be added to the Library and to <strong>${wsLibEscapeHtml(dayName)}</strong>.
     </div>`;
@@ -13148,7 +13249,7 @@ function wsRenderLibEditor(){
     ? `<div class="ws-le-title-locked">${wsLibEscapeHtml(d.title||'(untitled)')}<span class="ws-le-locked-icon" title="Title is locked to the library group">🔒</span></div>
        <div class="ws-le-hint">Title is locked to the Library group. Edit it from the Library if needed.</div>`
     : `<input type="text" class="ws-le-title-input" id="wsLeTitleInput" placeholder="e.g. Bench Press" value="${wsLibEscapeHtml(d.title)}" maxlength="60" oninput="wsLeOnTitleInput(this.value)">
-       ${isUsed?`<div class="ws-le-hint">Renaming here won't affect days using this exercise — only future adds.</div>`:''}`;
+       ${isUsed?`<div class="ws-le-hint">Renaming here won't affect workouts that already use this exercise — only future adds.</div>`:''}`;
 
   let html = scopeBanner + `
     <div class="ws-de-fld">
@@ -13180,14 +13281,14 @@ function wsRenderLibEditor(){
     html+=`<div class="ws-de-fld">
       <div class="ws-le-days">
         <div class="ws-le-days-head">
-          <span class="ws-le-days-label">${exName} in your days</span>
-          <button class="ws-le-days-manage" onclick="wsLeOpenDayPick()">Manage days</button>
+          <span class="ws-le-days-label">${exName} in your workouts</span>
+          <button class="ws-le-days-manage" onclick="wsLeOpenDayPick()">Manage workouts</button>
         </div>
         ${usingDays.length===0
-          ? `<div class="ws-le-usedin-empty">Not in any day yet — tap “Manage days” to add it.</div>`
+          ? `<div class="ws-le-usedin-empty">Not in any workout yet — tap “Manage workouts” to add it.</div>`
           : `<div class="ws-le-usedin-list">${usingDays.map(({day,dayIdx})=>{
               const dn=wsLibEscapeHtml(wsLibDayDisplayName(day));
-              const lbl=wsLibEscapeHtml(day.label||('Day '+(dayIdx+1)));
+              const lbl=wsLibEscapeHtml(day.label||('Workout '+(dayIdx+1)));
               return `<span class="ws-le-usedin-chip">${dn}<em>${lbl}</em></span>`;
             }).join('')}</div>`
         }
@@ -13225,8 +13326,8 @@ function wsLeRenderDefaultsBlock(d){
   const scope=(wsLibEditCtx&&wsLibEditCtx.scope)||'library';
   const headerLabel = scope==='instance' ? 'Values' : 'Defaults';
   const headerSub = scope==='instance'
-    ? 'Live values for this day. Won\'t affect the Library entry.'
-    : 'Used only when adding this exercise to a day.';
+    ? 'Live values for this workout. Won\'t affect the Library entry.'
+    : 'Used only when adding this exercise to a workout.';
   let header=`<span class="ws-le-defaults-label">${headerLabel}<em>${headerSub}</em></span>`;
 
   if(kind==='weighted'){
@@ -13329,10 +13430,10 @@ function wsLeRenderAdvancedBlock(d){
   const activeMuscles=new Set(d.muscles||[]);
   const activePattern=d.pattern||'';
   const musclesHtml=WS_MUSCLE_OPTIONS.map(m=>{
-    return `<button class="ws-le-tag ${activeMuscles.has(m)?'active':''}" onclick="wsLeToggleMuscle('${m}')">${m}</button>`;
+    return `<button class="ws-le-tag ${activeMuscles.has(m)?'active':''}" onclick="wsLeToggleMuscle('${wsJs(m)}')">${wsEscape(m)}</button>`;
   }).join('');
   const patternHtml=WS_PATTERN_OPTIONS.map(p=>{
-    return `<button class="ws-le-tag ${activePattern===p?'active':''}" onclick="wsLeSetPattern('${p}')">${p}</button>`;
+    return `<button class="ws-le-tag ${activePattern===p?'active':''}" onclick="wsLeSetPattern('${wsJs(p)}')">${wsEscape(p)}</button>`;
   }).join('');
   // Prime mover: the single muscle doing most of the work. Chosen from the
   // exercise's tagged muscles (or 'none'). Crimson-accented to distinguish it
@@ -13340,7 +13441,7 @@ function wsLeRenderAdvancedBlock(d){
   const pm=d.prime_mover||'';
   const pmOptions=(d.muscles&&d.muscles.length)?d.muscles:[];
   const pmHtml = pmOptions.length
-    ? pmOptions.map(m=>`<button class="ws-le-tag pm ${pm===m?'active':''}" onclick="wsLeSetPrimeMover('${m}')">${m}</button>`).join('')
+    ? pmOptions.map(m=>`<button class="ws-le-tag pm ${pm===m?'active':''}" onclick="wsLeSetPrimeMover('${wsJs(m)}')">${wsEscape(m)}</button>`).join('')
       + `<button class="ws-le-tag pm ${pm===''?'active':''}" onclick="wsLeSetPrimeMover('')">none</button>`
     : `<div class="ws-le-tag-empty">Tag a muscle above first.</div>`;
   // Risk note: a short caution surfaced to the user. Warning-styled.
@@ -13544,21 +13645,21 @@ function wsLeRenderDayPick(){
   const inCount=Object.keys(membership).length;
   document.getElementById('wsLeDayPickSub').innerHTML = inCount
     ? `In <b style="color:var(--hiit)">${inCount} ${inCount===1?'day':'days'}</b>. Tap to add or remove.`
-    : `Tap a day to add <b style="color:var(--tx)">${wsLibEscapeHtml(d.title||'')}</b> to it.`;
+    : `Tap a workout to add <b style="color:var(--tx)">${wsLibEscapeHtml(d.title||'')}</b> to it.`;
   const list=document.getElementById('wsLeDayPickList');
   const rows=DAYS.map((day,idx)=>{
-    const name=wsLibDayDisplayName(day)||('Day '+(idx+1));
+    const name=wsLibDayDisplayName(day)||('Workout '+(idx+1));
     const count=Array.isArray(day.items)?day.items.length:((day.exercises||[]).length+(day.cardio||[]).length);
     const draft=day.published?'':'<span class="ws-daypick-draft">draft</span>';
     const isIn=(idx in membership);
     return `<button class="ws-daypick-row ${isIn?'added':''}" onclick="wsLeToggleDay(${idx})">
       <div class="ws-daypick-row-main"><span class="ws-daypick-name">${wsLibEscapeHtml(name)}</span>${draft}</div>
       ${isIn
-        ? `<span class="ws-daypick-added"><svg viewBox="0 0 14 14"><polyline points="2,7 6,11 12,3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>In day</span>`
+        ? `<span class="ws-daypick-added"><svg viewBox="0 0 14 14"><polyline points="2,7 6,11 12,3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Added</span>`
         : `<span class="ws-daypick-count">${count} ${count===1?'item':'items'}</span>`}
     </button>`;
   }).join('');
-  list.innerHTML=rows || '<div class="ws-le-tag-empty">No days yet. Create one in the Days tab first.</div>';
+  list.innerHTML=rows || '<div class="ws-le-tag-empty">No workouts yet. Create one in the Workouts tab first.</div>';
 }
 function wsLeToggleDay(dayIdx){
   if(!wsLibEditCtx) return;
@@ -13566,7 +13667,7 @@ function wsLeToggleDay(dayIdx){
   if(!day) return;
   const exId=wsLibEditCtx.draft.exId;
   const membership=wsLeMembershipSet();
-  const name=wsLibDayDisplayName(day)||('Day '+(dayIdx+1));
+  const name=wsLibDayDisplayName(day)||('Workout '+(dayIdx+1));
   if(dayIdx in membership){
     // remove THIS exercise from the day (all instances of it, so membership is binary+clean)
     wsDayRemoveByExId(day, exId);
@@ -13645,7 +13746,7 @@ function saveWsLibEdit(){
       wsDayItemsSync(day);
     }
     wsLogPush('lib_save_new_fromday',{exId:d.exId,title:d.title,dayIdx});
-    wsToast(`${d.title}${d.subtitle?' · '+d.subtitle:''} added to day`);
+    wsToast(`${d.title}${d.subtitle?' · '+d.subtitle:''} added to the workout`);
   } else if(wsLibEditCtx.isNew){
     EXERCISES.push(d);
     wsLogPush('lib_save_new',{exId:d.exId,title:d.title});
@@ -13734,7 +13835,7 @@ function wsLeSaveInstance(){
     if(Array.isArray(def.roundsCustom)) inst.roundsCustom=def.roundsCustom.slice();
   }
   wsLogPush('lib_save_instance',{dayIdx:wsLibEditCtx.instanceDayIdx,exId:inst.exId});
-  wsToast('Saved for this day');
+  wsToast('Saved for this workout');
 }
 
 function cancelWsLibEdit(){
@@ -13927,21 +14028,21 @@ function wsLdRender(){
     // Calm, informational. This is reversible.
     const n=st.affectedDays.length;
     if(n>0){
-      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive and be removed from ${n} day${n===1?'':'s'} below. Your historical data is kept, and you can restore it any time.</div>`;
+      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive and be removed from ${n} workout${n===1?'':'s'} below. Your historical data is kept, and you can restore it any time.</div>`;
       html+=`<div class="ws-ld-affected-label">Will be removed from</div>`;
       html+=`<div class="ws-ld-affected">${st.affectedDays.map(({day,dayIdx})=>{
-        const dn=wsLibEscapeHtml(wsLibDayDisplayName(day)||'(untitled day)');
-        const lbl=wsLibEscapeHtml(day.label||('Day '+(dayIdx+1)));
+        const dn=wsLibEscapeHtml(wsLibDayDisplayName(day)||'(untitled workout)');
+        const lbl=wsLibEscapeHtml(day.label||('Workout '+(dayIdx+1)));
         return `<div class="ws-ld-affected-row"><span class="ws-ld-affected-name">${dn}</span><span class="ws-ld-affected-label-txt">${lbl}</span></div>`;
       }).join('')}</div>`;
     } else {
-      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive. Not currently used in any day. Your historical data is kept, and you can restore it any time.</div>`;
+      html+=`<div class="ws-ld-notice"><strong>${wsLibEscapeHtml(fullName)}</strong> will move to your Archive. Not currently used in any workout. Your historical data is kept, and you can restore it any time.</div>`;
     }
   } else if(st.mode==='reset'){
     // Reset all: maximum-weight warning since this wipes the user's whole app state.
     html+=`<div class="ws-ld-danger">
       <div class="ws-ld-danger-head">Everything will be erased</div>
-      <div class="ws-ld-danger-body">Your <em>days, exercises, archive, logged sets, and preferences</em> will all be permanently deleted. The app will restart from defaults.</div>
+      <div class="ws-ld-danger-body">Your <em>workouts, exercises, archive, logged sessions, and preferences</em> will all be permanently deleted. The app will restart from defaults.</div>
     </div>`;
     html+=`<div class="ws-ld-notice" style="background:transparent;border:none;padding:0;font-size:13px;color:var(--tx3);text-align:center">There's no way to recover data after a reset.</div>`;
   } else {
@@ -14251,7 +14352,7 @@ function wsPkRender(){
     }
     lastTitle=titleKey;
     const isSelected=wsPkState.selected.has(e.exId);
-    html+=`<div class="ws-pk-row ${isSelected?'selected':''}" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsPkToggle('${wsLibEscapeHtml(e.exId)}')">
+    html+=`<div class="ws-pk-row ${isSelected?'selected':''}" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsPkToggle('${wsJs(e.exId)}')">
       <div class="ws-pk-row-text">
         <div class="ws-pk-row-title">${wsLibEscapeHtml(e.title||'(untitled)')}</div>
         <div class="ws-pk-row-sub">${wsLibEscapeHtml(e.subtitle||'')}</div>
@@ -14269,7 +14370,7 @@ function wsPkToggle(exId){
   if(wsPkState.selected.has(exId)) wsPkState.selected.delete(exId);
   else wsPkState.selected.add(exId);
   // Re-render just the affected row + the Add button
-  const row=document.querySelector(`.ws-pk-row[data-ex-id="${exId}"]`);
+  const row=document.querySelector(`.ws-pk-row[data-ex-id="${(window.CSS&&CSS.escape)?CSS.escape(exId):exId}"]`);
   if(row) row.classList.toggle('selected',wsPkState.selected.has(exId));
   wsPkUpdateAddBtn();
 }
@@ -15638,7 +15739,7 @@ function openWsDayEdit(dayIdx,isNew){
   document.getElementById('wsDeTitle1').value=m?m[1]:d.titleHtml.replace(/<[^>]+>/g,'').trim();
   document.getElementById('wsDeTitle2').value=m?m[2]:'';
   document.getElementById('wsDeLabel').value=d.label;
-  document.getElementById('wsDeTitle').textContent=isNew?'New Day':'Edit Day';
+  document.getElementById('wsDeTitle').textContent=isNew?'New workout':'Edit workout';
   wsDeRenderStatusToggle();
   wsDeRenderExList();
   document.getElementById('wsDayEditModal').classList.add('open');
@@ -15666,6 +15767,7 @@ function wsDeRenderExList(){
     return null;
   }).filter(Boolean);
   let html='';
+  const ssG=wsSsGroups(d.items||[]);
   if(all.length===0){
     html+=`<div class="ws-de-exempty">No exercises yet</div>`;
   } else {
@@ -15698,13 +15800,21 @@ function wsDeRenderExList(){
       } else if(kind==='intervals'||kind==='cardio_intervals'){
         meta=`${ex.totalRounds||0}×`;
       }
-      html+=`<div class="ws-de-exrow" data-row-idx="${idx}" data-list="${list}" data-orig-idx="${origIdx}">
+      // v61: supersets in the editor. A1/A2 on grouped rows; the link button
+      // pairs this exercise with the one below (drag to choose which).
+      const ii=(d.items||[]).indexOf(ex), g=ii>=0?ssG[ii]:null;
+      const nextIt=ii>=0?(d.items||[])[ii+1]:null;
+      const canLink=kind==='weighted' && (wsIsWeighted(nextIt) || !!ex.ss);
+      const linked=!!(g && g.pos<g.size);
+      const linkBtn=canLink?`<button class="ws-de-link${linked?' on':''}" onclick="wsDeToggleLink(${idx},event)" aria-pressed="${linked}" aria-label="${linked?'Unlink from the exercise below':'Superset with the exercise below'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>${linked?'':'<line x1="4" y1="4" x2="7" y2="7"/><line x1="17" y1="17" x2="20" y2="20"/>'}</svg></button>`:'';
+      html+=`<div class="ws-de-exrow${g?' ws-de-ss-row ws-de-ss-'+(g.pos===1?'first':(g.pos===g.size?'last':'mid')):''}" data-row-idx="${idx}" data-list="${list}" data-orig-idx="${origIdx}">
         <div class="ws-de-exrow-grip" aria-hidden="true"><span></span><span></span><span></span></div>
         <div class="ws-de-exrow-text">
           <div class="ws-de-exrow-title">${wsLibEscapeHtml(title||'(unnamed)')}</div>
-          <div class="ws-de-exrow-sub">${wsLibEscapeHtml(subtitle)}</div>
+          <div class="ws-de-exrow-sub">${g?`<span class="ws-de-ss">${g.letter}${g.pos}</span>${subtitle?' · ':''}`:''}${wsLibEscapeHtml(subtitle)}</div>
         </div>
         <div class="ws-de-exrow-meta">${wsLibEscapeHtml(meta)}</div>
+        ${linkBtn}
         <button class="ws-de-exrow-wrench" onclick="wsDeOpenInstanceEditor(${idx},event)" aria-label="Edit exercise">
           <svg viewBox="0 0 16 16"><path d="M11 1.6 a 3.4 3.4 0 0 0 -2.42 5.78 l -6.78 6.78 a 1.4 1.4 0 0 0 0 1.98 a 1.4 1.4 0 0 0 1.98 0 l 6.78 -6.78 a 3.4 3.4 0 0 0 4.84 -3.78 l -2.12 2.12 a 1.4 1.4 0 0 1 -1.98 -1.98 z"/></svg>
         </button>
@@ -15775,7 +15885,7 @@ function wsDeRemoveExercise(rowIdx,evt){
   const ex=arr[origIdx];
   const name=ex.name||'(unnamed)';
   // Native confirm — removing from a day is recoverable (re-add via picker).
-  if(!confirm(`Remove "${name}" from this day?`)) return;
+  if(!confirm(`Remove "${name}" from this workout?`)) return;
   // Remove from items[] AND the legacy arrays in one shot, by reference.
   wsDayRemoveInstance(d, ex);
   wsLogPush('day_remove_exercise',{dayIdx:wsDayEditCtx.dayIdx,list,name});
@@ -15786,6 +15896,20 @@ function wsDeRemoveExercise(rowIdx,evt){
   wsToast(`${name} removed`);
 }
 
+function wsDeToggleLink(rowIdx,evt){
+  if(evt) evt.stopPropagation();
+  if(!wsDayEditCtx) return;
+  const d=DAYS[wsDayEditCtx.dayIdx]; if(!d) return;
+  const rowEl=document.querySelector(`.ws-de-exrow[data-row-idx="${rowIdx}"]`); if(!rowEl) return;
+  const arr=rowEl.dataset.list==='exercises'?d.exercises:d.cardio;
+  const ex=arr&&arr[parseInt(rowEl.dataset.origIdx,10)]; if(!ex) return;
+  const i=(d.items||[]).indexOf(ex); if(i<0) return;
+  if(ex.ss) delete ex.ss; else if(wsIsWeighted(d.items[i+1])) ex.ss=true;
+  wsLogPush('day_toggle_superset',{dayIdx:wsDayEditCtx.dayIdx});
+  wsDeRenderExList();
+  try{ renderAll(false); }catch(_){}
+  wsPersistSave();
+}
 function wsDeBindRowDrag(){
   const rows=document.querySelectorAll('#wsDeExListInner .ws-de-exrow');
   rows.forEach(row=>{
@@ -15794,7 +15918,7 @@ function wsDeBindRowDrag(){
 }
 
 function wsDePointerDown(e){
-  if(e.target.closest('.ws-de-exrow-remove')) return;
+  if(e.target.closest('.ws-de-exrow-remove,.ws-de-link')) return;
   if(_wsDeDragState) return;
 
   const row=e.currentTarget;
@@ -15992,7 +16116,9 @@ function wsDeCommitOrderFromDom(){
   if(changed){
     // Items list is now authoritative; derive the legacy arrays from it so
     // existing readers (still using d.exercises / d.cardio) see consistent state.
+    const groups=wsSsGroupMap(oldItems);   // v61: dragging never pairs strangers
     d.items=newItems;
+    wsSsKeepGroups(d.items,groups);
     wsDayItemsSync(d);
     wsLogPush('day_reorder_exercises',{dayIdx:wsDayEditCtx.dayIdx});
     wsPersistSave();
@@ -16005,7 +16131,7 @@ function wsDeSetStatus(makeActive){
   if(!wsDayEditCtx) return;
   // Failsafe: can't bank if this is the last active day
   if(!makeActive&&wsDayEditCtx.originalPublished&&wsCountActive()<=1&&!wsDayEditCtx.isNew){
-    wsToast('You need at least one active day');
+    wsToast('You need at least one active workout');
     return;
   }
   wsDayEditCtx.pendingPublished=makeActive;
@@ -16018,9 +16144,9 @@ function wsDeRenderStatusToggle(){
   document.getElementById('wsDeStatusBanked').classList.toggle('active',!isAct);
   const hint=document.getElementById('wsDeStatusHint');
   if(isAct){
-    hint.textContent='Active days appear in your day tabs as part of your rotation.';
+    hint.textContent='Active workouts appear as tabs on Today, as part of your rotation.';
   } else {
-    hint.textContent='Banked days are saved for later. Drag from the Workshop into Active to use them.';
+    hint.textContent='Banked workouts are kept for later. Drag one into Active to use it.';
   }
 }
 
@@ -16054,7 +16180,7 @@ function saveWsDayEdit(){
   ensureCurDayPublished();
   wsRender();
   wsPersistSave();
-  wsToast('Day saved');
+  wsToast('Workout saved');
 }
 
 // v59: safe for text AND attribute values, and for anything that isn't a
@@ -16062,6 +16188,14 @@ function saveWsDayEdit(){
 // untrusted: it must always be shown as text, never run.
 function wsEscape(s){
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// v61: a value placed inside a quoted JavaScript string in an HTML attribute,
+// e.g. onclick="open('${wsJs(id)}')". HTML escaping alone is not enough there:
+// the browser decodes &#39; back to ' before the script runs, so an id from a
+// backup file could close the string and run code. This escapes for the
+// script first, then for the attribute.
+function wsJs(s){
+  return wsEscape(String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/\u2028|\u2029/g,' '));
 }
 // v60: a workout's two-line title is stored as a little HTML ("Push +<br><em>
 // Pull</em>"). It can arrive from a backup file, so it is never trusted: only
@@ -16079,7 +16213,7 @@ function wsSafeTitleHtml(s){
 function wsCreateNewDay(){
   wsLogPush('create_new_day');
   // Build a fresh day, append to DAYS, open editor
-  const newDay={label:`Day ${DAYS.length+1}`,titleHtml:'New<br><em>Day</em>',published:true,exercises:[],logged:false};
+  const newDay={label:`Workout ${DAYS.length+1}`,titleHtml:'New<br><em>Workout</em>',published:true,exercises:[],logged:false};
   DAYS.push(newDay);
   wsRender();
   openWsDayEdit(DAYS.length-1,true);
@@ -16203,7 +16337,7 @@ function wsExecuteDelete(){
   // Defensive failsafe again — shouldn't reach here for last active, but double-check
   const d=DAYS[idx];
   if(d&&d.published!==false&&wsCountActive()<=1){
-    wsToast('Cannot delete the last active day');
+    wsToast('You need at least one active workout');
     closeWsDeleteModal();
     return;
   }
@@ -16282,8 +16416,8 @@ tryLockPortrait();
         '<div class="ws-data-sep">Restore</div>'+
         '<textarea id="wsRestoreIn" class="ws-data-ta" placeholder="Paste backup text here"></textarea>'+
         '<div class="ws-data-btn" onclick="wsDoRestore()">Restore from text</div>'+
-        '<div class="ws-data-sep">Session effort</div>'+'<div class="ws-data-note">Sessions logged before effort tracking existed have no rating. You can fill them with an estimate based on how each session was structured — low-rep loaded work rates higher. Estimates are marked <b>est</b> everywhere they appear and never overwrite a real rating.</div>'+'<div class="ws-data-btn" onclick="wsDoSeedEffort()">Estimate effort for past sessions</div>'+'<div class="ws-data-btn" onclick="wsDoClearSeededEffort()">Remove estimated ratings</div>'+'<div class="ws-data-sep">Import from old app</div>'+'<div class="ws-data-note">Paste the JSON exported from the Lovable prototype. Only sets you actually ticked are imported; work done on the same day is merged into one session.</div>'+'<textarea id="wsLegacyIn" class="ws-data-ta" placeholder="Paste old-app export here"></textarea>'+'<div class="ws-data-btn" onclick="wsDoMergeLegacy()">Merge into my log</div>'+'<div class="ws-data-btn ws-data-btn-danger" onclick="wsDoImportLegacy()">Replace my log entirely</div>'+'<div class="ws-data-note">Merge keeps everything you have logged in Gains and adds the imported days alongside it. Running it twice is safe — days already imported are skipped, not duplicated. Replace deletes what is here first.</div>'+'<div class="ws-data-sep">Start fresh</div>'+
-        '<div class="ws-data-note">Clears the built-in demo history so the app tracks only your own training. Your program, days and exercises stay.</div>'+
+        '<div class="ws-data-sep">Session effort</div>'+'<div class="ws-data-note">Sessions logged before effort tracking existed have no rating. You can fill them with an estimate based on how each session was structured — low-rep loaded work rates higher. Estimates are marked <b>est</b> everywhere they appear and never overwrite a real rating.</div>'+'<div class="ws-data-btn" onclick="wsDoSeedEffort()">Estimate effort for past sessions</div>'+'<div class="ws-data-btn" onclick="wsDoClearSeededEffort()">Remove estimated ratings</div>'+'<div class="ws-data-sep">Import from old app</div>'+'<div class="ws-data-note">Paste the JSON exported from the Lovable prototype. Only sets you actually ticked are imported; work done on the same day is merged into one session.</div>'+'<textarea id="wsLegacyIn" class="ws-data-ta" placeholder="Paste old-app export here"></textarea>'+'<div class="ws-data-btn" onclick="wsDoMergeLegacy()">Merge into my log</div>'+'<div class="ws-data-btn ws-data-btn-danger" onclick="wsDoImportLegacy()">Replace my log entirely</div>'+'<div class="ws-data-note">Merge keeps everything you have logged in Gains and adds the imported sessions alongside it. Running it twice is safe — days already imported are skipped, not duplicated. Replace deletes what is here first.</div>'+'<div class="ws-data-sep">Start fresh</div>'+
+        '<div class="ws-data-note">Clears the built-in demo history so the app tracks only your own training. Your workouts and exercises stay.</div>'+
         '<div class="ws-data-btn danger" onclick="wsConfirmEmpty()">Clear log &amp; start empty</div>'+
         '<div class="ws-data-btn close" onclick="wsCloseData()">Close</div>'+
       '</div>';
@@ -16772,6 +16906,22 @@ function wsSsApplyBlocks(d,blocks){
   const out=[];
   blocks.forEach(b=>b.forEach((it,k)=>{ if(k<b.length-1) it.ss=true; else delete it.ss; out.push(it); }));
   d.items=out; wsDayItemsSync(d);
+}
+// v61: pairing is stored as "paired with the next one", so removing or moving
+// an exercise could silently pair two exercises that never were. Take the
+// groups before a change (wsSsGroupMap), then after it keep a link only between
+// neighbours that were in the same group (wsSsKeepGroups).
+function wsSsGroupMap(items){
+  const g=wsSsGroups(items||[]), m=new Map();
+  (items||[]).forEach((it,i)=>{ if(g[i]) m.set(it,g[i].letter); });
+  return m;
+}
+function wsSsKeepGroups(items,before){
+  (items||[]).forEach((a,i)=>{
+    const b=items[i+1];
+    const keep=wsIsWeighted(a)&&wsIsWeighted(b)&&before.get(a)&&before.get(a)===before.get(b);
+    if(keep) a.ss=true; else delete a.ss;
+  });
 }
 function wsSsSnapshot(d){ return (d.items||[]).map(it=>({it:it,ss:!!it.ss})); }
 function wsSsRestore(d,snap){
@@ -17402,6 +17552,7 @@ function wsFinishRender(){
     <div class="fkf-h"><span>HOW HARD WAS THE SESSION?</span><i></i><span class="fkf-opt">OPTIONAL</span></div>
     <div class="fkf-chips">${chips}</div>
     <div class="fkf-note">1 easy, 10 all-out. One rating for the whole session; skip it and it stays blank.</div>
+    ${wsBackupReminderHtml()}
   </div>
   <div class="fkf-foot">
     ${undoLeft>0?`<button class="fkf-undo" id="fkUndo" onclick="wsFinishUndo()">Undo · ${undoLeft}s</button>`:''}
@@ -17471,6 +17622,121 @@ function wsIsWorkSet(s){ return !!s && s.completed!==false && !s.warmup; }
 // v59: the calendar day a record belongs to: its own stored day if it has one
 // (v59+), otherwise the phone's local day of its timestamp.
 function wsRecordDayKey(rec){ return (rec&&rec.localDate)||wsLocalDayKey(rec&&rec.date); }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   v61 — BACKUP REMINDERS AND UPDATES
+   ────────────────────────────────────────────────────────────────────────────
+   Your log lives only on this phone, so a backup file is the real safety net.
+   The reminder appears in the one calm moment there is: the summary after you
+   log a session. It is quiet, it can be put off, and it can be switched off.
+   "Check for updates" says which version you have and whether a newer one is
+   waiting, so you never have to guess whether the phone picked it up.
+   Only function declarations here (they hoist across the joined script).
+   ════════════════════════════════════════════════════════════════════════════ */
+
+// Due when there is something worth saving: never backed up and 3+ sessions,
+// or a week since the last backup with at least one new session since. Not
+// while put off ("Later": 3 days), and never when switched off.
+function wsBackupRemindOn(){ try{ return settings.backupRemind!==false; }catch(_){ return true; } }
+function wsBackupDue(){
+  try{
+    if(!wsBackupRemindOn()) return null;
+    const now=Date.now();
+    if(settings._backupSnoozeUntil && settings._backupSnoozeUntil>now) return null;
+    const hist=Array.isArray(HISTORY)?HISTORY:[];
+    const last=settings._lastBackupAt||0;
+    const fresh=hist.filter(r=>{ const t=new Date(r&&r.date).getTime(); return !isNaN(t) && t>last; }).length;
+    const age=wsBackupAgeDays();
+    if(age===null) return hist.length>=3 ? {age:null, fresh:fresh} : null;
+    if(age>=7 && fresh>=1) return {age:age, fresh:fresh};
+    return null;
+  }catch(_){ return null; }
+}
+function wsBackupAgeText(age){
+  if(age===null) return 'Never backed up';
+  if(age===0) return 'Backed up today';
+  return 'Last backup '+age+(age===1?' day':' days')+' ago';
+}
+function wsBackupReminderHtml(){
+  const due=wsBackupDue(); if(!due) return '';
+  const what=due.age===null
+    ? 'Never backed up. Your log lives only on this phone.'
+    : wsBackupAgeText(due.age)+' · '+due.fresh+' new session'+(due.fresh===1?'':'s')+' since.';
+  return `<div class="fkb" id="fkBackup" role="region" aria-label="Backup reminder">
+    <div class="fkb-t">${what}</div>
+    <div class="fkb-row">
+      <button class="fkb-go" onclick="wsBackupNow()">Back up now</button>
+      <button class="fkb-later" onclick="wsBackupLater()">Later</button>
+    </div>
+  </div>`;
+}
+function wsBackupNow(){
+  wsBackupDownload();
+  // the date is recorded only once the file has gone somewhere; refresh then
+  setTimeout(()=>{ try{ if(!wsBackupDue()){ const b=document.getElementById('fkBackup'); if(b) b.remove(); } }catch(_){} },1500);
+}
+function wsBackupLater(){
+  try{ settings._backupSnoozeUntil=Date.now()+3*864e5; wsPersistSave(); }catch(_){}
+  const b=document.getElementById('fkBackup'); if(b) b.remove();
+}
+function wsSetBackupRemind(on){
+  try{ settings.backupRemind=!!on; wsPersistSave(); }catch(_){}
+  const t=document.getElementById('togBackupRemind'); if(t) t.classList.toggle('on',!!on);
+}
+// Settings: the data row says how old the last backup is.
+function wsSettingsBackupSync(){
+  try{
+    const sub=document.getElementById('dataRowSub'); if(!sub) return;
+    const age=wsBackupAgeDays(), n=(Array.isArray(HISTORY)?HISTORY:[]).length;
+    const stale=(age===null&&n>0)||(age!==null&&age>=7);
+    sub.textContent=wsBackupAgeText(age)+(n?' · '+n+' session'+(n===1?'':'s')+' on this phone':'');
+    sub.classList.toggle('stale',stale);
+    const t=document.getElementById('togBackupRemind'); if(t) t.classList.toggle('on',wsBackupRemindOn());
+  }catch(_){}
+}
+
+// ── updates ──────────────────────────────────────────────────────────────────
+// Reads the version from the live index.html (bypassing the offline cache via
+// the ?gains-check marker the service worker lets through), and if it is newer,
+// asks the service worker to fetch it now so it opens next time.
+function wsParseVersion(html){ const m=String(html||'').match(/const GAINS_VERSION='(\d+)'/); return m?m[1]:null; }
+function wsUpdateSub(html){ const s=document.getElementById('appVerSub'); if(s) s.innerHTML=html; }
+async function wsCheckUpdate(){
+  const btn=document.getElementById('appVerBtn');
+  if(btn) btn.disabled=true;
+  wsUpdateSub('Gains v'+GAINS_VERSION+' · checking…');
+  try{
+    const res=await fetch('./index.html?gains-check='+Date.now(),{cache:'no-store'});
+    if(!res.ok) throw new Error('http '+res.status);
+    const latest=wsParseVersion(await res.text());
+    if(!latest) throw new Error('no version');
+    if(+latest<=+GAINS_VERSION){ wsUpdateSub('Gains v'+GAINS_VERSION+' · up to date'); return 'current'; }
+    try{
+      const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+      if(reg){ await reg.update(); await wsWaitForWorker(reg,15000); }
+    }catch(_){}
+    const busy=!!(DAYS[curDay]&&!DAYS[curDay].logged&&wsDayHasWorkSafe());
+    wsUpdateSub('v'+wsEscape(latest)+' is ready · it opens next time you open the app'+
+      `<button class="ws-upd-restart" onclick="wsRestartForUpdate()">${busy?'Restart now (your ticked sets are kept)':'Restart now'}</button>`);
+    return 'ready';
+  }catch(e){
+    wsUpdateSub('Gains v'+GAINS_VERSION+' · couldn’t check'+(navigator.onLine===false?' (offline)':''));
+    return 'error';
+  }finally{ if(btn) btn.disabled=false; }
+}
+function wsWaitForWorker(reg,ms){
+  return new Promise(res=>{
+    const w=reg.installing||reg.waiting;
+    if(!w){ res(); return; }
+    const done=()=>{ if(w.state==='activated'||w.state==='redundant') res(); };
+    w.addEventListener('statechange',done); done();
+    setTimeout(res,ms);
+  });
+}
+function wsRestartForUpdate(){
+  try{ wsPersistFlush(); }catch(_){}
+  location.reload();
+}
 </script>
 </body>
 </html>

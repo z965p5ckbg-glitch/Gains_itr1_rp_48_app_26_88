@@ -118,7 +118,7 @@ function wsPkRender(){
     }
     lastTitle=titleKey;
     const isSelected=wsPkState.selected.has(e.exId);
-    html+=`<div class="ws-pk-row ${isSelected?'selected':''}" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsPkToggle('${wsLibEscapeHtml(e.exId)}')">
+    html+=`<div class="ws-pk-row ${isSelected?'selected':''}" data-ex-id="${wsLibEscapeHtml(e.exId)}" onclick="wsPkToggle('${wsJs(e.exId)}')">
       <div class="ws-pk-row-text">
         <div class="ws-pk-row-title">${wsLibEscapeHtml(e.title||'(untitled)')}</div>
         <div class="ws-pk-row-sub">${wsLibEscapeHtml(e.subtitle||'')}</div>
@@ -136,7 +136,7 @@ function wsPkToggle(exId){
   if(wsPkState.selected.has(exId)) wsPkState.selected.delete(exId);
   else wsPkState.selected.add(exId);
   // Re-render just the affected row + the Add button
-  const row=document.querySelector(`.ws-pk-row[data-ex-id="${exId}"]`);
+  const row=document.querySelector(`.ws-pk-row[data-ex-id="${(window.CSS&&CSS.escape)?CSS.escape(exId):exId}"]`);
   if(row) row.classList.toggle('selected',wsPkState.selected.has(exId));
   wsPkUpdateAddBtn();
 }
