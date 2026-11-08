@@ -136,7 +136,7 @@ function wsDayCardHtml(d,i,isActive){
       <div class="ws-day-title">${d.titleHtml}</div>
     </div>
     <div>
-      <div class="ws-day-label">${d.label}</div>
+      <div class="ws-day-label">${wsEscape(d.label)}</div>
       <div class="ws-day-meta">${wsDayCount(d)}</div>
     </div>
   </div>`;

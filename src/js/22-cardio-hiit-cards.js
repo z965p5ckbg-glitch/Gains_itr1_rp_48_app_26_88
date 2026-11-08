@@ -591,19 +591,19 @@ function wsHiitState(ex,ei){
     time=fmtMS(totalSec);
     sub='Tap to begin';
   } else if(isSetup){
-    bigCls='setup'; counter='Get ready'; name=segs[0]?.label||'Get set';
+    bigCls='setup'; counter='Get ready'; name=wsEscape(segs[0]?.label||'Get set');   // v59: step names are text
     time=fmt(ex.phaseLeft); sub='Tap to pause';
   } else if(rb){
     bigCls='rbreak'; counter=`Round ${curRound+1} complete`; name='Round break';
     time=fmt(ex.phaseLeft); sub='Tap to pause';
   } else if(isWork||isRest){
     bigCls=ex.phase; counter=isAm?`Round ${curRound+1} · AMRAP`:`Round ${curRound+1} of ${totalRounds}`;
-    name=isWork?((cur&&cur.label)||'Work'):'Rest';
+    name=isWork?wsEscape((cur&&cur.label)||'Work'):'Rest';
     time=fmt(ex.phaseLeft); sub='Tap to pause';
   } else if(isPaused){
     bigCls='paused'; counter='Paused';
     const ps=ex._pausedPhase==='setup'?(segs[0]||{}):cur;
-    name=(ps&&(ps.roundRest?'Round break':ps.label))||'Paused';
+    name=wsEscape((ps&&(ps.roundRest?'Round break':ps.label))||'Paused');
     time=fmt(ex.phaseLeft); sub='Tap to resume';
   } else {
     bigCls='done'; counter='Complete';

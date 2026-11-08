@@ -267,7 +267,7 @@ function renderTabs(){
   const tabsHtml=DAYS
     .map((d,i)=>({d,i}))
     .filter(({d})=>d.published!==false)
-    .map(({d,i})=>`<div class="d-tab${i===curDay?' active':''}" onclick="switchDay(${i})">${d.label}</div>`)
+    .map(({d,i})=>`<div class="d-tab${i===curDay?' active':''}" onclick="switchDay(${i})">${wsEscape(d.label)}</div>`)
     .join('');
   el.innerHTML=tabsHtml+'<div class="d-tab add">+</div>';
   requestAnimationFrame(()=>{const fade=document.getElementById('tabsFade');if(fade) fade.classList.toggle('show',el.scrollWidth>el.clientWidth);});

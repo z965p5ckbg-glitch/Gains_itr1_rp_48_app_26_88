@@ -1,0 +1,49 @@
+/* ─── v59 ──────────────────────────────────────────────────────────────────── */
+
+/* Legibility: on the workout screen nothing that carries meaning is smaller
+   than 13px, and running text is at least 14px. */
+.fk-last,.fk-idx,.fk-setn,.fk-pair,.fk-setbtn,.fk-ss-head,.fk-prog-count em,.fkr-sh-k,.fkr-sh-scale,.fk-sl-lbl,.fk-steprow,.fkf-k,.fkf-stats span,.fkf-h,.fkf-tag{font-size:13px}
+.fk-sub,.fkr-next,.fkr-sub,.fkr-sh-note,.fkf-v,.fkf-skip,.fkf-note,.fkr-sh-left{font-size:14px}
+
+/* the timer: round start/pause button with its progress ring, progress bar */
+.fkr.fkr-v59{background:var(--fk-rest-bg);padding:10px 10px 12px 10px;gap:8px}
+.fkr-v59 .fkr-top{gap:8px}
+.fkr-roundbtn{position:relative;width:60px;height:60px;flex-shrink:0;border:none;border-radius:50%;background:rgba(111,179,224,.10);display:flex;align-items:center;justify-content:center;padding:0}
+.fkr-roundbtn > svg:not(.fkr-ring){position:relative;width:22px;height:22px}
+.fkr-roundbtn .fkr-fillsvg{fill:var(--fk-rest)}
+.fkr-roundbtn.small{width:44px;height:44px;margin:0 2px}
+.fkr-roundbtn.small > svg:not(.fkr-ring){width:16px;height:16px}
+.fkr-ring{position:absolute;inset:0;width:100%;height:100%}
+.fkr-ring-bg{fill:none;stroke:rgba(111,179,224,.18);stroke-width:4}
+.fkr-ring-fg{fill:none;stroke:var(--fk-rest);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .9s linear}
+.fkr[data-state="idle"] .fkr-roundbtn{background:var(--fk-rest)}
+.fkr[data-state="idle"] .fkr-roundbtn .fkr-fillsvg{fill:#0d1620}
+.fkr[data-state="idle"] .fkr-ring-fg{stroke:transparent}
+.fkr-v59 .fkr-time{flex-direction:column;align-items:flex-start;gap:2px;justify-content:center}
+.fkr-v59 .fkr-time .fkr-t{font-size:38px;line-height:.95}
+.fkr-ctrls3{grid-template-columns:1fr 1fr 1fr}
+.fkr-bar-bottom{left:0;bottom:0;height:4px;border-radius:0 2px 2px 0}
+.fkr.fkr-mini{align-items:center}
+@media (prefers-reduced-motion: reduce){ .fkr-ring-fg{transition:none} }
+
+/* narrow phones (under 375pt): the check moves to its own line rather than
+   letting the weight, reps and check controls overlap */
+/* groups never squeeze below their buttons' width (they used to shrink and
+   overlap their neighbours); on narrow phones the row wraps instead */
+.set-row.fk-active .val-group{flex:0 0 auto;width:auto}
+@media (max-width: 374px){
+  .set-row.fk-active{flex-wrap:wrap;row-gap:8px}
+  .set-row.fk-active .set-check{margin-left:auto}
+}
+
+/* the set sheet: the step chooser is folded until asked for */
+.fk-steptoggle{display:block;width:100%;min-height:44px;margin-top:2px;border:none;background:none;text-align:left;padding:0;font-family:'DM Mono',monospace;font-size:13px;color:var(--tx3)}
+.fk-steptoggle b{color:var(--tx);font-weight:500}
+.fk-sliders .fk-steprow{display:none}
+.fk-sliders.steps-open .fk-steprow{display:flex}
+
+/* undo in a toast */
+.ws-toast.on.has-undo{pointer-events:auto}
+.ws-toast-undo{margin-left:12px;min-height:36px;padding:0 10px;border:none;border-radius:8px;background:var(--tx);color:var(--bg);font-family:'DM Mono',monospace;font-size:13px}
+/* the fields above already name the sliders; keep the labels for screen readers only */
+.fk-sl-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

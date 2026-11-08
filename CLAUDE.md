@@ -73,6 +73,9 @@ The full reasoning is in `docs/DECISIONS.md`. The short version:
   `connect-src 'self'`, so the page cannot contact any other server, and fonts
   are embedded. Don't add a CDN, analytics, or a script from anywhere else. If a
   feature seems to need one, raise it first.
+- **Escape everything that came from data.** Names, labels, cues and anything
+  read from a backup or import file go through `wsEscape` before entering
+  HTML (`17-review-fixes` injects markup and checks nothing runs).
 - **No credentials in the app.** The AI coach is "copy a brief into your own AI".
   An API key in the browser was considered and rejected (see DECISIONS).
 - Whoever can push to `main` controls the code that reads the user's data.

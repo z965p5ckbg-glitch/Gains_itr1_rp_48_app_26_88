@@ -24,13 +24,11 @@ export default async function (t) {
     t.ok(/rgba\(0, 0, 0, 0\)|transparent/.test(ring.stroke), 'an unticked set shows an empty ring, no tick inside', ring);
 
     // ── counter and time
-    const head = await page.evaluate(() => ({ count: document.querySelector('.fk-prog-count').innerText.replace(/\s+/g, ' '), color: getComputedStyle(document.querySelector('.fk-prog-count b')).color, size: parseFloat(getComputedStyle(document.querySelector('.fk-prog-count b')).fontSize), time: document.getElementById('fkElapsed').textContent }));
+    const head = await page.evaluate(() => ({ count: document.querySelector('.fk-prog-count').innerText.replace(/\s+/g, ' '), color: getComputedStyle(document.querySelector('.fk-prog-count b')).color, size: parseFloat(getComputedStyle(document.querySelector('.fk-prog-count b')).fontSize), time: (document.getElementById('fkElapsed') || {}).textContent || null }));
     t.ok(/^0 ?\/\d+ ?SETS$/.test(head.count) && head.size >= 32, 'the set counter is large', head);
     t.ok(head.color === 'rgb(240, 120, 48)', 'and orange', head.color);
-    t.ok(/NOT STARTED/.test(head.time), 'before the first set, the time line says not started', head.time);
+    t.ok(head.time === null, 'there is no elapsed-time line (dropped in v59)', head.time);
     await tapCheck(phone, 0);
-    const t1 = await page.evaluate(() => document.getElementById('fkElapsed').textContent);
-    t.ok(/^STARTED \d\d:\d\d · 0 MIN IN$/.test(t1), 'after the first set it says when you started and how long you have been going', t1);
 
     // ── SETS − n +
     const n0 = await page.evaluate(() => DAYS[curDay].items[0].sets.length);
@@ -45,25 +43,28 @@ export default async function (t) {
     const w0 = await page.evaluate(() => DAYS[curDay].items[0].sets[1].w);
     await clickLabel(page, 'More weight'); await wait(150);
     const w1 = await page.evaluate(() => DAYS[curDay].items[0].sets[1].w);
-    t.ok(step0 === 2.5 && w1 === w0 + 2.5, 'a barbell lift steps by 2.5 kg by default', [step0, w0, w1]);
+    t.ok(step0 === 0.5 && w1 === w0 + 0.5, 'a big lift steps by 0.5 kg by default (v59: by exercise, not equipment)', [step0, w0, w1]);
+    const smallStep = await page.evaluate(() => wsWStepDefault({ name: 'Dumbbell lateral raise' }));
+    t.ok(smallStep === 0.25, 'a smaller lift steps by 0.25 kg', smallStep);
 
     // ── tap the value: the sheet has sliders and the step chooser
     await page.evaluate(() => document.querySelector('.set-row.fk-active .val-tap').click()); await wait(400);
     const sheet = await page.evaluate(() => ({ open: document.getElementById('overlay').classList.contains('open'), w: document.getElementById('wRange'), r: !!document.getElementById('rRange'), chips: [...document.querySelectorAll('.fk-stepchip')].map(b => b.textContent + (b.classList.contains('on') ? '*' : '')) }));
-    t.ok(sheet.open && sheet.r && sheet.chips.includes('2.5*'), 'tapping a value opens the sheet with weight and reps sliders and the step chooser', sheet);
+    t.ok(sheet.open && sheet.r && sheet.chips.includes('0.5*'), 'tapping a value opens the sheet with weight and reps sliders and the step chooser', sheet);
     const rng = await page.evaluate(() => { const r = document.getElementById('wRange'); return { step: +r.step, min: +r.min, max: +r.max, value: +r.value }; });
-    t.ok(rng.step === 2.5 && rng.min < rng.value && rng.max > rng.value, 'the weight slider moves in the exercise step around the current weight', rng);
+    t.ok(rng.step === 0.5 && rng.min < rng.value && rng.max > rng.value, 'the weight slider moves in the exercise step around the current weight', rng);
     await setVal(page, '#wRange', rng.value + 5); await setVal(page, '#rRange', 6); await wait(100);
     const shown = await page.evaluate(() => [document.getElementById('wVal').textContent, document.getElementById('rVal').textContent]);
     t.ok(+shown[0] === rng.value + 5 && shown[1] === '6', 'the sliders update the numbers shown', shown);
-    // choose a 0.5 kg step: + in the sheet now moves by 0.5, and it is remembered for this lift
-    await page.evaluate(() => [...document.querySelectorAll('.fk-stepchip')].find(b => b.textContent === '0.5').click()); await wait(100);
+    // choose a 0.25 kg step: + in the sheet now moves by a quarter, and it is remembered for this lift
+    await page.evaluate(() => document.querySelector('.fk-steptoggle').click()); await wait(100);
+    await page.evaluate(() => [...document.querySelectorAll('.fk-stepchip')].find(b => b.textContent === '0.25').click()); await wait(100);
     await page.click('[onclick="stepW(1)"]'); await wait(100);
     const afterFine = await page.evaluate(() => +document.getElementById('wVal').textContent);
-    t.ok(afterFine === rng.value + 5.5, 'choosing 0.5 makes + move by half a kilo', afterFine);
+    t.ok(afterFine === rng.value + 5.25, 'choosing 0.25 makes + move by a quarter kilo', afterFine);
     await page.click('#saveSetBtn'); await wait(900);
     const saved = await page.evaluate(() => { const s = DAYS[curDay].items[0].sets[1]; return { w: s.w, r: s.r, step: wsWStep(DAYS[curDay].items[0]) }; });
-    t.ok(saved.w === rng.value + 5.5 && saved.r === 6 && saved.step === 0.5, 'saving keeps the values, and the step stays chosen for this lift', saved);
+    t.ok(saved.w === rng.value + 5.25 && saved.r === 6 && saved.step === 0.25, 'saving keeps the values, and the step stays chosen for this lift', saved);
 
     // ── supersets: pair exercise 1 with 2
     await page.evaluate(() => wsSetRestAuto(true));

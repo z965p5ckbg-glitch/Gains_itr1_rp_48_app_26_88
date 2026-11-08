@@ -449,8 +449,11 @@ function saveWsDayEdit(){
   wsToast('Day saved');
 }
 
+// v59: safe for text AND attribute values, and for anything that isn't a
+// string (numbers, missing values). Data from a backup or import file is
+// untrusted: it must always be shown as text, never run.
 function wsEscape(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 // ──────────── Create new day ────────────

@@ -93,7 +93,7 @@ function wsProgSessionPoint(e, t, dateISO){
   if(e.kind==='weighted'||e.kind==='bodyweight'){
     let bestE=null, topW=null, topReps=null, totReps=0, sets=0;
     for(const st of (e.sets||[])){
-      if(st.completed===false) continue;
+      if(!wsIsWorkSet(st)) continue;
       sets++; totReps+=(st.reps||0);
       const v=wsProgSetE1RM(st);
       if(v!=null&&(bestE==null||v>bestE)) bestE=v;
@@ -103,7 +103,7 @@ function wsProgSessionPoint(e, t, dateISO){
     }
     let vol=0;
     for(const st of (e.sets||[])){
-      if(st.completed===false) continue;
+      if(!wsIsWorkSet(st)) continue;
       const w=(typeof st.weightKg==='number')?st.weightKg:(typeof st.offsetKg==='number'?st.offsetKg:0);
       vol+=(st.reps||0)*w;
     }
@@ -330,7 +330,7 @@ function wsProgLoadTrend(){
     let sets=0;
     for(const e of (r.entries||[])){
       if(e.kind!=='weighted'&&e.kind!=='bodyweight') continue;
-      for(const st of (e.sets||[])) if(st.completed!==false) sets++;
+      for(const st of (e.sets||[])) if(wsIsWorkSet(st)) sets++;
     }
     if(t>refT-7*D && t<=refT) a+=sets;
     if(t>refT-28*D && t<=refT) c+=sets;
@@ -364,11 +364,11 @@ function wsProgDayGrid(){
   const byDay={};
   for(const r of hist){
     const t=new Date(r.date).getTime(); if(isNaN(t)||t<start) continue;
-    const dk=wsLocalDayKey(t);
+    const dk=wsRecordDayKey(r);
     let sets=0;
     for(const e of (r.entries||[])){
       if(e.kind==='weighted'||e.kind==='bodyweight'){
-        for(const st of (e.sets||[])) if(st.completed!==false) sets++;
+        for(const st of (e.sets||[])) if(wsIsWorkSet(st)) sets++;
       } else sets+=1; // a cardio/circuit session marks the day active
     }
     byDay[dk]=(byDay[dk]||0)+sets;
@@ -395,7 +395,7 @@ function wsProgMuscleWeekly(frame){
     let counted=false;
     for(const e of (rec.entries||[])){
       if(e.kind!=='weighted'&&e.kind!=='bodyweight') continue;
-      let sets=0; for(const st of (e.sets||[])) if(st.completed!==false) sets++;
+      let sets=0; for(const st of (e.sets||[])) if(wsIsWorkSet(st)) sets++;
       if(!sets) continue;
       counted=true;
       const ms=(e.muscles&&e.muscles.length)?e.muscles:['Other'];
@@ -418,10 +418,10 @@ function wsProgSummary(frame){
     const t=new Date(rec.date).getTime();
     if(isNaN(t)||t<cutoff) continue;
     sessions++;
-    days.add(wsLocalDayKey(t));
+    days.add(wsRecordDayKey(rec));
     for(const e of (rec.entries||[])){
       if(e.kind==='weighted'||e.kind==='bodyweight'){
-        for(const st of (e.sets||[])) if(st.completed!==false) sets++;
+        for(const st of (e.sets||[])) if(wsIsWorkSet(st)) sets++;
       }
     }
   }

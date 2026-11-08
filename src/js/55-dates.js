@@ -28,3 +28,10 @@ function wsAddDays(t,n){
 function wsDeviceTimeZone(){
   try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(_){ return ''; }
 }
+
+// v59: a working set is a completed set that is not a warm-up. Every count of
+// sets, volume, reps and records uses this one rule.
+function wsIsWorkSet(s){ return !!s && s.completed!==false && !s.warmup; }
+// v59: the calendar day a record belongs to: its own stored day if it has one
+// (v59+), otherwise the phone's local day of its timestamp.
+function wsRecordDayKey(rec){ return (rec&&rec.localDate)||wsLocalDayKey(rec&&rec.date); }

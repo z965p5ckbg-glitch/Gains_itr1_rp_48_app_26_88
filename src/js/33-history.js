@@ -40,15 +40,15 @@ function hiSetVolume(s){
 }
 function hiEntryVolume(e){
   if(!Array.isArray(e.sets)) return 0;
-  return e.sets.reduce((sum,s)=> s.completed!==false ? sum+hiSetVolume(s) : sum, 0);
+  return e.sets.reduce((sum,s)=> wsIsWorkSet(s) ? sum+hiSetVolume(s) : sum, 0);
 }
 function hiEntrySetCount(e){
   if(!Array.isArray(e.sets)) return 0;
-  return e.sets.filter(s=>s.completed!==false).length;
+  return e.sets.filter(s=>wsIsWorkSet(s)).length;
 }
 function hiEntryReps(e){
   if(!Array.isArray(e.sets)) return 0;
-  return e.sets.reduce((n,s)=> s.completed!==false ? n+(s.reps||0) : n, 0);
+  return e.sets.reduce((n,s)=> wsIsWorkSet(s) ? n+(s.reps||0) : n, 0);
 }
 function hiEntryTopLoad(e){
   if(!Array.isArray(e.sets)) return 0;
@@ -60,7 +60,7 @@ function hiEntryTopLoad(e){
 // Top reps in a single completed set (used for bodyweight display).
 function hiEntryTopReps(e){
   if(!Array.isArray(e.sets)) return 0;
-  return e.sets.reduce((m,s)=> (s.completed!==false && (s.reps||0)>m) ? s.reps : m, 0);
+  return e.sets.reduce((m,s)=> (wsIsWorkSet(s) && (s.reps||0)>m) ? s.reps : m, 0);
 }
 // Max added load (offset) across sets — for weighted-bodyweight like weighted pull-ups.
 function hiEntryTopOffset(e){

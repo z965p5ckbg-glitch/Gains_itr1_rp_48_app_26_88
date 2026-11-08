@@ -118,7 +118,7 @@ function renderExCard(ex,ei,shimmer){
       <span class="fk-idx">${complete?'DONE · ':''}${idx}</span>
     </div>
     <div class="fk-last">${last?wsEscape(last.text):'No earlier sessions'}</div>
-    ${ex.cue?`<div class="ex-cue fk-cue">${ex.cue}</div>`:''}
+    ${ex.cue?`<div class="ex-cue fk-cue">${wsEscape(ex.cue)}</div>`:''}
     <div class="fk-segs" aria-hidden="true">${(ex.sets||[]).map((s,si)=>`<span class="fk-seg${s._logged?' done':(si===next?' next':'')}"></span>`).join('')}</div>
     <div class="set-list fk-list">`;
   ex.sets.forEach((s,si)=>{
@@ -173,8 +173,9 @@ function renderExCard(ex,ei,shimmer){
 // Format a weight for the row display: drop the trailing .0 on whole numbers
 // (20 not 20.0), keep the .5 on halves (20.5).
 function fmtSetW(w){
-  const n=Number(w)||0;
-  return Number.isInteger(n)?String(n):n.toFixed(1);
+  // v59: up to two decimals, so quarter-kilo steps show exactly (70.75, not 70.8)
+  const n=Math.round((Number(w)||0)*100)/100;
+  return String(n);
 }
 
 // Inline stepper for a set's weight/reps. Weight steps by exactly 1 (halves

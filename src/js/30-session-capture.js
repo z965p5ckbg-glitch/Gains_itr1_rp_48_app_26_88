@@ -41,8 +41,12 @@ function captureSessionRecord(dayIdx){
         } else {
           rec.weightKg = s.w||0;
         }
-        // actual rest is captured only if a timer ran (absent otherwise)
-        if(typeof s._restActual==='number') rec.restSec=s._restActual;
+        // v59: a warm-up stays a warm-up in History (it used to be dropped
+        // here, so every analysis counted warm-ups as working sets).
+        if(s.warmup) rec.warmup=true;
+        // v59: when the set was ticked, as a raw fact. Rest taken between sets
+        // can be read from these later; nothing is estimated or invented.
+        if(typeof s._doneAt==='number') rec.doneAt=new Date(s._doneAt).toISOString();
         entry.sets.push(rec);
       });
     } else if(kind==='cardio_time' || kind==='cardio_distance'){
@@ -93,13 +97,21 @@ function captureSessionRecord(dayIdx){
     if(wsItemPerformed(ex, entry)) entries.push(entry);
   }
   if(!entries.length) return null;   // nothing performed -> no session
+  const now=Date.now();
   const rec={
     id:wsNewSessionId(),
     dayExId: d.dayExId || d.label || null,
     dayLabel: wsLibDayDisplayName?wsLibDayDisplayName(d):(d.label||''),
-    date: new Date().toISOString(),
+    date: new Date(now).toISOString(),
+    // v59: the session's own calendar day and time zone, fixed at the moment
+    // it happened, so a later trip abroad can't move it to another day.
+    localDate: wsLocalDayKey(now),
+    timeZone: wsDeviceTimeZone()||undefined,
     entries,
   };
+  // v59: start and end belong to the record, not to the day's working state
+  if(d._startedAt) rec.startedAt=new Date(d._startedAt).toISOString();
+  rec.endedAt=rec.date;
   return rec;
 }
 

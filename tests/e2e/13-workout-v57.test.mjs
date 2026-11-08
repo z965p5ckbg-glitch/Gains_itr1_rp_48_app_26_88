@@ -34,7 +34,7 @@ export default async function (t) {
     // ── by default rest waits under the ticked set until you start it (v58)
     let e = await ex0(page);
     t.ok(e.rs === 'idle' && e.row === 0, 'by default, ticking puts a ready timer under the set without starting it', e);
-    t.ok(/REST 1:30/.test(await restText(page)) && await page.$('.fkr-ctrls [aria-label="Start rest"]') !== null, 'the waiting timer shows its length and a start button', await restText(page));
+    t.ok(/REST 1:30/.test(await restText(page)) && await page.$('.fkr [aria-label="Start rest"]') !== null, 'the waiting timer shows its length and a start button', await restText(page));
     t.ok(await clickLabel(page, 'Start rest'), 'tap start');
     await wait(300);
     e = await ex0(page);
@@ -148,7 +148,7 @@ export default async function (t) {
     const shownSets = +((/(\d+)\s*\n\s*SETS?/.exec(f) || [])[1]);
     t.ok(shownSets === ticked, 'the summary counts exactly the sets you ticked', [shownSets, ticked]);
     t.ok(/120 × 5/.test(f), 'and shows the numbers you actually used', f.slice(0, 400));
-    t.ok(/RECORD/.test(f), 'a new best is called a record', f.slice(0, 600));
+    t.ok(/BEST EST\. 1RM/.test(f), 'a new best estimated 1RM is named as an estimate', f.slice(0, 600));
     t.ok(/Not done, so not saved:[^\n]*Face Pull/i.test(f), 'untouched exercises are listed as not saved', (f.match(/Not done[^\n]*/) || [''])[0]);
     t.ok(await page.evaluate(() => HISTORY.length) === histBefore + 1, 'one record was saved');
 

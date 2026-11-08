@@ -197,7 +197,7 @@ function wsProgDaysHtml(){
     let sets=0, vol=0;
     for(const e of (r.entries||[])){
       if(e.kind==='weighted'||e.kind==='bodyweight'){
-        for(const st of (e.sets||[])){ if(st.completed===false) continue; sets++;
+        for(const st of (e.sets||[])){ if(!wsIsWorkSet(st)) continue; sets++;
           const w=(typeof st.weightKg==='number')?st.weightKg:(typeof st.offsetKg==='number'?st.offsetKg:0);
           vol+=(st.reps||0)*w; }
       }

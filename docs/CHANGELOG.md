@@ -7,6 +7,24 @@ the project's original notes and isn't repeated here.
 > **v45–v54 were built but never deployed.** The phone ran v44 until v55, so
 > v55 is the first time any of the v45–v54 work reaches it.
 
+## v59: what the independent review proved, plus the timer and stepper notes
+**Your records are trustworthy**
+- Warm-ups stay warm-ups in History. They were dropped when a session was saved, so every count, volume, record and trend treated warm-ups as working sets. (Sessions saved before v59 can't be repaired: the information wasn't kept.)
+- Logging is all-or-nothing. The record is built and saved first; only then is the day marked logged. If either step fails, the day stays open with every tick and you're told so.
+- Each saved session keeps its own local day, time zone, start and end, and each set the moment it was ticked. A trip abroad can't move a session to another day, and the summary's duration comes from the record.
+- Removing a set is saved straight away, and removing one you'd done offers Undo.
+- Messages now actually appear. They lived inside the plan editor's hidden panel, so on other screens you never saw them, including "Not saving — export a backup now".
+- Text from your data (exercise names, cues, day labels, interval steps) is always shown as text and can never run as code, including from an imported or restored file.
+
+**Workout screen**
+- Supersets: ticking A2 before A1 no longer starts the rest; a round is done when every exercise in it has done its set, in any order.
+- The summary says exactly what moved: BEST EST. 1RM (an estimate, named as one), TOP WEIGHT UP, +1 SET, +2 REPS, or SAME. One more set than last time used to read "held".
+- Shortening a rest below the time already rested ends it (it used to sit on 0:01). When the app comes back from the lock screen, rests settle at once from the clock.
+- The timer is back to the earlier design's round start/pause button, with a ring that fills as you rest and a progress bar along the bottom, inside the new inline card. −15 s, +15 s and Skip below; tap the time for the slider; sound and shrink at the top right.
+- Weight steps are chosen by exercise: big lifts move by 0.5 kg, smaller lifts by 0.25 kg, changeable per exercise in the set sheet (where the step chooser is now folded away). Weights show quarter kilos exactly (70.75, not 70.8).
+- On phones narrower than 375pt the next-set row wraps instead of letting its buttons overlap.
+- The elapsed-time line is gone. Small text on the workout screen is at least 13px; running text at least 14px.
+
 ## v58: the workout screen, second pass (built on v57, which was never deployed)
 - **Rest waits for you by default.** Ticking a set puts the timer under it, ready; tap ▶ to start. "Start rest automatically" is in Settings and in the rest sheet.
 - **The timer keeps the old one's controls in the new look**: start/pause, −15 / +15, Skip, sound on/off, shrink to a slim bar (with its own play button), and tap the time to set the length with one slider. One rule for every change: the rest is a length you are partway through, so changing the length moves the time left by the same amount, and both are always shown ("1:20 · Left · of 1:45"). The sheet shows the live time left as you drag.

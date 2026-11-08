@@ -161,6 +161,15 @@ the app, never inferred from history.
   local calendar days (`wsLocalDayKey`); stepping uses the calendar
   (`wsAddDays`), never ×86400000; the time zone is the phone's own. See
   `55-dates.js`. `16-time-zones` and `14-clock-change` guard it.
+- **v59: data-derived text is never HTML.** Anything that came from the
+  user's data or a file (names, labels, cues, step names) goes through
+  `wsEscape` before it enters a template. The page allows inline script, so
+  this is the line between a backup file and code execution.
+- **v59: a record is a set of facts fixed at capture.** Local day, time zone,
+  start, end, warm-up flags and tick times are stored on it; nothing that reads
+  history depends on the working day's state.
+- **v59: one rule for a working set** (`wsIsWorkSet`: completed, not a warm-up),
+  used by every count, volume, record and trend.
 - **No Liquid Glass.** Translucency costs legibility and battery and needs live
   blur. A gym app is read sweaty, at arm's length, sometimes upside down on a
   bench. Opaque, high contrast and big numerals win. The principles (clarity,
